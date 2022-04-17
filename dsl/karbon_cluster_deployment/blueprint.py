@@ -387,6 +387,16 @@ class DeveloperWorkstation(Service):
             target=ref(DeveloperWorkstation),
             cred=NutanixCred
         )
+    dsl/karbon_cluster_deployment/scripts/create_k8s_cluster/configure_dynamic_files_sc.sh
+
+    @action
+    def ConfigureDynamicNFS(name="Configure Nutanix Files Dynamic Provisioner"):
+        CalmTask.Exec.ssh(
+            name="Configure Nutanix Files Dynamic Provisioner",
+            filename="../_common/karbon/scripts/configure_dynamic_files_sc.sh",
+            target=ref(DeveloperWorkstation),
+            cred=NutanixCred
+        )
 
     @action
     def DeleteKarbonCluster(name="Delete Karbon Cluster"):
@@ -594,13 +604,6 @@ class DeveloperWorkstationPackage(Package):
 
     @action
     def __install__():
-        # DeveloperWorkstation.ConfigureUser(name="Configure User")
-        # DeveloperWorkstation.InstallDocker(name="Install Docker")
-        # DeveloperWorkstation.InstallNodeJS(name="Install NodeJS")
-        # DeveloperWorkstation.InstallKubeCTL(name="Install KubeCTL")
-        # DeveloperWorkstation.InstallPackages(name="Install Required Packages")
-        # DeveloperWorkstation.InstallVim(name="Install Vim")
-        # DeveloperWorkstation.InstallDSL(name="Install DSL")
         DeveloperWorkstation.CreateKarbonCluster(name="Create Karbon Cluster")
         #DeveloperWorkstation.CreateProject(name="Create Project")
         DeveloperWorkstation.InstallMetalLB(name="Install MetalLB")
@@ -609,6 +612,7 @@ class DeveloperWorkstationPackage(Package):
         DeveloperWorkstation.InstallCertManager(name="Install Certificate Manager")
         DeveloperWorkstation.InstallIngressNginx(name="Install Ingress Nginx")
         DeveloperWorkstation.ConfigureK8sServiceAccount(name="Configure K8s Service Account")
+        DeveloperWorkstation.ConfigureDynamicNFS(name="Configure Nutanix Files Dynamic Provisioner")
 
     @action
     def __uninstall__():
@@ -692,7 +696,7 @@ class DeveloperWorkstationDeployment(Deployment):
 
 class Default(Profile):
     """
-    Default Application Deployment VMs profile.
+    Default Application profile.
     """
 
     deployments = [
@@ -703,6 +707,13 @@ class Default(Profile):
         label="Nutanix Public Key",
         is_hidden=True,
         description="SSH public key for the Nutanix user."
+    )
+    nutanix_files_nfs_fqdn = CalmVariable.Simple(
+        os.getenv("NUTANIX_FILES_NFS_FQDN"),
+        label="Nutanix Files NFS Server FQDN",
+        is_mandatory=True,
+        runtime=True,
+        description="Nutanix Files NFS Server FQDN. i.e., BootcampFS.ntnxlab.local"
     )
     domain_name = CalmVariable.Simple(
         os.getenv("DOMAIN_NAME"),

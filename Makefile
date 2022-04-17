@@ -45,7 +45,7 @@ init-dsl-config: print-vars ## Initialize calm dsl configuration with environmen
 
 ## Common BP command based on DSL_BP path passed in. To Run, make create-dsl-bps <dsl_bp_folder_name>
 
-create-dsl-bps launch-dsl-bps: init-dsl-config
+create-dsl-bps launch-dsl-bps delete-dsl-bps delete-dsl-apps: init-dsl-config
 
 create-dsl-bps: ### Create bp with corresponding git feature branch and short sha code. i.e., make create-dsl-bps DSL_BP=karbon_admin_ws
 	@make -C dsl/${DSL_BP} create-bp
@@ -53,10 +53,10 @@ create-dsl-bps: ### Create bp with corresponding git feature branch and short sh
 launch-dsl-bps: ### Launch Blueprint that matches your git feature branch and short sha code. i.e., make launch-dsl-bps DSL_BP=karbon_admin_ws
 	@make -C dsl/${DSL_BP} launch-bp
 
-delete-dsl-bps: print-vars ### Delete Blueprint that matches your git feature branch and short sha code. i.e., make delete-dsl-bps DSL_BP=karbon_admin_ws
+delete-dsl-bps: ### Delete Blueprint that matches your git feature branch and short sha code. i.e., make delete-dsl-bps DSL_BP=karbon_admin_ws
 	@make -C dsl/${DSL_BP} delete-bp
 
-delete-dsl-apps: print-vars	### Delete Application that matches your git feature branch and short sha code. i.e., make delete-dsl-apps DSL_BP=karbon_admin_ws
+delete-dsl-apps: ### Delete Application that matches your git feature branch and short sha code. i.e., make delete-dsl-apps DSL_BP=karbon_admin_ws
 	@make -C dsl/${DSL_BP} delete-app
 
 ## RELEASE MANAGEMENT
@@ -66,52 +66,54 @@ delete-dsl-apps: print-vars	### Delete Application that matches your git feature
 # If needing to publish from a previous commit/tag than current master HEAD, from master, run git reset --hard tagname to set local working copy to that point in time.
 # Run git reset --hard origin/master to return your local working copy back to latest master HEAD.
 
-publish-new-dsl-bps: print-vars
+publish-new-dsl-bps publish-existing-dsl-bps unpublish-dsl-bps: init-dsl-config
+
+publish-new-dsl-bps: ### First Time Publish of Standard DSL BP. i.e., make publish-new-dsl-bps DSL_BP=karbon_admin_ws
 	# promote stable release to marketplace for new
 	@make -C dsl/${DSL_BP} publish-new-bp
 
-publish-existing-dsl-bps: print-vars
+publish-existing-dsl-bps: ### Publish Standard DSL BP of already existing. i.e., make publish-existing-dsl-bps DSL_BP=karbon_admin_ws
 	# promote stable release to marketplace for existing
 	@make -C dsl/${DSL_BP} publish-existing-bp
 
-unpublish-dsl-bps: print-vars
+unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make unpublish-dsl-bps DSL_BP=karbon_admin_ws
 	# promote stable release to marketplace for existing
 	@make -k -C dsl/${DSL_BP} unpublish-bp
 
 ## Helm charts specific commands
 
-#create-helm-bps launch-helm-bps delete-helm-bps delete-helm-apps publish-new-helm-bps publish-existing-helm-bps unpublish-helm-bps: init-dsl-config
+create-helm-bps launch-helm-bps delete-helm-bps delete-helm-apps publish-new-helm-bps publish-existing-helm-bps unpublish-helm-bps: init-dsl-config
 
-create-helm-bps: print-vars ### Create single helm chart bp (with current git branch / tag latest in name). i.e., make create-helm-bps CHART=argocd
+create-helm-bps: ### Create single helm chart bp (with current git branch / tag latest in name). i.e., make create-helm-bps CHART=argocd
 	# create helm bp with corresponding git feature branch and short sha code
 	@make -C dsl/helm_charts/${CHART} create-bp
 
-launch-helm-bps: print-vars ### Launch single helm chart app (with current git branch / tag latest in name). i.e., make launch-helm-bps CHART=argocd
+launch-helm-bps: ### Launch single helm chart app (with current git branch / tag latest in name). i.e., make launch-helm-bps CHART=argocd
 	# launch helm bp that matches your git feature branch and short sha code
 	@make -C dsl/helm_charts/${CHART} launch-bp
 
-delete-helm-bps: print-vars ### Delete single helm chart blueprint (with current git branch / tag latest in name). i.e., make delete-helm-bps CHART=argocd
+delete-helm-bps: ### Delete single helm chart blueprint (with current git branch / tag latest in name). i.e., make delete-helm-bps CHART=argocd
 	# delete helm bp that matches your git feature branch and short sha code
 	@make -C dsl/helm_charts/${CHART} delete-bp
 
-delete-helm-apps: print-vars ### Delete single helm chart app (with current git branch / tag latest in name). i.e., make delete-helm-apps CHART=argocd
+delete-helm-apps: ### Delete single helm chart app (with current git branch / tag latest in name). i.e., make delete-helm-apps CHART=argocd
 	# delete helm app that matches your git feature branch and short sha code
 	@make -C dsl/helm_charts/${CHART} delete-app
 
-create-all-helm-charts: print-vars ### Create all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
+create-all-helm-charts: ### Create all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
 	ls dsl/helm_charts | xargs -I {} make create-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
-launch-all-helm-charts: print-vars ### Launch all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
+launch-all-helm-charts: ### Launch all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
 	ls dsl/helm_charts | grep -v -E "metallb|ingress-nginx|cert-manager" | xargs -I {} make launch-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
-delete-all-helm-charts-apps: print-vars ### Delete all helm chart apps (with current git branch / tag latest in name)
+delete-all-helm-charts-apps: ### Delete all helm chart apps (with current git branch / tag latest in name)
 	# remove pre-reqs last
 	ls dsl/helm_charts | grep -v -E "metallb|ingress-nginx|cert-manager" | xargs -I {} make delete-helm-apps ENVIRONMENT=${ENVIRONMENT} CHART={}
 	make delete-helm-apps CHART=ingress-nginx ENVIRONMENT=${ENVIRONMENT}
 	make delete-helm-apps CHART=cert-manager ENVIRONMENT=${ENVIRONMENT}
 	make delete-helm-apps CHART=metallb ENVIRONMENT=${ENVIRONMENT}
 
-delete-all-helm-charts-bps: print-vars ### Delete all helm chart blueprints (with current git branch / tag latest in name)
+delete-all-helm-charts-bps: ### Delete all helm chart blueprints (with current git branch / tag latest in name)
 	ls dsl/helm_charts | xargs -I {} make delete-helm-bps CHART={} ENVIRONMENT=${ENVIRONMENT}
 
 
@@ -122,25 +124,25 @@ delete-all-helm-charts-bps: print-vars ### Delete all helm chart blueprints (wit
 # If needing to publish from a previous commit/tag than current master HEAD, from master, run git reset --hard tagname to set local working copy to that point in time.
 # Run git reset --hard origin/master to return your local working copy back to latest master HEAD.
 
-publish-new-helm-bps: print-vars ### First Time Publish of Single Helm Chart. i.e., make publish-new-helm-bps CHART=argocd
+publish-new-helm-bps: ### First Time Publish of Single Helm Chart. i.e., make publish-new-helm-bps CHART=argocd
 	# promote stable release to marketplace for new
 	@make -C dsl/helm_charts/${CHART} publish-new-bp
 
-publish-existing-helm-bps: print-vars ### Publish Single Helm Chart of already existing Helm Chart. i.e., make publish-existing-helm-bps CHART=argocd
+publish-existing-helm-bps: ### Publish Single Helm Chart of already existing Helm Chart. i.e., make publish-existing-helm-bps CHART=argocd
 	# promote stable release to marketplace for existing
 	@make -C dsl/helm_charts/${CHART} publish-existing-bp
 
-unpublish-helm-bps: print-vars ### Unpublish Single Helm Chart Blueprint - latest git release. i.e., make unpublish-helm-bps CHART=argocd
+unpublish-helm-bps: ### Unpublish Single Helm Chart Blueprint - latest git release. i.e., make unpublish-helm-bps CHART=argocd
 	# unpublish stable release to marketplace for existing
 	@make -k -C dsl/helm_charts/${CHART} unpublish-bp
 
-publish-all-new-helm-bps: print-vars ### First Time Publish of ALL Helm Chart Blueprints into Marketplace
+publish-all-new-helm-bps: ### First Time Publish of ALL Helm Chart Blueprints into Marketplace
 	ls dsl/helm_charts | xargs -I {} make publish-new-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
-publish-all-existing-helm-bps: print-vars ### Publish New Version of all existing helm chart marketplace items with latest git release.
+publish-all-existing-helm-bps: ### Publish New Version of all existing helm chart marketplace items with latest git release.
 	ls dsl/helm_charts | xargs -I {} make publish-existing-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
-unpublish-all-helm-bps: print-vars ### Unpublish all Helm Chart Blueprints of latest git release (i.e., git tag --list)
+unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git release (i.e., git tag --list)
 	ls dsl/helm_charts | xargs -I {} make unpublish-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
 ##############
@@ -175,6 +177,7 @@ merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to con
 	kubectl config use-context ${KUBECTL_CONTEXT};
 	kubectl cluster-info
 
-fix-dockerhub-pull-secrets: print-vars ### Add docker hub secret to get around image download rate limiting issues
+.PHONY: fix-dockerhub-pull-secrets
+fix-dockerhub-pull-secrets: ### Add docker hub secret to get around image download rate limiting issues
 	kubectl get ns -o name | cut -d / -f2 | xargs -I {} kubectl create secret docker-registry myregistrykey --docker-username=${DOCKER_HUB_USER} --docker-password=${DOCKER_HUB_PASS} -n {}
 	kubectl get serviceaccount --no-headers --all-namespaces | awk '{print $1,$2}' | xargs -n2 sh -c 'kubectl patch serviceaccount $2 -p "{\"imagePullSecrets\": [{\"name\": \"myregistrykey\"}]}" -n $1' sh

@@ -64,12 +64,6 @@ terraform.rc
 ## Ignore manifests directory.
 **/manifests/*.json
 
-## Ansible
-rke2-ansible/
-
-## Azure Terraform
-rke2-az-tf/
-
 ## Hauler
 store
 **/*.zst
