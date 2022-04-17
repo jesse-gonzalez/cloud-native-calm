@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    # added to all resources for ease of later examination and selector usage.
+    app: journal
+    tier: frontend
+  annotations:
+    # certificate manager required - in this case we're using a selfsigned cluster issuer
+    cert-manager.io/issuer: selfsigned-cluster-issuer
+    # ingress controller required - in this case we're using ingress-nginx
+    kubernetes.io/ingress.class: nginx
+  name: frontend-ingress
+  # always define your target namespace.  This can be overridden via helm charts vars
+  namespace: kbps
+spec:
+  rules:
+  - host: kbp.172.20.7.26.nip.io
+    http:
+      paths:
+      - path: /api
+        backend:
+          serviceName: frontend
+          servicePort: 8080
+      # NOTE: this should come after /api or else it will hijack requests
+      - path: /
+        backend:
+          serviceName: nginx
+          servicePort: 80
+  tls:
+  - hosts:
+    - kbp.172.20.7.26.nip.io
+    - kbp.sknipit.io
+    # tls secrets / certs are auto-configured by cert-manager controller
+    secretName: tls-kbps-ingress
+

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    # added to all resources for ease of later examination and selector usage.
+    app: journal
+    tier: frontend
+  name: frontend-service
+  # always define your target namespace.  This can be overridden via helm charts vars
+  namespace: kbps
+spec:
+  selector:
+    tier: frontend
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  type: ClusterIP

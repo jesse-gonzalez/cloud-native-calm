@@ -1,0 +1,17 @@
+# RESOURCE_UTIL: Set limitrange on all namespaces to define the standard size for a container deployed in the current namespace
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: kbps-limitrange
+  # always define your target namespace.  This can be overridden via helm charts vars
+  namespace: kbps
+# NOTE: The maximum and minimum CPU constraints imposed on a namespace by a LimitRange are enforced only when a Pod is created or updated.
+spec:
+  limits:
+  - default:
+      cpu: 100m
+      memory: 100m
+    defaultRequest:
+      cpu: 100m
+      memory: 100m
+    type: Container

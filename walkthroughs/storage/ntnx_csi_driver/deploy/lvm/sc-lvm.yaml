@@ -1,0 +1,20 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+    name: lvm-sc
+provisioner: csi.nutanix.com
+parameters:
+    csi.storage.k8s.io/provisioner-secret-name: ntnx-secret
+    csi.storage.k8s.io/provisioner-secret-namespace: kube-system
+    csi.storage.k8s.io/node-publish-secret-name: ntnx-secret
+    csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+    csi.storage.k8s.io/controller-expand-secret-name: ntnx-secret
+    csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
+    csi.storage.k8s.io/fstype: ext4
+    dataServiceEndPoint: 10.38.15.72:3260
+    storageContainer: Default
+    storageType: NutanixVolumes
+    isLVMVolume: "true"
+    numLVMDisks: "8"
+allowVolumeExpansion: true
+reclaimPolicy: Delete

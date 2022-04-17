@@ -1,0 +1,18 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: common-infra-security-policy
+spec:
+  privileged: false # prevent privileged containers from running
+  readOnlyRootFilesystem: true # require containers to run with a read-only file system
+  # The rest fills in some required fields.
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  volumes:
+  - '*'

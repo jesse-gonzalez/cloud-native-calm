@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+   name: dyn-claim
+spec:
+   accessModes:
+      - ReadWriteMany
+   resources:
+      requests:
+         storage: 30Gi
+   storageClassName: nfs-sc
+

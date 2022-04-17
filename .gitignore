@@ -15,6 +15,7 @@ configs/*
 *.cfg
 
 # ignore temp junk
+_tmp
 tmp
 .todo
 .junk

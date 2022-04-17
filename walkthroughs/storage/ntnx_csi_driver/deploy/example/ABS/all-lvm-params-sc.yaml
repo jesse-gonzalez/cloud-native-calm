@@ -1,0 +1,33 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+    annotations:
+        storageclass.kubernetes.io/is-default-class: "false"
+    name: acs-abs
+parameters:
+    csi.storage.k8s.io/provisioner-secret-name: ntnx-secret
+    csi.storage.k8s.io/provisioner-secret-namespace: kube-system
+    csi.storage.k8s.io/node-publish-secret-name: ntnx-secret
+    csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+    csi.storage.k8s.io/controller-expand-secret-name: ntnx-secret
+    csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
+    csi.storage.k8s.io/fstype: ext4
+    dataServiceEndPoint: 10.38.15.72:3260
+    flashMode: ENABLED
+    storageContainer: Default
+    chapAuth: DISABLED
+    storageType: NutanixVolumes
+    whitelistIPMode: DISABLED
+    #whitelistIPAddr: ip-address
+    isLVMVolume: "true"
+    numLVMDisks: "4" # Default number is 4.  Each volume is given equal storage amount
+    lvmVolumeType: striped # Default is striped. Linear is alternative
+    stripeSize: "64" # 64 KiB
+    extentSize: "4" # 4 MiB
+    blockDeviceQueueParams: max_sectors_kb=1024,nr_requests=128,scheduler=noop
+    readAhead: none
+provisioner: csi.nutanix.com
+reclaimPolicy: Delete
+mountOptions:
+    - discard
+allowVolumeExpansion: true

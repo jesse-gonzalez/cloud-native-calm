@@ -1,0 +1,240 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    k8s-app: calico-node
+  name: calico-node
+  namespace: kube-system
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      k8s-app: calico-node
+  template:
+    metadata:
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+      labels:
+        k8s-app: calico-node
+    spec:
+      containers:
+      - env:
+        - name: DATASTORE_TYPE
+          value: kubernetes
+        - name: FELIX_TYPHAK8SSERVICENAME
+          valueFrom:
+            configMapKeyRef:
+              key: typha_service_name
+              name: calico-config
+        - name: WAIT_FOR_DATASTORE
+          value: "true"
+        - name: NODENAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: CALICO_NETWORKING_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              key: calico_backend
+              name: calico-config
+        - name: CLUSTER_TYPE
+          value: k8s,bgp
+        - name: IP
+          value: autodetect
+        - name: CALICO_IPV4POOL_IPIP
+          value: Never
+        - name: IP_AUTODETECTION_METHOD
+          value: interface=eth.*
+        - name: FELIX_IPINIPMTU
+          valueFrom:
+            configMapKeyRef:
+              key: veth_mtu
+              name: calico-config
+        - name: CALICO_IPV4POOL_CIDR
+          value: 172.20.0.0/16
+        - name: CALICO_ADVERTISE_CLUSTER_IPS
+          value: 172.19.0.0/16
+        - name: CALICO_DISABLE_FILE_LOGGING
+          value: "true"
+        - name: FELIX_DEFAULTENDPOINTTOHOSTACTION
+          value: ACCEPT
+        - name: FELIX_IPV6SUPPORT
+          value: "false"
+        - name: FELIX_LOGSEVERITYSCREEN
+          value: info
+        - name: FELIX_HEALTHENABLED
+          value: "true"
+        - name: FELIX_PROMETHEUSGOMETRICSENABLED
+          value: "false"
+        - name: FELIX_PROMETHEUSMETRICSENABLED
+          value: "true"
+        image: quay.io/karbon/node:v3.14.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /bin/calico-node
+            - -felix-live
+          failureThreshold: 6
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: calico-node
+        readinessProbe:
+          exec:
+            command:
+            - /bin/calico-node
+            - -felix-ready
+            - -bird-ready
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 250m
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /lib/modules
+          name: lib-modules
+          readOnly: true
+        - mountPath: /run/xtables.lock
+          name: xtables-lock
+        - mountPath: /var/run/calico
+          name: var-run-calico
+        - mountPath: /var/lib/calico
+          name: var-lib-calico
+        - mountPath: /var/run/nodeagent
+          name: policysync
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      initContainers:
+      - command:
+        - /opt/cni/bin/calico-ipam
+        - -upgrade
+        env:
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: CALICO_NETWORKING_BACKEND
+          valueFrom:
+            configMapKeyRef:
+              key: calico_backend
+              name: calico-config
+        image: quay.io/karbon/cni:v3.14.0
+        imagePullPolicy: IfNotPresent
+        name: upgrade-ipam
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/cni/networks
+          name: host-local-net-dir
+        - mountPath: /host/opt/cni/bin
+          name: cni-bin-dir
+      - command:
+        - /install-cni.sh
+        env:
+        - name: CNI_CONF_NAME
+          value: 10-calico.conflist
+        - name: CNI_NETWORK_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              key: cni_network_config
+              name: calico-config
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: CNI_MTU
+          valueFrom:
+            configMapKeyRef:
+              key: veth_mtu
+              name: calico-config
+        - name: SLEEP
+          value: "false"
+        image: quay.io/karbon/cni:v3.14.0
+        imagePullPolicy: IfNotPresent
+        name: install-cni
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /host/opt/cni/bin
+          name: cni-bin-dir
+        - mountPath: /host/etc/cni/net.d
+          name: cni-net-dir
+      - image: quay.io/karbon/pod2daemon-flexvol:v3.14.0
+        imagePullPolicy: IfNotPresent
+        name: flexvol-driver
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /host/driver
+          name: flexvol-driver-host
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-node-critical
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: calico-node
+      serviceAccountName: calico-node
+      terminationGracePeriodSeconds: 0
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /lib/modules
+          type: ""
+        name: lib-modules
+      - hostPath:
+          path: /var/run/calico
+          type: ""
+        name: var-run-calico
+      - hostPath:
+          path: /var/lib/calico
+          type: ""
+        name: var-lib-calico
+      - hostPath:
+          path: /run/xtables.lock
+          type: FileOrCreate
+        name: xtables-lock
+      - hostPath:
+          path: /var/lib/hyperkube/opt/cni/bin
+          type: ""
+        name: cni-bin-dir
+      - hostPath:
+          path: /etc/cni/net.d
+          type: ""
+        name: cni-net-dir
+      - hostPath:
+          path: /var/lib/cni/networks
+          type: ""
+        name: host-local-net-dir
+      - hostPath:
+          path: /var/run/nodeagent
+          type: DirectoryOrCreate
+        name: policysync
+      - hostPath:
+          path: /usr/libexec/kubernetes/kubelet-plugins/volume/exec/nodeagent~uds
+          type: DirectoryOrCreate
+        name: flexvol-driver-host
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate

@@ -1,0 +1,16 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+  # always define your target namespace.  This can be overridden via helm charts vars
+  namespace: kbps
+  labels:
+    # added to all resources for ease of later examination and selector usage.
+    app: redis
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: redis
+      role: slave
+      tier: backend

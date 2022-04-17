@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: development-CR
+rules:
+- apiGroups: ["", "apps", "batch", "extensions"]
+  resources: ["services", "endpoints", "pods", "secrets", "configmaps", "deployments", "jobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devuser01-development-CRB
+subjects:
+- kind: User
+  name: devuser01@ntnxlab.com # AD User Name
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: development-CR # must match the name of the Role to bind to
+  apiGroup: rbac.authorization.k8s.io

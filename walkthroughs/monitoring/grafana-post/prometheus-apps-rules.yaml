@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    prometheus: apps
+    role: alert-rules
+  name: prometheus-apps-rules
+  namespace: monitoring-apps
+spec:
+  groups:
+  - name: example.rules
+    rules:
+    - alert: InstanceDown
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Instance is Down

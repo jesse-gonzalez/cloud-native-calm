@@ -1,0 +1,140 @@
+$ kubectl get nodes -o name | cut -d/ -f2 | xargs -I {} kubectl exec -i -n kube-system calicoctl -- /calicoctl get nodes {} --export -o yamlapiVersion: projectcalico.org/v3
+kind: Node
+metadata:
+  annotations:
+    projectcalico.org/kube-labels: '{"beta.kubernetes.io/arch":"amd64","beta.kubernetes.io/os":"linux","kubernetes.io/arch":"amd64","kubernetes.io/hostname":"karbon-kalm-main-0d721d-k8s-master-0","kubernetes.io/os":"linux","kubernetes.io/role":"master","node.kubernetes.io/master":""}'
+  creationTimestamp: null
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/os: linux
+    inside-node: ""
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: karbon-kalm-main-0d721d-k8s-master-0
+    kubernetes.io/os: linux
+    kubernetes.io/role: master
+    node.kubernetes.io/master: ""
+  name: karbon-kalm-main-0d721d-k8s-master-0
+spec:
+  addresses:
+  - address: 10.38.15.33/26
+  - address: 10.38.15.33
+  bgp:
+    ipv4Address: 10.38.15.33/26
+  orchRefs:
+  - nodeName: karbon-kalm-main-0d721d-k8s-master-0
+    orchestrator: k8s
+status:
+  podCIDRs:
+  - 172.20.0.0/24
+apiVersion: projectcalico.org/v3
+kind: Node
+metadata:
+  annotations:
+    projectcalico.org/kube-labels: '{"beta.kubernetes.io/arch":"amd64","beta.kubernetes.io/os":"linux","kubernetes.io/arch":"amd64","kubernetes.io/hostname":"karbon-kalm-main-0d721d-k8s-master-1","kubernetes.io/os":"linux","kubernetes.io/role":"master","node.kubernetes.io/master":""}'
+  creationTimestamp: null
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/os: linux
+    inside-node: ""
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: karbon-kalm-main-0d721d-k8s-master-1
+    kubernetes.io/os: linux
+    kubernetes.io/role: master
+    node.kubernetes.io/master: ""
+  name: karbon-kalm-main-0d721d-k8s-master-1
+spec:
+  addresses:
+  - address: 10.38.15.58/26
+  - address: 10.38.15.58
+  bgp:
+    ipv4Address: 10.38.15.58/26
+  orchRefs:
+  - nodeName: karbon-kalm-main-0d721d-k8s-master-1
+    orchestrator: k8s
+status:
+  podCIDRs:
+  - 172.20.1.0/24
+apiVersion: projectcalico.org/v3
+kind: Node
+metadata:
+  annotations:
+    projectcalico.org/kube-labels: '{"beta.kubernetes.io/arch":"amd64","beta.kubernetes.io/os":"linux","kubernetes.io/arch":"amd64","kubernetes.io/hostname":"karbon-kalm-main-0d721d-k8s-worker-0","kubernetes.io/os":"linux","kubernetes.io/role":"node","node.kubernetes.io/node":""}'
+  creationTimestamp: null
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/os: linux
+    inside-node: ""
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: karbon-kalm-main-0d721d-k8s-worker-0
+    kubernetes.io/os: linux
+    kubernetes.io/role: node
+    node.kubernetes.io/node: ""
+  name: karbon-kalm-main-0d721d-k8s-worker-0
+spec:
+  addresses:
+  - address: 10.38.15.29/26
+  - address: 10.38.15.29
+  bgp:
+    ipv4Address: 10.38.15.29/26
+  orchRefs:
+  - nodeName: karbon-kalm-main-0d721d-k8s-worker-0
+    orchestrator: k8s
+status:
+  podCIDRs:
+  - 172.20.3.0/24
+apiVersion: projectcalico.org/v3
+kind: Node
+metadata:
+  annotations:
+    projectcalico.org/kube-labels: '{"beta.kubernetes.io/arch":"amd64","beta.kubernetes.io/os":"linux","kubernetes.io/arch":"amd64","kubernetes.io/hostname":"karbon-kalm-main-0d721d-k8s-worker-1","kubernetes.io/os":"linux","kubernetes.io/role":"node","node.kubernetes.io/node":""}'
+  creationTimestamp: null
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/os: linux
+    inside-node: ""
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: karbon-kalm-main-0d721d-k8s-worker-1
+    kubernetes.io/os: linux
+    kubernetes.io/role: node
+    node.kubernetes.io/node: ""
+  name: karbon-kalm-main-0d721d-k8s-worker-1
+spec:
+  addresses:
+  - address: 10.38.15.40/26
+  - address: 10.38.15.40
+  bgp:
+    ipv4Address: 10.38.15.40/26
+  orchRefs:
+  - nodeName: karbon-kalm-main-0d721d-k8s-worker-1
+    orchestrator: k8s
+status:
+  podCIDRs:
+  - 172.20.2.0/24
+apiVersion: projectcalico.org/v3
+kind: Node
+metadata:
+  annotations:
+    projectcalico.org/kube-labels: '{"beta.kubernetes.io/arch":"amd64","beta.kubernetes.io/os":"linux","kubernetes.io/arch":"amd64","kubernetes.io/hostname":"karbon-kalm-main-0d721d-k8s-worker-2","kubernetes.io/os":"linux","kubernetes.io/role":"node","node.kubernetes.io/node":""}'
+  creationTimestamp: null
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/os: linux
+    inside-node: ""
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: karbon-kalm-main-0d721d-k8s-worker-2
+    kubernetes.io/os: linux
+    kubernetes.io/role: node
+    node.kubernetes.io/node: ""
+  name: karbon-kalm-main-0d721d-k8s-worker-2
+spec:
+  addresses:
+  - address: 10.38.15.32/26
+  - address: 10.38.15.32
+  bgp:
+    ipv4Address: 10.38.15.32/26
+  orchRefs:
+  - nodeName: karbon-kalm-main-0d721d-k8s-worker-2
+    orchestrator: k8s
+status:
+  podCIDRs:
+  - 172.20.4.0/24

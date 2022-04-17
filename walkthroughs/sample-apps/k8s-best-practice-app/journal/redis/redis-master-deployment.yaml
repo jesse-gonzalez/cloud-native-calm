@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-master
+  # always define your target namespace.  This can be overridden via helm charts vars
+  namespace: kbps
+  labels:
+    # added to all resources for ease of later examination and selector usage.
+    app: redis
+    role: master
+    tier: backend
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - name: master
+        image: k8s.gcr.io/redis:e2e
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379

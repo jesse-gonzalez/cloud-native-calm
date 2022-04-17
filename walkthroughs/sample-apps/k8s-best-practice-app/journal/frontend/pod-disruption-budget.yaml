@@ -1,0 +1,14 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend-pdb
+  # always define your target namespace.  This can be overridden via helm charts vars
+  namespace: kbps
+  labels:
+    # added to all resources for ease of later examination and selector usage.
+    tier: frontend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      tier: frontend

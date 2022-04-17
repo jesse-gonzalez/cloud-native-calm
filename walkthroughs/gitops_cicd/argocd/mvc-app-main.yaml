@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mvc-app-main
+spec:
+  destination:
+    name: ''
+    namespace: mvc-app-main
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: k8s/mvc-app
+    repoURL: >-
+      https://sa-cloud-infra@dev.azure.com/sa-cloud-infra/shared-demos/_git/asp_net_kalm_demo
+    targetRevision: main
+    directory:
+      recurse: true
+  project: mvc-app
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - PruneLast=true
+      - Replace=true

@@ -1,0 +1,9 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+    name: acs-afs
+provisioner: csi.nutanix.com
+parameters:
+    nfsServer: BootcampFS.ntnxlab.local
+    nfsPath: karbon-nfs
+    storageType: NutanixFiles

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mvc-app-main
+spec:
+  destination:
+    server: 'https://10.38.20.228:443'
+    namespace: mvc-app
+  source:
+    repoURL: >-
+      https://sa-cloud-infra@dev.azure.com/sa-cloud-infra/shared-demos/_git/asp_net_kalm_demo
+    path: k8s/mvc-app
+    targetRevision: develop
+    directory:
+      recurse: true
+      jsonnet: {}
+  project: mvc-app
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

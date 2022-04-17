@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    # TAGGING RESOURCES: Resources should have technical, business and security labels for ease of querying
+    ## https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/
+    ## https://aws.amazon.com/answers/account-management/aws-tagging-strategies/
+    app: journal
+    tier: frontend
+    app.kubernetes.io/name: frontend # The name of the application
+    app.kubernetes.io/instance: frontend-c107743 # A unique name identifying the instance of an application
+    app.kubernetes.io/version: "1.0.0" # The current version of the application (e.g., a semantic version, revision hash, etc.)
+    app.kubernetes.io/component: api # The component within the architecture
+    app.kubernetes.io/part-of: journal # The name of a higher level application this one is part of
+    app.kubernetes.io/managed-by: kubectl # The tool being used to manage the operation of an application
+  name: frontend-deploy
+  # always define your target namespace.  This can be overridden via helm charts vars
+  namespace: kbps
+spec:
+  # FAULT_TOLERANCE: Run more than one replica for your deployment as default
+  replicas: 2
+  selector:
+    matchLabels:
+      # added to all resources for ease of later examination and selector usage.
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        # added to all resources for ease of later examination and selector usage.
+        tier: frontend
+    spec:
+      affinity:
+        # FAULT_TOLERANCE: Avoid Pods being placed into a single node
+        ## https://cloudmark.github.io/Node-Management-In-GKE/#pod-anti-affinity-rules
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                tier: frontend
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - image: brendanburns/journal-server:latest
+        imagePullPolicy: Always
+        name: frontend
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        env:
+        # externalize all configurations
+        - name: JOURNAL_ENTRIES
+          valueFrom:
+            configMapKeyRef:
+              # When you want to make a change, update version vs configmap
+              name: frontend-config-v1
+              key: journalEntries
+        volumeMounts:
+        - name: passwd-volume
+          readOnly: true
+          mountPath: "/etc/redis-passwd"
+        # RESOURCE_UTIL: Set memory limits and requests for ALL containers
+        ## Request is the reservation that is guaranteed on the host machine where it runs
+        ## Limit is the MAX resource usage that the container will be allowed
+        ## https://medium.com/@betz.mark/understanding-resource-limits-in-kubernetes-cpu-time-9eff74d3161b
+        resources:
+          requests:
+            # RESOURCE_UTIL: Set CPU request to 1 or below
+            ## CPU is measured as CPU timeunits per timeunit. cpu: 1 means 1 CPU second per second.
+            ## https://www.youtube.com/watch?v=xjpHggHKm78
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            # RESOURCE_UTIL: Set request and limit to be equal. Leads to most predicatable behavior of app
+            cpu: 500m
+            memory: 1Gi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+      # Mount Secrets as volumes, not enviroment variables
+      - name: passwd-volume
+        secret:
+          secretName: redis-passwd
+      # https://cloudmark.github.io/Node-Management-In-GKE/#pod-anti-affinity-rules
