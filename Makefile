@@ -19,15 +19,13 @@ export
 ####
 
 .PHONY: docker-build
-docker-build: ## Rebuild Calm DSL Image with latest version in Docker Hub
-	# this will clean existing docker caml-dsl images and subsequently build ntnx/calm-dsl latest with dev-utils (i.e., gnu-make,git,pandoc).  Lastly, it will run interactive container with bind mounted with working dir
+docker-build: ## Build Calm DSL Util Image with necessary tools to develop and manage Cloud-Native Apps (e.g., kubectl, argocd, git, helm, helmfile, etc.)
 	@docker rmi -f calm-dsl-utils:latest
 	@docker rmi -f ntnx/calm-dsl:latest
 	@docker build -t calm-dsl-utils .
 
 .PHONY: docker-run
-docker-run: ## Launch into interactively Calm DSL Docker container
-	# validate whether or not you have image built locally, ortherwise, build it
+docker-run: ## Launch into Calm DSL development container. If image isn't available, build will auto-run
 	[ -n "$$(docker image ls calm-dsl-utils -q)" ] || make docker-build
 	# this will just exec you into the interactive container
 	@docker run --rm -it \
@@ -38,10 +36,10 @@ docker-run: ## Launch into interactively Calm DSL Docker container
 		calm-dsl-utils /bin/sh -c "make init-dsl-config ENVIRONMENT=${ENVIRONMENT} && /bin/zsh"
 
 .PHONY: init-dsl-config
-init-dsl-config: print-vars ## Initialize calm dsl configuration with environment specific configs
+init-dsl-config: print-vars ## Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
 	# validate that you're inside container.  If you were just put into container, you may need to re-run last command
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
-	[ ! -f /.dockerenv ] || calm init dsl ${DSL_INIT_PARAMS} --project "${CALM_PROJECT}";
+	@calm init dsl --project "${CALM_PROJECT}";
 
 ## Common BP command based on DSL_BP path passed in. To Run, make create-dsl-bps <dsl_bp_folder_name>
 
@@ -62,9 +60,6 @@ delete-dsl-apps: ### Delete Application that matches your git feature branch and
 ## RELEASE MANAGEMENT
 
 ## Following should be run from master branch along with git tag v1.0.x-$(git rev-parse --short HEAD), git push origin --tags, validate with git tag -l
-
-# If needing to publish from a previous commit/tag than current master HEAD, from master, run git reset --hard tagname to set local working copy to that point in time.
-# Run git reset --hard origin/master to return your local working copy back to latest master HEAD.
 
 publish-new-dsl-bps publish-existing-dsl-bps unpublish-dsl-bps: init-dsl-config
 
@@ -172,12 +167,12 @@ download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and down
 
 .PHONY: merge-kubectl-contexts
 merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to config file.  Needed to support multiple clusters in future
-	export KUBECONFIG=$$KUBECONFIG:~/.kube/${KARBON_CLUSTER}.cfg; \
-		kubectl config view --flatten >| ~/.kube/config;
-	kubectl config use-context ${KUBECTL_CONTEXT};
-	kubectl cluster-info
+	@export KUBECONFIG=$$KUBECONFIG:~/.kube/${KARBON_CLUSTER}.cfg; \
+		kubectl config view --flatten >| ~/.kube/config && chmod 600 ~/.kube/config;
+	@kubectl config use-context ${KUBECTL_CONTEXT};
+	@kubectl cluster-info
 
 .PHONY: fix-dockerhub-pull-secrets
 fix-dockerhub-pull-secrets: ### Add docker hub secret to get around image download rate limiting issues
-	kubectl get ns -o name | cut -d / -f2 | xargs -I {} kubectl create secret docker-registry myregistrykey --docker-username=${DOCKER_HUB_USER} --docker-password=${DOCKER_HUB_PASS} -n {}
-	kubectl get serviceaccount --no-headers --all-namespaces | awk '{print $1,$2}' | xargs -n2 sh -c 'kubectl patch serviceaccount $2 -p "{\"imagePullSecrets\": [{\"name\": \"myregistrykey\"}]}" -n $1' sh
+	@kubectl get ns -o name | cut -d / -f2 | xargs -I {} sh -c "kubectl create secret docker-registry myregistrykey --docker-username=${DOCKER_HUB_USER} --docker-password=${DOCKER_HUB_PASS} -n {} --dry-run=client -o yaml | kubectl apply -f - "
+	kubectl get serviceaccount --no-headers --all-namespaces | awk '{ print $$1 , $$2 }' | xargs -n2 sh -c 'kubectl patch serviceaccount $$2 -p "{\"imagePullSecrets\": [{\"name\": \"myregistrykey\"}]}" -n $$1' sh

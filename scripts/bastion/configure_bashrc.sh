@@ -23,11 +23,9 @@ echo '' | tee -a ~/.bashrc
 
 echo '' | tee -a ~/.bashrc
 echo "## updating bashrc to loop through kubeconfig files from all clusters and add to overall context"
-
-echo "if [ -f \$HOME/.kube/*.cfg ]; then" | tee -a ~/.bashrc ~/.zshrc
+echo "if [ -f \$HOME/.kube/config ]; then" | tee -a ~/.bashrc ~/.zshrc
 echo "  export KUBECONFIG_HOME=\$HOME/.kube" | tee -a ~/.bashrc ~/.zshrc
-echo "  export KUBECONFIG_LIST=\$( ls \$HOME/.kube/*.cfg | cut -d/ -f4 | xargs -I {} echo \$KUBECONFIG_HOME/{} )" | tee -a ~/.bashrc ~/.zshrc ## loop through kubectl configs and update kubeconfig var
-echo "  export KUBECONFIG=\$( echo \$KUBECONFIG_LIST | tr ' ' ':' )" | tee -a ~/.bashrc ~/.zshrc
+echo "  export KUBECONFIG=\$( ls \$HOME/.kube/*.cfg | cut -d/ -f4 | xargs -I {} echo \$KUBECONFIG_HOME/{} | tr '\n' ':' )" | tee -a ~/.bashrc ~/.zshrc ## loop through kubectl configs and update kubeconfig var
 echo "  kubectl config view --flatten >| \$HOME/.kube/config" | tee -a ~/.bashrc ~/.zshrc ## merge configs to standalone config file
 echo "  export KUBECONFIG=\$HOME/.kube/config" | tee -a ~/.bashrc ~/.zshrc ## reset kubeconfig path
 echo "  chmod 600 \$HOME/.kube/config" | tee -a ~/.bashrc ~/.zshrc ## reset kubeconfig path

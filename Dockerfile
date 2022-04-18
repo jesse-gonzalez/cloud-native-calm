@@ -20,7 +20,8 @@ RUN apk update \
         vim \
         bash-completion \
         zsh \
-        perl
+        perl \
+        ncurses
 
 ## configure zsh
 RUN apk add --no-cache zsh \

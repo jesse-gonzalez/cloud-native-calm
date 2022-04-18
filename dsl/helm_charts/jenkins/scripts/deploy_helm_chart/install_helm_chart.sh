@@ -29,31 +29,36 @@ helm upgrade --install ${INSTANCE_NAME} jenkinsci/jenkins \
 	--set controller.installLatestPlugins=true \
 	--set rbac.create=true \
 	--set persistence.create=true \
+	--set persistence.size=20Gi \
 	--wait
 
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/part-of=jenkins -n ${NAMESPACE}
+
+helm status ${INSTANCE_NAME} -n ${NAMESPACE}
+
+echo "Navigate to https://${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} via browser to access instance
+
+After reaching the UI the first time you can login with username: admin and the password will be the
+name of the server pod. You can get the pod name by running:
+
+kubectl exec --namespace jenkins -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/chart-admin-password && echo"
+
+TEMP_ADMIN_PASS=$(kubectl exec --namespace jenkins -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/chart-admin-password && echo)
+
+echo "username: admin, password: ${TEMP_ADMIN_PASS}"
 
 
-#	
-	# --set controller.ingress.tls[0].hosts[0]=${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} \
-	# --set controller.ingress.tls[0].secretName=${INSTANCE_NAME}-npio-tls \
-	# --set controller.secondaryingress.enabled=true \
-	# --set-string controller.secondaryingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
-	# --set-string controller.secondaryingress.annotations."cert-manager\.io\/cluster-issuer"=selfsigned-cluster-issuer \
-	# --set-string controller.secondaryingress.annotations."nginx\.ingress\.kubernetes\.io\/force-ssl-redirect"=true \
-	# --set controller.secondaryingress.hostName="${INSTANCE_NAME}.${WILDCARD_INGRESS_DOMAIN}" \
-	# --set controller.secondaryingress.tls[0].hosts[0]=${INSTANCE_NAME}.${WILDCARD_INGRESS_DOMAIN} \
-	# --set controller.secondaryingress.tls[0].secretName=${INSTANCE_NAME}-wildcard-tls \
+# jenkins-plugin-cli --plugins blueocean:1.25.3
 
-  # # List of plugins to be install during Jenkins controller start
-  # installPlugins:
-  #   - kubernetes:1.31.3
-  #   - workflow-aggregator:2.6
-  #   - git:4.10.2
-  #   - configuration-as-code:1414.v878271fc496f
-  # # Set to true to download latest dependencies of any plugin that is requested to have the latest version.
-  # installLatestSpecifiedPlugins: false
-	#   # List of plugins to install in addition to those listed in controller.installPlugins
-  # additionalPlugins: []
+## https://github.com/jenkinsci/helm-charts/blob/main/charts/jenkins/VALUES_SUMMARY.md#backup
+## --set backup.enabled=true \
+## backup.existingSecret.*.awsaccesskey	
+## backup.existingSecret.*.awssecretkey	
+## backup.destination	s3://jenkins-data/backup
+## controller.additionalPlugins
+## controller.admin.passwordKey	
+## https://github.com/jenkinsci/helm-charts/blob/main/charts/jenkins/VALUES_SUMMARY.md#jenkins-agents
+
 
 # agent:
 #   podName: default
@@ -81,21 +86,3 @@ helm upgrade --install ${INSTANCE_NAME} jenkinsci/jenkins \
 #     command: "/bin/sh -c"
 #     args: "cat"
 #     TTYEnabled: true
-
-
-
-
-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/part-of=jenkins -n ${NAMESPACE}
-
-helm status ${INSTANCE_NAME} -n ${NAMESPACE}
-
-echo "Navigate to https://${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} via browser to access instance
-
-After reaching the UI the first time you can login with username: admin and the password will be the
-name of the server pod. You can get the pod name by running:
-
-kubectl exec --namespace jenkins -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/chart-admin-password && echo"
-
-TEMP_ADMIN_PASS=$(kubectl exec --namespace jenkins -it svc/jenkins -c jenkins -- /bin/cat /run/secrets/chart-admin-password && echo)
-
-echo "username: admin, password: ${TEMP_ADMIN_PASS}"

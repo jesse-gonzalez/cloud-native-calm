@@ -322,6 +322,12 @@ class DeveloperWorkstation(Service):
             name="Add Karbon_AutoScaler Category to Worker Nodes",
             filename="scripts/common/add_autoscaler_category_to_workers.py",
         )
+        CalmTask.Exec.ssh(
+            name="Configure CoreDNS with External DNS Resolver",
+            filename="../_common/karbon/scripts/configure_coredns_ext_dns.sh",
+            target=ref(DeveloperWorkstation),
+            cred=NutanixCred
+        )
 
     @action
     def InstallMetalLB(name="Install MetalLB"):
@@ -387,13 +393,12 @@ class DeveloperWorkstation(Service):
             target=ref(DeveloperWorkstation),
             cred=NutanixCred
         )
-    dsl/karbon_cluster_deployment/scripts/create_k8s_cluster/configure_dynamic_files_sc.sh
 
     @action
     def ConfigureDynamicNFS(name="Configure Nutanix Files Dynamic Provisioner"):
         CalmTask.Exec.ssh(
-            name="Configure Nutanix Files Dynamic Provisioner",
-            filename="../_common/karbon/scripts/configure_dynamic_files_sc.sh",
+            name="Configure Nutanix Files Storage Classes",
+            filename="../_common/karbon/scripts/configure_files_sc.sh",
             target=ref(DeveloperWorkstation),
             cred=NutanixCred
         )
@@ -682,7 +687,6 @@ class DeveloperWorkstationVM(Substrate):
         credential=ref(NutanixCred),
     )
 
-
 class DeveloperWorkstationDeployment(Deployment):
     """
     DeveloperWorkstation deployment
@@ -715,12 +719,26 @@ class Default(Profile):
         runtime=True,
         description="Nutanix Files NFS Server FQDN. i.e., BootcampFS.ntnxlab.local"
     )
+    nutanix_files_nfs_export = CalmVariable.Simple(
+        os.getenv("NUTANIX_FILES_NFS_EXPORT"),
+        label="Nutanix Files NFS Export",
+        is_mandatory=True,
+        runtime=True,
+        description="Nutanix Files NFS Export. i.e., kalm-main-nfs"
+    )
     domain_name = CalmVariable.Simple(
         os.getenv("DOMAIN_NAME"),
         label="Domain Name",
         is_mandatory=True,
         runtime=True,
         description="Domain name used as suffix for FQDN. Entered similar to 'test.lab' or 'lab.local'."
+    )
+    dns_server = CalmVariable.Simple(
+        os.getenv("DNS"),
+        label="External DNS Resolver",
+        is_mandatory=True,
+        runtime=True,
+        description="External DNS Resolver IP used within CoreDNS."
     )
     pc_instance_port = CalmVariable.Simple.string(
         os.getenv("PC_PORT"),
