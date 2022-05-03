@@ -2,7 +2,7 @@ echo "Login karbonctl"
 karbonctl login --pc-ip @@{pc_instance_ip}@@ --pc-username @@{Prism Central User.username}@@ --pc-password @@{Prism Central User.secret}@@
 
 echo "Set KUBECONFIG"
-karbonctl cluster kubeconfig --cluster-name @@{k8s_cluster_name}@@ > ~/@@{k8s_cluster_name}@@.cfg
+karbonctl cluster kubeconfig --cluster-name @@{k8s_cluster_name}@@ | tee ~/@@{k8s_cluster_name}@@.cfg ~/.kube/@@{k8s_cluster_name}@@.cfg
 
 export KUBECONFIG=~/@@{k8s_cluster_name}@@.cfg
 
@@ -11,7 +11,7 @@ export KUBECONFIG=~/@@{k8s_cluster_name}@@.cfg
 # DNS_SERVER=10.38.16.11
 
 DNS_DOMAIN=@@{domain_name}@@
-DNS_SERVER=@@{dns_server}@@
+DNS_SERVER_IP=@@{dns_server}@@
 
 cat <<EOF | kubectl apply -n kube-system -f -
 apiVersion: v1
@@ -38,10 +38,10 @@ data:
         errors
         loadbalance
     }
-    $(echo $DOMAIN_NAME):53 {
+    $(echo $DNS_DOMAIN):53 {
         errors
         cache 30
-        forward . $(echo $DNS_DOMAIN)
+        forward . $(echo $DNS_SERVER_IP)
     }
 EOF
 

@@ -21,7 +21,8 @@ RUN apk update \
         bash-completion \
         zsh \
         perl \
-        ncurses
+        ncurses \
+        jq
 
 ## configure zsh
 RUN apk add --no-cache zsh \
@@ -48,6 +49,6 @@ RUN chmod +x *.sh \
     && ./install_stern.sh
 
 ## import local gpg key
-COPY ./.local/sops_gpg_key /tmp
+COPY ./.local/common/sops_gpg_key /tmp
 WORKDIR /tmp
 RUN gpg --import sops_gpg_key

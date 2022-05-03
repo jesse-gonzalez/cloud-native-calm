@@ -5,36 +5,53 @@
 
 https://argoproj.github.io/argo-cd/cli_installation/
 
-1. MACOS
+MACOS
 
 `brew install argocd`
 
-2. LINUX
-
+LINUX
 
 ```bash
 curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
 chmod +x /usr/local/bin/argocd
 ```
 
-
 ## Login Using The CLI
 
+```bash
+SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+argocd login argocd.10.38.12.146.nip.io --grpc-web --insecure --username admin --password $SECRET
+```
 
-`kubectl -n argo-cd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
-SECRET=$(kubectl -n argo-cd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-argocd login argocd.10.38.11.209.nip.io --grpc-web --insecure --username admin --password $SECRET
-
-kubectl -n argo-cd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-
-argocd account update-password --grpc-web
+> to change password
+  argocd account update-password --grpc-web
 
 ## Register A Cluster To Deploy Apps To (Optional)
 
-argocd cluster add <context-name> --grpc-web
+The cluster that ArgoCD was deployed on is configured by default, thie options below are to add additional Kubernetes Clusters
 
-> loop through all contexts and add each cluster
-kubectl config get-contexts -o name | xargs -I {} argocd cluster add {} --grpc-web
+`argocd cluster add <context-name> --grpc-web`
+
+> IF you have multiple clusters already defined in current kubectl config, you can loop through and add each cluster
+
+```bash
+❯ kubectl config get-contexts                                                                                                                                            ─╯
+CURRENT   NAME                        CLUSTER             AUTHINFO                         NAMESPACE
+          kalm-develop-16-1-context   kalm-develop-16-1   default-user-kalm-develop-16-1   kasten-io
+*         kalm-main-16-1-context      kalm-main-16-1      default-user-kalm-main-16-1 
+```
+
+```bash
+❯ kubectl config get-contexts -o name | xargs -I {} argocd cluster add -y {} --grpc-web                                                                                                                       ─╯
+INFO[0000] ServiceAccount "argocd-manager" created in namespace "kube-system" 
+INFO[0000] ClusterRole "argocd-manager-role" created    
+INFO[0000] ClusterRoleBinding "argocd-manager-role-binding" created 
+Cluster 'https://10.38.16.59:443' added
+INFO[0000] ServiceAccount "argocd-manager" created in namespace "kube-system" 
+INFO[0000] ClusterRole "argocd-manager-role" created    
+INFO[0000] ClusterRoleBinding "argocd-manager-role-binding" created 
+Cluster 'https://10.38.16.12:443' added
+```
 
 ## Create An Application From A Git Repository
 
@@ -42,7 +59,7 @@ An example repository containing a guestbook application is available at https:/
 
 ### Create an application from CLI
 
-### Create a app pointing to directory path of K8s Maniftsts
+#### Create a app pointing to directory path of K8s Maniftsts
 
 argocd app create guestbook --repo https://github.com/argoproj/argocd-example-apps.git --path guestbook --dest-namespace default --dest-server https://kubernetes.default.svc --directory-recurse --grpc-web
 
@@ -55,7 +72,6 @@ argocd app create guestbook-education-eks --repo https://github.com/jesse-gonzal
 - trim needed to support eks camelcase naming convention
 
 kubectl config get-contexts -o name | tr '[:upper:]' '[:lower:]' | xargs -I {} argocd app create guestbook-{} --repo https://github.com/jesse-gonzalez/argocd-example-apps.git --path guestbook --dest-namespace guestbook --dest-name {} --directory-recurse --grpc-web
-
 
 > Sync (Deploy) The Application
 

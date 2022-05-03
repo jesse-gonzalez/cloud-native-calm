@@ -14,6 +14,12 @@ if [ ! -d "~/.ssh" ]; then
   chmod 600 ~/.ssh/config
 fi
 
+# configure default .kube config path
+sudo mkdir -p ~/.kube
+sudo chown $(id -u):$(id -g) $HOME/.kube
+touch $HOME/.kube/config
+
+
 echo '' | tee -a ~/.bashrc
 echo "source <(kubectl completion bash)" | tee -a ~/.bashrc
 echo "alias k='kubectl'" | tee -a ~/.bashrc

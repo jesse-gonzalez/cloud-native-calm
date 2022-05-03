@@ -74,7 +74,7 @@ More restricted access can be assigned using RBAC.
 
 1. Extract Service account token
 
-    `kubectl get secrets $(kubectl get serviceaccounts jenkins -o jsonpath={.secrets[].name}) -o jsonpath={.data.token} | base64 -d`
+    `kubectl get secrets $(kubectl get serviceaccounts jenkins -o jsonpath={.secrets[].name}) -o jsonpath={.data.token} | base64 -d  && echo`
 
 1. Download a new kubeconfig file from Karbon.
 1. Update the token in the kubeconfig file with the token we generated in above step.
