@@ -1,4 +1,7 @@
 echo "Install Packages"
+sudo yum install epel-release -y
+sudo yum update -y
+
 echo "Install sshpass..."
 sudo yum install -y sshpass
 echo "Install wget..."
@@ -18,8 +21,8 @@ https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 echo "Install Latest Git"
 # remove older git if it already exists
-sudo yum -y remove git
-sudo yum -y install git224
+#sudo yum -y remove git
+sudo yum -y install git
 
 echo "Install Direnv"
 sudo yum -y install https://kojipkgs.fedoraproject.org//vol/fedora_koji_archive02/packages/direnv/2.12.2/1.fc28/x86_64/direnv-2.12.2-1.fc28.x86_64.rpm

@@ -46,9 +46,10 @@ RUN chmod +x *.sh \
     && ./configure_vimrc.sh \
     && ./configure_kubectl_aliases.sh \
     && ./install_argocd_cli.sh \
-    && ./install_stern.sh
+    && ./install_stern.sh \
+    && calm completion install zsh
 
 ## import local gpg key
-COPY ./.local/common/sops_gpg_key /tmp
-WORKDIR /tmp
-RUN gpg --import sops_gpg_key
+# COPY ./.local/common/sops_gpg_key /tmp
+# WORKDIR /tmp
+# RUN gpg --import .local/common/sops_gpg_key

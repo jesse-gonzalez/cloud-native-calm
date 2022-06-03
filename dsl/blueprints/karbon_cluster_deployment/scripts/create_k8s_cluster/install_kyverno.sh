@@ -26,7 +26,7 @@ helm upgrade --install ${INSTANCE_NAME} kyverno/kyverno \
 	--namespace ${NAMESPACE} \
   --create-namespace \
 	--set createSelfSignedCert=false \
-	--set replicaCount=2 \
+	--set replicaCount=3 \
 	--wait
 
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=kyverno -n ${NAMESPACE}
@@ -77,3 +77,13 @@ spec:
             (containers):
             - (image): "*" ## match all container images
 EOF
+
+## adding these steps due to kyverno issues
+
+## https://kyverno.io/docs/troubleshooting/
+
+kubectl delete validatingwebhookconfiguration kyverno-resource-validating-webhook-cfg
+kubectl delete  mutatingwebhookconfiguration kyverno-resource-mutating-webhook-cfg
+
+kubectl scale deploy kyverno -n kyverno --replicas 0
+kubectl scale deploy kyverno -n kyverno --replicas 3

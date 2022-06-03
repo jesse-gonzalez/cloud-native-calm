@@ -1,5 +1,7 @@
 .ONESHELL:
 
+ENVIRONMENT ?= kalm-main-20-1
+
 ## load common variables and anything environment specific that overrides
 export ENV_GLOBAL_PATH 	 ?= $(CURDIR)/config/common/.env
 export ENV_OVERRIDE_PATH ?= $(CURDIR)/config/${ENVIRONMENT}/.env
@@ -31,32 +33,31 @@ docker-run: ## Launch into Calm DSL development container. If image isn't availa
 	@docker run --rm -it \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/dsl-workspace \
-		-v `pwd`/.local/${ENVIRONMENT}:${CALM_DSL_LOCAL_DIR_LOCATION}/ \
 		-w '/dsl-workspace' \
-		calm-dsl-utils /bin/sh -c "make help && /bin/zsh"
+		calm-dsl-utils /bin/sh -c "gpg --import .local/common/sops_gpg_key && make init-dsl-config ENVIRONMENT=${ENVIRONMENT} && /bin/zsh"
 
 .PHONY: init-dsl-config
 init-dsl-config: print-vars ## Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
-	[ -d ${CALM_DSL_LOCAL_DIR_LOCATION} ] || mkdir -p ${CALM_DSL_LOCAL_DIR_LOCATION} && cp -rf .local/${ENVIRONMENT}/* ${CALM_DSL_LOCAL_DIR_LOCATION}
-	@touch ${CALM_DSL_LOCAL_DIR_LOCATION}/config.ini ${CALM_DSL_LOCAL_DIR_LOCATION}/dsl.db
+	@mkdir -p ${CALM_DSL_LOCAL_DIR_LOCATION} && cp -rf .local/* /root/.calm
+	@touch ${CALM_DSL_CONFIG_FILE_LOCATION} ${CALM_DSL_DB_LOCATION}
 	@calm init dsl --project "${CALM_PROJECT}";
 
 ## Common BP command based on DSL_BP path passed in. To Run, make create-dsl-bps <dsl_bp_folder_name>
 
 create-dsl-bps launch-dsl-bps delete-dsl-bps delete-dsl-apps: init-dsl-config
 
-create-dsl-bps: ### Create bp with corresponding git feature branch and short sha code. i.e., make create-dsl-bps DSL_BP=karbon_admin_ws
+create-dsl-bps: ### Create bp with corresponding git feature branch and short sha code. i.e., make create-dsl-bps DSL_BP=bastion_host_svm
 	@make -C dsl/blueprints/${DSL_BP} create-bp
 
-launch-dsl-bps: ### Launch Blueprint that matches your git feature branch and short sha code. i.e., make launch-dsl-bps DSL_BP=karbon_admin_ws
+launch-dsl-bps: ### Launch Blueprint that matches your git feature branch and short sha code. i.e., make launch-dsl-bps DSL_BP=bastion_host_svm
 	@make -C dsl/blueprints/${DSL_BP} launch-bp
 
-delete-dsl-bps: ### Delete Blueprint that matches your git feature branch and short sha code. i.e., make delete-dsl-bps DSL_BP=karbon_admin_ws
+delete-dsl-bps: ### Delete Blueprint that matches your git feature branch and short sha code. i.e., make delete-dsl-bps DSL_BP=bastion_host_svm
 	@make -C dsl/blueprints/${DSL_BP} delete-bp
 
-delete-dsl-apps: ### Delete Application that matches your git feature branch and short sha code. i.e., make delete-dsl-apps DSL_BP=karbon_admin_ws
+delete-dsl-apps: ### Delete Application that matches your git feature branch and short sha code. i.e., make delete-dsl-apps DSL_BP=bastion_host_svm
 	@make -C dsl/blueprints/${DSL_BP} delete-app
 
 ## RELEASE MANAGEMENT
@@ -65,15 +66,15 @@ delete-dsl-apps: ### Delete Application that matches your git feature branch and
 
 publish-new-dsl-bps publish-existing-dsl-bps unpublish-dsl-bps: init-dsl-config
 
-publish-new-dsl-bps: ### First Time Publish of Standard DSL BP. i.e., make publish-new-dsl-bps DSL_BP=karbon_admin_ws
+publish-new-dsl-bps: ### First Time Publish of Standard DSL BP. i.e., make publish-new-dsl-bps DSL_BP=bastion_host_svm
 	# promote stable release to marketplace for new
 	@make -C dsl/blueprints/${DSL_BP} publish-new-bp
 
-publish-existing-dsl-bps: ### Publish Standard DSL BP of already existing. i.e., make publish-existing-dsl-bps DSL_BP=karbon_admin_ws
+publish-existing-dsl-bps: ### Publish Standard DSL BP of already existing. i.e., make publish-existing-dsl-bps DSL_BP=bastion_host_svm
 	# promote stable release to marketplace for existing
 	@make -C dsl/blueprints/${DSL_BP} publish-existing-bp
 
-unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make unpublish-dsl-bps DSL_BP=karbon_admin_ws
+unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make unpublish-dsl-bps DSL_BP=bastion_host_svm
 	# promote stable release to marketplace for existing
 	@make -k -C dsl/blueprints/${DSL_BP} unpublish-bp
 
@@ -101,7 +102,7 @@ create-all-helm-charts: ### Create all helm chart blueprints with default test p
 	ls dsl/blueprints/helm_charts | xargs -I {} make create-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
 launch-all-helm-charts: ### Launch all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
-	ls dsl/blueprints/helm_charts | grep -v -E "kyverno|metallb|ingress-nginx|cert-manager" | xargs -I {} make launch-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
+	ls dsl/blueprints/helm_charts | grep -v -E "kyverno|metallb|ingress-nginx|cert-manager|grafana|artifactory-jcr|gitlab|sonarqube|istio|vault" | xargs -I {} make launch-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
 delete-all-helm-charts-apps: ### Delete all helm chart apps (with current git branch / tag latest in name)
 	# remove pre-reqs last
@@ -117,7 +118,7 @@ delete-all-helm-charts-bps: ### Delete all helm chart blueprints (with current g
 
 create-dsl-endpoint create-all-dsl-endpoints: init-dsl-config
 
-create-dsl-endpoint: ### Create Endpoint Resource. i.e., make create-dsl-endpoint EP=karbon_admin_ws
+create-dsl-endpoint: ### Create Endpoint Resource. i.e., make create-dsl-endpoint EP=bastion_host_svm
 	calm create endpoint -f ./dsl/endpoints/${EP}/endpoint.py --name ${EP} -fc 
 
 create-all-dsl-endpoints: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-endpoints
@@ -145,7 +146,7 @@ run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runb
 init-karbon-admin-ws init-kalm-cluster: init-dsl-config
 
 init-karbon-admin-ws: ### Initialize Karbon Admin Bastion Workstation and Endpoint. .i.e., make init-karbon-admin-ws ENVIRONMENT=kalm-main-16-1
-	@make create-dsl-bps launch-dsl-bps DSL_BP=karbon_admin_ws ENVIRONMENT=${ENVIRONMENT}
+	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@calm get apps -n karbon-admin-ws -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > ${CALM_DSL_LOCAL_DIR_LOCATION}/karbon_admin_ws_ip
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=manage_ad_dns ENVIRONMENT=${ENVIRONMENT}
@@ -155,7 +156,7 @@ init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster E
 	@make run-dsl-runbook RUNBOOK=manage_ad_dns SCENARIO=create_objects_bucket_dns_params ENVIRONMENT=${ENVIRONMENT}
 	@make run-dsl-runbook RUNBOOK=manage_ad_dns SCENARIO=create_wildcard_ingress_dns_params ENVIRONMENT=${ENVIRONMENT}
 	@make run-dsl-runbook RUNBOOK=manage_ad_dns SCENARIO=create_wildcard_simple_ingress_dns_params ENVIRONMENT=${ENVIRONMENT}
-	@make create-dsl-bps launch-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
+	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
 
 bootstrap-kalm-all: ### Bootstrap All
 	@make init-karbon-admin-ws init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
