@@ -46,3 +46,38 @@ kubectl set image -n metallb-system daemonset/metallb-speaker *=docker.io/bitnam
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=metallb -n metallb-system
 
 
+cat <<EOF | kubectl apply -n kubecost -f -
+
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/force-ssl-redirect: true
+    cert-manager.io/cluster-issuer: selfsigned-cluster-issuer
+EOF
+
+cat <<EOF | kubectl apply -n kubecost --dry-run=client -o yaml -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubecost-ingress-tls
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: true
+    cert-manager.io/cluster-issuer: "selfsigned-cluster-issuer"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: kalm-main-20-1.ntnxlab.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kubecost-cost-analyzer
+            port:
+              number: 9090
+  tls:
+  - hosts:
+      - kalm-main-20-1.ntnxlab.local
+    secretName: kubecost-wildcard-tls
+EOF

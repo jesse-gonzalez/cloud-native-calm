@@ -147,15 +147,14 @@ init-karbon-admin-ws init-kalm-cluster: init-dsl-config
 
 init-karbon-admin-ws: ### Initialize Karbon Admin Bastion Workstation and Endpoint. .i.e., make init-karbon-admin-ws ENVIRONMENT=kalm-main-16-1
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
-	@calm get apps -n karbon-admin-ws -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > ${CALM_DSL_LOCAL_DIR_LOCATION}/karbon_admin_ws_ip
+	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/karbon_admin_ws_ip
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=manage_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
 init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
-	@make run-dsl-runbook RUNBOOK=manage_ad_dns SCENARIO=create_objects_bucket_dns_params ENVIRONMENT=${ENVIRONMENT}
-	@make run-dsl-runbook RUNBOOK=manage_ad_dns SCENARIO=create_wildcard_ingress_dns_params ENVIRONMENT=${ENVIRONMENT}
-	@make run-dsl-runbook RUNBOOK=manage_ad_dns SCENARIO=create_wildcard_simple_ingress_dns_params ENVIRONMENT=${ENVIRONMENT}
+	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/karbon_admin_ws_ip
+	@make run-all-dsl-runbook-scenarios RUNBOOK=manage_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
 
 bootstrap-kalm-all: ### Bootstrap All
