@@ -10,5 +10,6 @@ variable_list = [
     { "value": { "value": helm_chart_namespace }, "context": "Default", "name": "namespace" },
     { "value": { "value": os.getenv("KARBON_CLUSTER") }, "context": "Default", "name": "k8s_cluster_name"},
     { "value": { "value": helm_chart_instance_name }, "context": "Default", "name": "instance_name"},
+    { "value": { "value": os.getenv("WILDCARD_INGRESS_DNS_FQDN") }, "context": "Default", "name": "wildcard_ingress_dns_fqdn"},
 ]
 

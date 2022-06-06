@@ -46,6 +46,8 @@ class HelmService(Service):
 
     name = "Helm_"+helm_chart_name
 
+    nipio_ingress_domain = CalmVariable.Simple.string("",)
+
     @action
     def InstallHelmChart(name="Install "+helm_chart_name):
         CalmTask.Exec.ssh(
@@ -90,6 +92,16 @@ class HelmService(Service):
             cred=ref(NutanixCred)
         )
 
+    @action
+    def ConfigureService(name="Configuring "+helm_chart_name):
+        CalmTask.Exec.ssh(
+            name="Configuring Vault HA",
+            filename="scripts/configure_vault/configure_vault_ha.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
+
+
 class KarbonctlWorkstation(Substrate):
 
     os_type = "Linux"
@@ -116,6 +128,7 @@ class HelmPackage(Package):
     @action
     def __install__():
         HelmService.InstallHelmChart(name="Install "+helm_chart_name)
+        HelmService.ConfigureService(name="Configuring "+helm_chart_name)
 
     @action
     def __uninstall__():
@@ -162,6 +175,15 @@ class Default(Profile):
         is_hidden=False,
         runtime=True,
         description="Helm Instance Release Name",
+    )
+
+    wildcard_ingress_dns_fqdn = CalmVariable.Simple(
+        os.getenv("WILDCARD_INGRESS_DNS_FQDN"),
+        label="Wildcard Ingress Domain",
+        is_mandatory=True,
+        is_hidden=False,
+        runtime=True,
+        description="Wildcard Ingress Domain for Applications, must be unique per Karbon cluster - i.e., dev.karbon-infra.drm-poc.local",
     )
 
     k8s_cluster_name = CalmVariable.WithOptions.FromTask(
