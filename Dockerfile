@@ -47,6 +47,7 @@ RUN chmod +x *.sh \
     && ./configure_kubectl_aliases.sh \
     && ./install_argocd_cli.sh \
     && ./install_stern.sh \
+    && ./install_vault_cli.sh \
     && calm completion install zsh
 
 ## import local gpg key
