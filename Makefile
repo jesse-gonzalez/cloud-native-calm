@@ -149,6 +149,7 @@ init-karbon-admin-ws: ### Initialize Karbon Admin Bastion Workstation and Endpoi
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/karbon_admin_ws_ip
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=manage_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
