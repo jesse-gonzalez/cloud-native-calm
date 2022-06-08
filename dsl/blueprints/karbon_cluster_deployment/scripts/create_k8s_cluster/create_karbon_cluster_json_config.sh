@@ -49,7 +49,7 @@ echo '
         "ahv_config": {
           "cpu": 2,
           "disk_mib": 122880,
-          "memory_mib": 4096,
+          "memory_mib": 8192,
           "network_uuid": "@@{network_uuid}@@",
           "prism_element_cluster_uuid": "@@{prism_element_uuid}@@"
         },
@@ -84,7 +84,7 @@ echo '
     "node_pools": [
       {
         "ahv_config": {
-          "cpu": 1,
+          "cpu": 2,
           "disk_mib": 122880,
           "memory_mib": 8192,
           "network_uuid": "@@{network_uuid}@@",

@@ -16,12 +16,17 @@ then
 	kubectl create namespace ${NAMESPACE}
 fi
 
+## See https://artifacthub.io/packages/helm/rancher-stable/rancher for additional helm options
+
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 helm repo update
 helm upgrade --install ${INSTANCE_NAME} rancher-latest/rancher \
 	--namespace ${NAMESPACE} \
 	--set hostname=${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} \
   --set bootstrapPassword="${RANCHER_PASS}" \
+  --set addLocal=false \
+  --set restrictedAdmin=false \
+  --set replicas=3 \
 	--set-string ingress.extraAnnotations."kubernetes\.io\/ingress\.class"=nginx \
 	--wait
 

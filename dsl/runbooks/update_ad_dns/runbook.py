@@ -1,5 +1,5 @@
 """
-Calm DSL Manage AD DNS Runbook
+Calm DSL Update Active Directory DNS Runbook
 """
 
 import os
@@ -17,9 +17,9 @@ DNSServer = os.getenv("DNS")
 DomainName = os.getenv("DOMAIN_NAME")
 
 @runbook
-def ManageADDNS():
+def UpdateADDNS():
     """
-    Runbook to manage AD DNS
+    Runbook to update AD DNS
     """
     dns_name = Variable.Simple(
         "", 
@@ -87,7 +87,7 @@ def ManageADDNS():
 
 
 def main():
-    print(runbook_json(ManageADDNS))
+    print(runbook_json(UpdateADDNS))
 
 
 if __name__ == "__main__":

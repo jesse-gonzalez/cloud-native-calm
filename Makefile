@@ -128,38 +128,38 @@ create-all-dsl-endpoints: ### Create ALL Endpoint Resources. i.e., make create-a
 
 create-dsl-runbook create-all-dsl-runbooks run-dsl-runbook run-all-dsl-runbook-scenarios: init-dsl-config
 
-create-dsl-runbook: ### Create Runbook. i.e., make create-dsl-runbook RUNBOOK=manage_ad_dns
+create-dsl-runbook: ### Create Runbook. i.e., make create-dsl-runbook RUNBOOK=update_ad_dns
 	calm create runbook -f ./dsl/runbooks/${RUNBOOK}/runbook.py --name ${RUNBOOK} -fc 
 
 create-all-dsl-runbooks: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-runbooks
 	ls dsl/runbooks | xargs -I {} make create-dsl-runbook RUNBOOK={} ENVIRONMENT=${ENVIRONMENT}
 
-run-dsl-runbook: ### Run Runbook with Specific Scenario. i.e., make run-dsl-runbook RUNBOOK=manage_ad_dns SCENARIO=create_ingress_dns_params
+run-dsl-runbook: ### Run Runbook with Specific Scenario. i.e., make run-dsl-runbook RUNBOOK=update_ad_dns SCENARIO=create_ingress_dns_params
 	calm run runbook -i --input-file ./dsl/runbooks/${RUNBOOK}/init-scenarios/${SCENARIO}.py ${RUNBOOK}
 
-run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runbook i.e., make run-all-dsl-runbook-scenarios RUNBOOK=manage_ad_dns
+run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runbook i.e., make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns
 	@ls dsl/runbooks/${RUNBOOK}/init-scenarios/*.py | cut -d/ -f5 | cut -d. -f1 | xargs -I {} make run-dsl-runbook RUNBOOK=${RUNBOOK} SCENARIO={}
 
 
 ## WORKFLOWS
 
-init-karbon-admin-ws init-kalm-cluster: init-dsl-config
+init-bastion-host-svm init-kalm-cluster: init-dsl-config
 
-init-karbon-admin-ws: ### Initialize Karbon Admin Bastion Workstation and Endpoint. .i.e., make init-karbon-admin-ws ENVIRONMENT=kalm-main-16-1
+init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation and Endpoint. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
-	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/karbon_admin_ws_ip
+	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/bastion_host_svm_ip
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
-	@make run-all-dsl-runbook-scenarios RUNBOOK=manage_ad_dns ENVIRONMENT=${ENVIRONMENT}
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
 init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
-	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/karbon_admin_ws_ip
-	@make run-all-dsl-runbook-scenarios RUNBOOK=manage_ad_dns ENVIRONMENT=${ENVIRONMENT}
+	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/bastion_host_svm_ip
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
 
 bootstrap-kalm-all: ### Bootstrap All
-	@make init-karbon-admin-ws init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
+	@make init-bastion-host-svm init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
 
 ## RELEASE MANAGEMENT
 

@@ -67,7 +67,7 @@ EncrypedPrismElementCreds = base64.b64encode(bytes(PrismElementPassword, 'utf-8'
 #         config_file="image_configs/centos74_disk.yaml"
 #     )
 
-KarbonctlEnpoint = os.getenv("KARBONCTL_WS_ENDPOINT")
+BastionHostEndpoint = os.getenv("BASTION_WS_ENDPOINT")
 
 class Rke_WorkstationService(Service):
     """Workstation Service"""
@@ -294,16 +294,16 @@ class Rke_WorkstationSubstrate(Substrate):
 
     os_type = "Linux"
     provider_type = "EXISTING_VM"
-    provider_spec = read_provider_spec(os.path.join("image_configs", "karbonctl_workstation_provider_spec.yaml"))
+    provider_spec = read_provider_spec(os.path.join("image_configs", "bastionctl_workstation_provider_spec.yaml"))
 
-    provider_spec.spec["address"] = KarbonctlEnpoint
+    provider_spec.spec["address"] = BastionHostEndpoint
 
     readiness_probe = readiness_probe(
         connection_type="SSH",
         disabled=False,
         retries="15",
         connection_port=22,
-        address=KarbonctlEnpoint,
+        address=BastionHostEndpoint,
         delay_secs="60",
         credential=ref(NutanixCred),
     )

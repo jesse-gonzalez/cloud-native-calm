@@ -12,7 +12,7 @@ from calm.dsl.runbooks import CalmEndpoint as Endpoint
 ContextObj = get_context()
 init_data = ContextObj.get_init_config()
 
-KarbonAdminWsIP = read_local_file("karbon_admin_ws_ip")
+BastionhostsvmIP = read_local_file("bastion_host_svm_ip")
 
 NutanixKeyUser = os.environ['NUTANIX_KEY_USER']
 NutanixKey = read_local_file("nutanix_key")
@@ -25,5 +25,5 @@ NutanixCred = basic_cred(
                 )
 
 DslLinuxEndpoint = Endpoint.Linux.ip(
-    [KarbonAdminWsIP], cred=NutanixCred
+    [BastionhostsvmIP], cred=NutanixCred
 )

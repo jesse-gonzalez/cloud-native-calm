@@ -40,7 +40,7 @@ NutanixCred = basic_cred(
                     default=True
                 )
 
-KarbonctlEnpoint = os.getenv("KARBONCTL_WS_ENDPOINT")
+BastionHostEndpoint = os.getenv("BASTION_WS_ENDPOINT")
 
 class HelmService(Service):
 
@@ -102,20 +102,20 @@ class HelmService(Service):
         )
 
 
-class KarbonctlWorkstation(Substrate):
+class BastionHostWorkstation(Substrate):
 
     os_type = "Linux"
     provider_type = "EXISTING_VM"
-    provider_spec = read_provider_spec(os.path.join("image_configs", "karbonctl_workstation_provider_spec.yaml"))
+    provider_spec = read_provider_spec(os.path.join("image_configs", "bastionctl_workstation_provider_spec.yaml"))
 
-    provider_spec.spec["address"] = KarbonctlEnpoint
+    provider_spec.spec["address"] = BastionHostEndpoint
 
     readiness_probe = readiness_probe(
         connection_type="SSH",
         disabled=False,
         retries="5",
         connection_port=22,
-        address=KarbonctlEnpoint,
+        address=BastionHostEndpoint,
         delay_secs="60",
         credential=ref(NutanixCred),
     )
@@ -143,7 +143,7 @@ class HelmDeployment(Deployment):
     default_replicas = "1"
 
     packages = [ref(HelmPackage)]
-    substrate = ref(KarbonctlWorkstation)
+    substrate = ref(BastionHostWorkstation)
 
 
 class Default(Profile):
@@ -218,6 +218,6 @@ class HelmBlueprint(Blueprint):
 
     services = [HelmService]
     packages = [HelmPackage]
-    substrates = [KarbonctlWorkstation]
+    substrates = [BastionHostWorkstation]
     profiles = [Default]
     credentials = [PrismCentralCred, NutanixCred]

@@ -3,9 +3,9 @@
 Blueprint to Deploy Helm Chart onto Target Karbon Cluster
 """
 
-helm_chart_name = "Jenkins"
-helm_chart_namespace = "jenkins"
-helm_chart_instance_name = "jenkins"
+helm_chart_name = "awx"
+helm_chart_namespace = "awx"
+helm_chart_instance_name = "awx"
 
 import base64
 import json
@@ -39,38 +39,17 @@ NutanixCred = basic_cred(
                     default=True
                 )
 
-DockerHubUser = os.environ['DOCKER_HUB_USER']
-DockerHubPassword = os.environ['DOCKER_HUB_PASS']
-DockerHubCred = basic_cred(
-                    DockerHubUser,
-                    name="Docker Hub User",
+AwxUser = os.environ['AWX_USER']
+AwxPassword = os.environ['AWX_PASS']
+AwxCred = basic_cred(
+                    AwxUser,
+                    name="Awx User",
                     type="PASSWORD",
-                    password=DockerHubPassword,
-                    default=False
-                )
-
-GitHubUser = os.environ['GITHUB_USER']
-GitHubPassword = os.environ['GITHUB_PASS']
-GitHubCred = basic_cred(
-                    GitHubUser,
-                    name="GitHub User",
-                    type="PASSWORD",
-                    password=GitHubPassword,
-                    default=False
-                )
-
-JenkinsUser = os.environ['JENKINS_USER']
-JenkinsPassword = os.environ['JENKINS_PASS']
-JenkinsCred = basic_cred(
-                    JenkinsUser,
-                    name="Jenkins User",
-                    type="PASSWORD",
-                    password=JenkinsPassword,
+                    password=AwxPassword,
                     default=False
                 )
 
 BastionHostEndpoint = os.getenv("BASTION_WS_ENDPOINT")
-
 class HelmService(Service):
 
     name = "Helm_"+helm_chart_name
@@ -79,6 +58,7 @@ class HelmService(Service):
 
     @action
     def InstallHelmChart(name="Install "+helm_chart_name):
+
         CalmTask.Exec.ssh(
             name="Get Kubeconfig",
             filename="../../../_common/karbon/scripts/get_kubeconfig.sh",
@@ -104,12 +84,6 @@ class HelmService(Service):
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
-        # CalmTask.Exec.ssh(
-        #     name="Configure "+helm_chart_name+" Helm Chart",
-        #     filename="scripts/deploy_helm_chart/configure_helm_chart.sh",
-        #     target=ref(HelmService),
-        #     cred=ref(NutanixCred)
-        # )
 
     @action
     def UninstallHelmChart(name="Uninstall "+helm_chart_name):
@@ -126,7 +100,6 @@ class HelmService(Service):
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
-
 
 class BastionHostWorkstation(Substrate):
 
@@ -154,6 +127,7 @@ class HelmPackage(Package):
     @action
     def __install__():
         HelmService.InstallHelmChart(name="Install "+helm_chart_name)
+
 
     @action
     def __uninstall__():
@@ -202,6 +176,7 @@ class Default(Profile):
         description="Helm Instance Release Name",
     )
 
+    # TODO: Awx is only using nip.io dns.  Wildcard domain needs to be added to ingress after deployment.
     wildcard_ingress_dns_fqdn = CalmVariable.Simple(
         os.getenv("WILDCARD_INGRESS_DNS_FQDN"),
         label="Wildcard Ingress Domain",
@@ -245,4 +220,4 @@ class HelmBlueprint(Blueprint):
     packages = [HelmPackage]
     substrates = [BastionHostWorkstation]
     profiles = [Default]
-    credentials = [PrismCentralCred, NutanixCred, GitHubCred, DockerHubCred, JenkinsCred]
+    credentials = [PrismCentralCred, NutanixCred, AwxCred]
