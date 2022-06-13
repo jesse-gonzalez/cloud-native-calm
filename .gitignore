@@ -64,10 +64,6 @@ terraform.rc
 ## Ignore manifests directory.
 **/manifests/*.json
 
-## Hauler
-store
-**/*.zst
-
 # Temp junk
 ## Ignore temp directory
 temp/

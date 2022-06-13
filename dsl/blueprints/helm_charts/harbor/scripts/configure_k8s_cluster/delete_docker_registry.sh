@@ -36,7 +36,6 @@ for NS in $(kubectl get ns | cut -d " " -f 1 | tail -n +2 | xargs); do kubectl d
 echo ""
 echo "Remove Docker Registry from the Karbon Kubernetes cluster"
 karbonctl cluster registry delete --cluster-name ${K8S_CLUSTER_NAME} --registry-name ${INSTANCE_NAME}_noip
-karbonctl cluster registry delete --cluster-name ${K8S_CLUSTER_NAME} --registry-name ${INSTANCE_NAME}_wildcard
 monitor_registry_delete_task
 
 echo ""
@@ -46,7 +45,6 @@ karbonctl cluster registry list --cluster-name ${K8S_CLUSTER_NAME}
 echo ""
 echo "Remove Docker Registy to Karbon"
 karbonctl registry delete --registry-name ${INSTANCE_NAME}_noip
-karbonctl registry delete --registry-name ${INSTANCE_NAME}_wildcard
 monitor_registry_delete_task
 
 echo ""

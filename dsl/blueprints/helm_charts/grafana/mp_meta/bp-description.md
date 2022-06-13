@@ -6,4 +6,4 @@ URL:
 
 Default Access:
 username: `admin`
-password: `kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo`
+password: `kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 -d && echo`

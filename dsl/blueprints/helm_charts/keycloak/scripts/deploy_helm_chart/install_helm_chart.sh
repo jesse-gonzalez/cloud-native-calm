@@ -33,20 +33,18 @@ helm upgrade --install ${INSTANCE_NAME} bitnami/keycloak \
   --set service.type=ClusterIP \
 	--set ingress.enabled=true \
 	--set-string ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
-	--set-string ingress.annotations."cert-manager\.io\/cluster-issuer"=selfsigned-cluster-issuer \
-  --set-string ingress.annotations."nginx\.ingress\.kubernetes\.io\/force-ssl-redirect"=true \
-  --set-string ingress.annotations."nginx\.ingress\.kubernetes\.io\/backend-protocol"=HTTPS \
+  --set-string ingress.annotations."nginx\.ingress\.kubernetes\.io\/force-ssl-redirect"=false \
+  --set-string ingress.annotations."nginx\.ingress\.kubernetes\.io\/backend-protocol"=HTTP \
 	--set ingress.hostname="${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN}" \
-  --set ingress.servicePort=https \
-	--set ingress.tls=true \
+  --set ingress.servicePort=http \
+	--set ingress.tls=false \
 	--wait \
   --wait-for-jobs \
   --timeout 10m0s
 
-
+## TODO: fix redirection issues between 443 and 80...
 ##  --set-string ingress.annotations."nginx\.ingress\.kubernetes\.io\/force-ssl-redirect"=true \
-    # nginx.ingress.kubernetes.io/rewrite-target: /
-    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+## nginx.ingress.kubernetes.io/rewrite-target: /
 
 ## --set ingress.secrets="${INSTANCE_NAME}-npio-tls" \
 ## keycloak configuration

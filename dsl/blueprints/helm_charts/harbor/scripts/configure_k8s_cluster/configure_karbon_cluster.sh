@@ -29,18 +29,18 @@ karbonctl login --pc-ip @@{pc_instance_ip}@@ --pc-username @@{Prism Central User
 
 echo ""
 echo "Validate DNS on certs"
-cat $HOME/.ssh/${INSTANCE_NAME}_noip_karbon_ca.crt | openssl x509 -text -noout | grep DNS
-cat $HOME/.ssh/${INSTANCE_NAME}_wildcard_karbon_ca.crt | openssl x509 -text -noout | grep DNS
+cat $HOME/.ssh/harbor-ingress_tls.crt | openssl x509 -text -noout | grep DNS
+cat $HOME/.ssh/harbor-ingress_ca.crt | openssl x509 -text -noout | grep DNS
 
 echo ""
-echo "Register JFrog Container Registry to Karbon - noip.io scenario"
-karbonctl registry add --name ${INSTANCE_NAME}_noip --url ${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} --cert-file $HOME/.ssh/${INSTANCE_NAME}_noip_karbon_ca.crt --username admin --password @@{Artifactory Credential.secret}@@
+echo "Register Container Registry to Karbon - noip.io scenario"
+karbonctl registry add --name ${INSTANCE_NAME}_noip --url ${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} --cert-file $HOME/.ssh/harbor-ingress_ca.crt --username admin --password @@{Harbor User.secret}@@
 monitor_registry_add_task
 
-echo ""
-echo "Register JFrog Container Registry to Karbon - wildcard scenario"
-karbonctl registry add --name ${INSTANCE_NAME}_wildcard --url ${INSTANCE_NAME}.${WILDCARD_INGRESS_DNS_FQDN} --cert-file $HOME/.ssh/${INSTANCE_NAME}_wildcard_karbon_ca.crt --username admin --password @@{Artifactory Credential.secret}@@
-monitor_registry_add_task
+# echo ""
+# echo "Register Container Registry to Karbon - wildcard scenario"
+# karbonctl registry add --name ${INSTANCE_NAME}_wildcard --url ${INSTANCE_NAME}.${WILDCARD_INGRESS_DNS_FQDN} --cert-file $HOME/.ssh/${INSTANCE_NAME}_wildcard_karbon_ca.crt --username admin --password @@{Harbor User.secret}@@
+# monitor_registry_add_task
 
 echo ""
 echo "List Registered"
@@ -51,10 +51,10 @@ echo "Register Docker Registy To the Karbon Kubernetes cluster - noip.io scenari
 karbonctl cluster registry add --cluster-name ${K8S_CLUSTER_NAME} --registry-name ${INSTANCE_NAME}_noip
 monitor_registry_add_task
 
-echo ""
-echo "Register Docker Registy To the Karbon Kubernetes cluster - wildcard scenario"
-karbonctl cluster registry add --cluster-name ${K8S_CLUSTER_NAME} --registry-name ${INSTANCE_NAME}_wildcard
-monitor_registry_add_task
+# echo ""
+# echo "Register Docker Registy To the Karbon Kubernetes cluster - wildcard scenario"
+# karbonctl cluster registry add --cluster-name ${K8S_CLUSTER_NAME} --registry-name ${INSTANCE_NAME}_wildcard
+# monitor_registry_add_task
 
 echo ""
 echo "List Registered to Cluster"

@@ -54,6 +54,7 @@ helm upgrade --install ${INSTANCE_NAME} kasten/k10 \
 	--set-string ingress.annotations."nginx\.ingress\.kubernetes\.io\/ssl-redirect"="true" \
 	--set-string ingress.annotations."cert-manager\.io\/cluster-issuer"=selfsigned-cluster-issuer \
 	--set auth.tokenAuth.enabled=true \
+  --wait-for-jobs \
 	--wait
 
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=k10 -n ${NAMESPACE}

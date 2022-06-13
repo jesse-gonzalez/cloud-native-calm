@@ -1,19 +1,21 @@
-## Utilities
+
+
+#### Utilities
 
 The following command line utilities have been installed and configured on the underlying bastion host based:
 
-### Common Utilities
+##### Common Utilities
 
 - git
 - jq
 - yq
 
-### Nutanix Utilities
+##### Nutanix Utilities
 
 - calm dsl
 - karbonctl
 
-### Container Management Utilities
+##### Container Management Utilities
 
 - docker
 - kubectl
@@ -23,17 +25,17 @@ The following command line utilities have been installed and configured on the u
 - stern
 - openshift
 
-### Cloud Native Utilities
+##### Cloud Native Utilities
 
 - argocd
 - istio
 
-### HashiCorp Utilities
+##### HashiCorp Utilities
 
 - terraform
 - vault
 
-### Cloud Management Utilities
+##### Cloud Management Utilities
 
 - azure
 - google

@@ -16,12 +16,12 @@ kubectl create secret docker-registry ${INSTANCE_NAME}-noip-docker-registry-cred
 kubectl create secret docker-registry ${INSTANCE_NAME}-wildcard-docker-registry-cred --docker-server=${INSTANCE_NAME}.${WILDCARD_INGRESS_DNS_FQDN} --docker-username=admin --docker-password='@@{Artifactory Credential.secret}@@' -n ${NAMESPACE}
 
 echo "Get artifactory container registry CA and TLS certs for both noip and wildcard domains"
-kubectl get secrets ${INSTANCE_NAME}-noip-tls -o jsonpath='{.data.ca\.crt}' -n ${NAMESPACE} | base64 -d > ~/.ssh/${INSTANCE_NAME}_noip_karbon_ca.crt
-kubectl get secrets ${INSTANCE_NAME}-wildcard-tls -o jsonpath='{.data.ca\.crt}' -n ${NAMESPACE} | base64 -d > ~/.ssh/${INSTANCE_NAME}_wildcard_karbon_ca.crt
+kubectl get secrets ${INSTANCE_NAME}-noip-tls -o jsonpath='{.data.ca\.crt}' -n ${NAMESPACE} | base64 -d > $HOME/.ssh/${INSTANCE_NAME}_noip_karbon_ca.crt
+kubectl get secrets ${INSTANCE_NAME}-wildcard-tls -o jsonpath='{.data.ca\.crt}' -n ${NAMESPACE} | base64 -d > $HOME/.ssh/${INSTANCE_NAME}_wildcard_karbon_ca.crt
 
 echo "Create Configmaps with certs"
-kubectl -n ${NAMESPACE} create configmap noip_ca_pemstore --from-file=~/.ssh/${INSTANCE_NAME}_noip_karbon_ca.crt
-kubectl -n ${NAMESPACE} create configmap wildcard_ca_pemstore --from-file=~/.ssh/${INSTANCE_NAME}_wildcard_karbon_ca.crt
+kubectl -n ${NAMESPACE} create configmap noip-ca-pemstore --from-file=$HOME/.ssh/${INSTANCE_NAME}_noip_karbon_ca.crt
+kubectl -n ${NAMESPACE} create configmap wildcard-ca-pemstore --from-file=$HOME/.ssh/${INSTANCE_NAME}_wildcard_karbon_ca.crt
 
 
 # kubectl get secrets artifactory-jcr-noip-tls -o jsonpath='{.data.ca\.crt}' -n jfrog-container-registry | sudo sh -c 'base64 -d >| /etc/ssl/certs/artifactory-jcr_noip_karbon_ca.crt'

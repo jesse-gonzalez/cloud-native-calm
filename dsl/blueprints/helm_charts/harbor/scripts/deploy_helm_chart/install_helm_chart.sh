@@ -23,8 +23,6 @@ helm upgrade --install ${INSTANCE_NAME} harbor/harbor \
 	--namespace ${NAMESPACE} \
 	--set expose.type=ingress \
 	--set expose.tls.enabled=auto \
-	--set expose.tls.secret.secretName=${INSTANCE_NAME}-tls \
-	--set expose.tls.secret.notarySecretName=${INSTANCE_NAME}-notary-tls \
 	--set expose.ingress.controller=default \
 	--set expose.ingress.hosts.core="${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN}" \
 	--set expose.ingress.hosts.notary="${INSTANCE_NAME}-notary.${NIPIO_INGRESS_DOMAIN}" \
@@ -33,6 +31,10 @@ helm upgrade --install ${INSTANCE_NAME} harbor/harbor \
 	--set-string expose.ingress.annotations."cert-manager\.io\/cluster-issuer"=selfsigned-cluster-issuer \
 	--set harborAdminPassword="${HARBOR_PASS}" \
 	--wait
+
+
+	# --set expose.tls.secret.secretName=${INSTANCE_NAME}-tls \
+	# --set expose.tls.secret.notarySecretName=${INSTANCE_NAME}-notary-tls \
 
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/part-of=harbor -n ${NAMESPACE}
 

@@ -101,6 +101,35 @@ class HelmService(Service):
             cred=ref(NutanixCred)
         )
 
+    @action
+    def AddKarbonRegistry(name="Add Private Docker Registry to Karbon"):
+        CalmTask.Exec.ssh(
+            name="Create Docker Registry Kubernetes Credential",
+            filename="scripts/configure_k8s_cluster/create_k8s_credential.sh",
+            target=ref(HelmService),
+            cred=NutanixCred
+        )
+        CalmTask.Exec.ssh(
+            name="Add Private Docker Registry",
+            filename="scripts/configure_k8s_cluster/configure_karbon_cluster.sh",
+            target=ref(HelmService),
+            cred=NutanixCred
+        )
+        CalmTask.Exec.ssh(
+            name="Validate Docker and Helm Repos",
+            filename="scripts/configure_k8s_cluster/validate_registry_configs.sh",
+            target=ref(HelmService),
+            cred=NutanixCred
+        )
+
+    @action
+    def DeleteKarbonRegistry(name="Delete Private Docker Registry from Karbon"):
+        CalmTask.Exec.ssh(
+            name="Delete Private Docker Registry",
+            filename="scripts/configure_k8s_cluster/delete_docker_registry.sh",
+            target=ref(HelmService),
+            cred=NutanixCred
+        )
 
 class BastionHostWorkstation(Substrate):
 
@@ -128,10 +157,11 @@ class HelmPackage(Package):
     @action
     def __install__():
         HelmService.InstallHelmChart(name="Install "+helm_chart_name)
+        HelmService.AddKarbonRegistry(name="Add Docker Registry to Karbon")
 
     @action
     def __uninstall__():
-        HelmService.UninstallHelmChart(name="Uninstall "+helm_chart_name)
+        HelmService.DeleteKarbonRegistry(name="Delete Docker Registry from Karbon")
 
 
 class HelmDeployment(Deployment):

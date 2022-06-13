@@ -101,8 +101,8 @@ delete-helm-apps: ### Delete single helm chart app (with current git branch / ta
 create-all-helm-charts: ### Create all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
 	ls dsl/blueprints/helm_charts | xargs -I {} make create-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
-launch-all-helm-charts: ### Launch all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
-	ls dsl/blueprints/helm_charts | grep -v -E "kyverno|metallb|ingress-nginx|cert-manager|grafana|artifactory-jcr|gitlab|sonarqube|istio|vault" | xargs -I {} make launch-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
+launch-all-helm-charts: ### Launch all helm chart blueprints with default test parameters (minus already deployed charts)
+	ls dsl/blueprints/helm_charts | grep -v -E "kyverno|metallb|ingress-nginx|cert-manager" | xargs -I {} make launch-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
 delete-all-helm-charts-apps: ### Delete all helm chart apps (with current git branch / tag latest in name)
 	# remove pre-reqs last
@@ -225,3 +225,13 @@ merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to con
 fix-image-pull-secrets: ### Add image pull secret to get around image download rate limiting issues
 	@kubectl get ns -o name | cut -d / -f2 | xargs -I {} sh -c "kubectl create secret docker-registry image-pull-secret --docker-username=${DOCKER_HUB_USER} --docker-password=${DOCKER_HUB_PASS} -n {} --dry-run=client -o yaml | kubectl apply -f - "
 	kubectl get serviceaccount --no-headers --all-namespaces | awk '{ print $$1 , $$2 }' | xargs -n2 sh -c 'kubectl patch serviceaccount $$2 -p "{\"imagePullSecrets\": [{\"name\": \"image-pull-secret\"}]}" -n $$1' sh
+
+####
+## Maintenance Tasks
+####
+
+.PHONY: delete-all-helm-mp-items
+delete-all-helm-mp-items: ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
+	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
+	ls dsl/blueprints/helm_charts | xargs -I {} calm get marketplace bps -q -n {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}
+	

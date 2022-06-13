@@ -44,28 +44,30 @@ controller:
                     description: "Github credentials for nutanix repos"
         jenkins:
           systemMessage: "Jenkins configured automatically by Nutanix Calm and Jenkins Configuration as Code plugin\n\n"
-        jobs:
-        - script: >
-            multibranchPipelineJob('simple-rsvp-app-multibranch-pipeline') {
-              branchSources {
-                github {
-                  // The id option in the Git and GitHub branch source contexts is now mandatory (JENKINS-43693).
-                  id('12312313') // IMPORTANT: use a constant and unique identifier
-                  scanCredentialsId('github-creds')
-                  repoOwner('jesse-gonzalez')
-                  repository('simple-rsvp-app')
-                }
-              }
-              orphanedItemStrategy {
-                discardOldItems {
-                  numToKeep(5)
-                }
-              }
-              triggers {
-                periodic(1)
-              }
-            }
 EOF
+
+
+        # jobs:
+        # - script: >
+        #     multibranchPipelineJob('simple-rsvp-app-multibranch-pipeline') {
+        #       branchSources {
+        #         github {
+        #           // The id option in the Git and GitHub branch source contexts is now mandatory (JENKINS-43693).
+        #           id('12312313') // IMPORTANT: use a constant and unique identifier
+        #           scanCredentialsId('github-creds')
+        #           repoOwner('jesse-gonzalez')
+        #           repository('simple-rsvp-app')
+        #         }
+        #       }
+        #       orphanedItemStrategy {
+        #         discardOldItems {
+        #           numToKeep(5)
+        #         }
+        #       }
+        #       triggers {
+        #         periodic(1)
+        #       }
+        #     }
 
 # this step will configure jenkins with ingress tls enabled and self-signed certs managed by cert-manager
 helm repo add jenkinsci https://charts.jenkins.io

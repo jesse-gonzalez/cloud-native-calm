@@ -1,17 +1,19 @@
 
 #### Connectivity Details
 
-Access Kiali Dasbhoard:
+Access Istio `Kiali` Dasbhoard:
 
 `istioctl dashboard kiali` [will launch browser]
 
-INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+#### After Running Day 2 Action - `Deploy Istio Demo App`
 
-INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+Access `BookInfo` Page by accessing:
 
-SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].port}')
+```
+export INGRESS_HOST=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].port}')
+export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].port}')
+export GATEWAY_URL=$INGRESS_HOST:$INGRESS_PORT
+```
 
-GATEWAY_URL=$INGRESS_HOST:$INGRESS_PORT
-
-Access BookInfo Page by accessing:
-`http://$GATEWAY_URL/productpage`
+`http://$GATEWAY_URL:80/productpage`

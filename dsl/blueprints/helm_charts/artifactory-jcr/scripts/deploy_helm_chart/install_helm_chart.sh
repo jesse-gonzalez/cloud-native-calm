@@ -20,6 +20,7 @@ helm upgrade --install ${INSTANCE_NAME} \
 	--set artifactory.artifactory.service.type=ClusterIP \
 	--set artifactory.nginx.enabled=false \
 	--set artifactory.ingress.enabled=true \
+  --set artifactory.ingress.defaultBackend.enabled=false \
 	--set-string artifactory.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
 	--set-string artifactory.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-buffering"=off \
 	--set-string artifactory.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-read-timeout"=1800 \
@@ -33,12 +34,16 @@ helm upgrade --install ${INSTANCE_NAME} \
 	--set artifactory.ingress.hosts[1]="${INSTANCE_NAME}.${WILDCARD_INGRESS_DNS_FQDN}" \
 	--set artifactory.ingress.tls[1].hosts[0]=${INSTANCE_NAME}.${WILDCARD_INGRESS_DNS_FQDN} \
 	--set artifactory.ingress.tls[1].secretName=${INSTANCE_NAME}-wildcard-tls \
+  --version 107.19.4 \
 	--namespace ${NAMESPACE} jfrog/artifactory-jcr \
 	--wait
 
-kubectl wait --for=condition=Ready pod/${INSTANCE_NAME}-artifactory-0 -A
+kubectl wait --for=condition=Ready pod/${INSTANCE_NAME}-artifactory-0 --namespace ${NAMESPACE}
 
-helm status ${INSTANCE_NAME} -n ${NAMESPACE}
+## scaling down due to inability to pass via helm chart
+kubectl scale sts artifactory-jcr --replicas=1 --namespace ${NAMESPACE}
+
+helm status ${INSTANCE_NAME} --namespace ${NAMESPACE}
 
 echo "Navigate to  https://${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} via browser to access instance"
 echo "Alternatively, if DNS wildcard domain configured, navigate to https://${INSTANCE_NAME}.${WILDCARD_INGRESS_DNS_FQDN}"

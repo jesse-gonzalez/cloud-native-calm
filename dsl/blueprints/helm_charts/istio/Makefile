@@ -2,7 +2,7 @@ CATEGORY_NAME						:= ServiceMesh
 HELM_CHART_NAME					:= istio
 
 # Default Action Name to run for custom day 2 actions
-ACTION_NAME             := "Upgrade Helm Chart"
+ACTION_NAME             := "Deploy Istio Demo App"
 
 # Test params file name assumes that target folder is tests
 TEST_PARAMS_FILENAME    ?= test_helm_params.py

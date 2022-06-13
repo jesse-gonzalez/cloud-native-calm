@@ -19,12 +19,12 @@ helm upgrade --install gitlab gitlab/gitlab \
 	--namespace ${NAMESPACE} \
   --timeout 15m \
   --set global.hosts.domain="${NIPIO_INGRESS_DOMAIN}" \
-  --set global.certmanager.install=false \
-	--set global.ingress.tls.enabled=true \
-	--set-string global.ingress.annotations."cert-manager\.io\/cluster-issuer"=selfsigned-cluster-issuer \
-  --set global.nginx-ingress.enabled=false \
-  --set global.ingress.class=nginx \
+  --set nginx-ingress.enabled=false \
+  --set certmanager.install=false \
 	--set global.ingress.configureCertmanager=false \
+	--set global.ingress.tls.enabled=true \
+	--set global.ingress.annotations."cert-manager\.io\/cluster-issuer"=selfsigned-cluster-issuer \
+  --set global.ingress.class=nginx \
 	--set global.edition=ce \
 	--set gitlab-runner.install=false \
 	--set global.pages.enabled=true \
@@ -42,6 +42,4 @@ kubectl wait --for=condition=Ready pod -l app.kubernetes.io/part-of=gitlab -n ${
 
 helm status ${INSTANCE_NAME} -n ${NAMESPACE}
 
-echo "Navigate to https://${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} via browser to access instance
-
-Alternatively, if DNS wildcard domain configured, navigate to https://${INSTANCE_NAME}.${WILDCARD_INGRESS_DNS_FQDN}"
+echo "Navigate to https://${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} via browser to access instance"

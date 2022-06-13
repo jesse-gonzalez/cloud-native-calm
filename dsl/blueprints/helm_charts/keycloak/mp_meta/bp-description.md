@@ -5,7 +5,7 @@
 #### Connectivity Details
 
 URL:
-[https://@@{instance_name}@@.@@{Helm_Keycloak.nipio_ingress_domain}@@](https://@@{instance_name}@@.@@{Helm_Keycloak.nipio_ingress_domain}@@)
+[http://@@{instance_name}@@.@@{Helm_Keycloak.nipio_ingress_domain}@@](http://@@{instance_name}@@.@@{Helm_Keycloak.nipio_ingress_domain}@@)
 
 Username: admin
 
