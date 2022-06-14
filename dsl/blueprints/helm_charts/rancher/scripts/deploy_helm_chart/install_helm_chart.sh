@@ -24,8 +24,6 @@ helm upgrade --install ${INSTANCE_NAME} rancher-latest/rancher \
 	--namespace ${NAMESPACE} \
 	--set hostname=${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN} \
   --set bootstrapPassword="${RANCHER_PASS}" \
-  --set addLocal=false \
-  --set restrictedAdmin=false \
   --set replicas=3 \
 	--set-string ingress.extraAnnotations."kubernetes\.io\/ingress\.class"=nginx \
 	--wait

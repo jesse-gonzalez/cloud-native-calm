@@ -1,4 +1,5 @@
 
+set -x
 TEMPDIR="$(mktemp -d)"
 cd $TEMPDIR
 
@@ -15,6 +16,6 @@ echo "Downloading ${CLI_TOOL_NAME} cli from $BIN_URL"
 
 curl -fsSLO "${BIN_URL}"
 tar zxvf "${BINARY}.tar.gz"
-sudo mv $TEMPDIR/${CLI_TOOL_NAME}-${VERSION}/${CLI_TOOL_NAME} /usr/local/bin
-sudo chmod +x /usr/local/bin/${CLI_TOOL_NAME}
-sudo ln -s /usr/local/bin/${CLI_TOOL_NAME} /usr/bin/${CLI_TOOL_NAME}
+mv $TEMPDIR/${CLI_TOOL_NAME}-${VERSION}/${CLI_TOOL_NAME} /usr/local/bin
+chmod +x /usr/local/bin/${CLI_TOOL_NAME}
+ln -s /usr/local/bin/${CLI_TOOL_NAME} /usr/bin/${CLI_TOOL_NAME}

@@ -22,7 +22,8 @@ RUN apk update \
         zsh \
         perl \
         ncurses \
-        jq
+        jq \
+        aws-cli
 
 ## configure zsh
 RUN apk add --no-cache zsh \
@@ -49,9 +50,8 @@ RUN chmod +x *.sh \
     && ./install_argocd_cli.sh \
     && ./install_vault_cli.sh \
     && ./install_istio_cli.sh \
+    && ./install_crossplane.sh \
+    && ./install_clusterctl.sh \
+    && ./install_rancher_cli.sh \
     && calm completion install zsh
 
-## import local gpg key
-# COPY ./.local/common/sops_gpg_key /tmp
-# WORKDIR /tmp
-# RUN gpg --import .local/common/sops_gpg_key
