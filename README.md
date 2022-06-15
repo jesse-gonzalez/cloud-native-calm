@@ -16,11 +16,16 @@ In any case, as I was porting things to some interim cluster, I realized that th
 
 1. Clone repo and change directory (cd):
 
-    `git clone https://github.com/jesse-gonzalez/cloud-native-calm.git` && `cd shared-demo-karbon-calm`
+    ```bash
+    git clone https://github.com/jesse-gonzalez/cloud-native-calm.git && \
+    cd cloud-native-calm
+    ```
 
 1. Exec in Docker Utils Container. If container image is unavailable, it will build locally.
 
-    `make docker-run`
+    ```bash
+    make docker-run
+    ```
 
 1. Initialize HPOC Configurations and Secrets. `Environment` value should be either `kalm-main-{hpoc_id}` or `kalm-develop-{hpoc_id}`.
     `hpoc-id` are last 4 characters of HPOC Name. i.e., `PHX-SPOC011-2` is `kalm-main-11-2` or `kalm-develop-11-2`
