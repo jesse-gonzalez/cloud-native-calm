@@ -1,5 +1,5 @@
-helm_chart_namespace = "crossplane"
-helm_chart_instance_name = "crossplane"
+helm_chart_namespace = "mongodb"
+helm_chart_instance_name = "mongodb"
 
 import os
 

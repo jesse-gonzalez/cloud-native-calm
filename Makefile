@@ -163,6 +163,9 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 # If needing to publish from a previous commit/tag than current master HEAD, from master, run git reset --hard tagname to set local working copy to that point in time.
 # Run git reset --hard origin/master to return your local working copy back to latest master HEAD.
 
+
+publish-new-helm-bpsm publish-existing-helm-bps unpublish-helm-bps publish-all-new-helm-bps publish-all-existing-helm-bps unpublish-all-helm-bps: init-dsl-config
+
 publish-new-helm-bps: ### First Time Publish of Single Helm Chart. i.e., make publish-new-helm-bps CHART=argocd
 	# promote stable release to marketplace for new
 	@make -C dsl/blueprints/helm_charts/${CHART} publish-new-bp
@@ -206,17 +209,19 @@ help: ### Show this help
 ## Configure Local KUBECTL config and ssh keys for Karbon
 ####
 
+download-karbon-creds fix-image-pull-secrets: print-vars
+
 .PHONY: download-karbon-creds
-download-karbon-creds: print-vars ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
+download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
 	@kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user admin --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force
 	make merge-kubectl-contexts
 
 .PHONY: merge-kubectl-contexts
 merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to config file.  Needed to support multiple clusters in future
-	@export KUBECONFIG=$$KUBECONFIG:~/.kube/${KARBON_CLUSTER}.cfg; \
+	export KUBECONFIG=$$KUBECONFIG:~/.kube/${KARBON_CLUSTER}.cfg; \
 		kubectl config view --flatten >| ~/.kube/config && chmod 600 ~/.kube/config;
-	@kubectl config use-context ${KUBECTL_CONTEXT};
-	@kubectl cluster-info
+	kubectl config use-context ${KUBECTL_CONTEXT};
+	kubectl cluster-info
 
 .PHONY: fix-image-pull-secrets
 fix-image-pull-secrets: ### Add image pull secret to get around image download rate limiting issues
@@ -228,7 +233,7 @@ fix-image-pull-secrets: ### Add image pull secret to get around image download r
 ####
 
 .PHONY: delete-all-helm-mp-items
-delete-all-helm-mp-items: ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
+delete-all-helm-mp-items: init-dsl-config ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
 	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
 	@make unpublish-all-helm-bps ENVIRONMENT=${ENVIRONMENT}
 	ls dsl/blueprints/helm_charts | xargs -I {} calm get marketplace bps -q -n {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}

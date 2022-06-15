@@ -4,9 +4,9 @@ Blueprint to Deploy Helm Chart onto Target Karbon Cluster
 """
 
 ## Update at minimum these vars
-helm_chart_name = "Crossplane"
-helm_chart_namespace = "crossplane-system"
-helm_chart_instance_name = "crossplane"
+helm_chart_name = "Mongodb"
+helm_chart_namespace = "mongodb"
+helm_chart_instance_name = "mongodb"
 
 import base64
 import json
@@ -92,6 +92,15 @@ class HelmService(Service):
             cred=ref(NutanixCred)
         )
 
+    @action
+    def ConfigureService(name="Configuring "+helm_chart_name):
+        CalmTask.Exec.ssh(
+            name="Configuring MongoDB Instance",
+            filename="scripts/deploy_helm_chart/configure_mongdb_instance.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
+
 
 class BastionHostWorkstation(Substrate):
 
@@ -119,6 +128,7 @@ class HelmPackage(Package):
     @action
     def __install__():
         HelmService.InstallHelmChart(name="Install "+helm_chart_name)
+        HelmService.ConfigureService(name="Configuring "+helm_chart_name)
 
     @action
     def __uninstall__():
