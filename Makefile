@@ -1,9 +1,10 @@
 .ONESHELL:
 
 ENVIRONMENT ?= kalm-main-20-1
+DEFAULT_SHELL ?= /bin/zsh
 
 ## load common variables and anything environment specific that overrides
-export ENV_GLOBAL_PATH 	 ?= $(CURDIR)/config/common/.env
+export ENV_GLOBAL_PATH 	 ?= $(CURDIR)/config/_common/.env
 export ENV_OVERRIDE_PATH ?= $(CURDIR)/config/${ENVIRONMENT}/.env
 
 -include $(ENV_GLOBAL_PATH)
@@ -12,9 +13,8 @@ export ENV_OVERRIDE_PATH ?= $(CURDIR)/config/${ENVIRONMENT}/.env
 ## export all vars
 export
 
-# REQUIRED_TOOLS_LIST := docker git make jq helm yq
-# #jq kubectl helm packer terraform ansible helmfile sops
-# CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)),some string,$(error "No $(tool) in PATH")))
+REQUIRED_TOOLS_LIST := docker git make jq sops yq gpg kubectl
+CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)),some string,$(error "No $(tool) in PATH")))
 
 ####
 ## Configure Calm DSL and Docker Container
@@ -29,12 +29,12 @@ docker-build: ## Build Calm DSL Util Image with necessary tools to develop and m
 .PHONY: docker-run
 docker-run: ## Launch into Calm DSL development container. If image isn't available, build will auto-run
 	[ -n "$$(docker image ls calm-dsl-utils -q)" ] || make docker-build
-	# this will just exec you into the interactive container
+	# this will exec you into the interactive container
 	@docker run --rm -it \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/dsl-workspace \
 		-w '/dsl-workspace' \
-		calm-dsl-utils /bin/sh -c "gpg --import .local/common/sops_gpg_key && make init-dsl-config ENVIRONMENT=${ENVIRONMENT} && /bin/zsh"
+		calm-dsl-utils /bin/sh -c ${DEFAULT_SHELL}
 
 .PHONY: init-dsl-config
 init-dsl-config: print-vars ## Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
@@ -67,15 +67,12 @@ delete-dsl-apps: ### Delete Application that matches your git feature branch and
 publish-new-dsl-bps publish-existing-dsl-bps unpublish-dsl-bps: init-dsl-config
 
 publish-new-dsl-bps: ### First Time Publish of Standard DSL BP. i.e., make publish-new-dsl-bps DSL_BP=bastion_host_svm
-	# promote stable release to marketplace for new
 	@make -C dsl/blueprints/${DSL_BP} publish-new-bp
 
 publish-existing-dsl-bps: ### Publish Standard DSL BP of already existing. i.e., make publish-existing-dsl-bps DSL_BP=bastion_host_svm
-	# promote stable release to marketplace for existing
 	@make -C dsl/blueprints/${DSL_BP} publish-existing-bp
 
 unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make unpublish-dsl-bps DSL_BP=bastion_host_svm
-	# promote stable release to marketplace for existing
 	@make -k -C dsl/blueprints/${DSL_BP} unpublish-bp
 
 ## Helm charts specific commands
@@ -83,19 +80,15 @@ unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make
 create-helm-bps launch-helm-bps delete-helm-bps delete-helm-apps publish-new-helm-bps publish-existing-helm-bps unpublish-helm-bps: init-dsl-config
 
 create-helm-bps: ### Create single helm chart bp (with current git branch / tag latest in name). i.e., make create-helm-bps CHART=argocd
-	# create helm bp with corresponding git feature branch and short sha code
 	@make -C dsl/blueprints/helm_charts/${CHART} create-bp
 
 launch-helm-bps: ### Launch single helm chart app (with current git branch / tag latest in name). i.e., make launch-helm-bps CHART=argocd
-	# launch helm bp that matches your git feature branch and short sha code
 	@make -C dsl/blueprints/helm_charts/${CHART} launch-bp
 
 delete-helm-bps: ### Delete single helm chart blueprint (with current git branch / tag latest in name). i.e., make delete-helm-bps CHART=argocd
-	# delete helm bp that matches your git feature branch and short sha code
 	@make -C dsl/blueprints/helm_charts/${CHART} delete-bp
 
 delete-helm-apps: ### Delete single helm chart app (with current git branch / tag latest in name). i.e., make delete-helm-apps CHART=argocd
-	# delete helm app that matches your git feature branch and short sha code
 	@make -C dsl/blueprints/helm_charts/${CHART} delete-app
 
 create-all-helm-charts: ### Create all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
@@ -143,23 +136,25 @@ run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runb
 
 ## WORKFLOWS
 
-init-bastion-host-svm init-kalm-cluster: init-dsl-config
+init-bastion-host-svm init-shared-infra init-kalm-cluster: init-dsl-config
 
-init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation and Endpoint. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
-	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
-	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/bastion_host_svm_ip
+init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
+	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
+	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
+		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = \"$$BASTION_HOST_SVM_IP\"/g" $(ENV_OVERRIDE_PATH) || echo "BASTION_HOST_SVM_IP = \"$$BASTION_HOST_SVM_IP\"" >> $(ENV_OVERRIDE_PATH)
+
+init-shared-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-shared-infra ENVIRONMENT=kalm-main-16-1
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
 init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
-	@calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"' > .local/${ENVIRONMENT}/bastion_host_svm_ip
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
 
-bootstrap-kalm-all: ### Bootstrap All
-	@make init-bastion-host-svm init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
+bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
+	@make init-bastion-host-svm init-shared-infra init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
 
 ## RELEASE MANAGEMENT
 
@@ -194,10 +189,12 @@ unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git re
 
 .PHONY: print-vars
 print-vars: ### Print environment variables. i.e., make print-vars ENVIRONMENT={environment_folder_name}
+	@find .local -name sops_gpg_key | xargs -I {} gpg --import {}
 	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep -vi "pass" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 .PHONY: print-secrets
 print-secrets: ### Print variables including secrets. i.e., make print-secrets ENVIRONMENT={environment_folder_name}
+	@find .local -name sops_gpg_key | xargs -I {} gpg --import {}
 	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep "USER|PASS|KEY|SECRET" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 .DEFAULT_GOAL := help
@@ -210,7 +207,7 @@ help: ### Show this help
 ####
 
 .PHONY: download-karbon-creds
-download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
+download-karbon-creds: print-vars ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
 	@kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user admin --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force
 	make merge-kubectl-contexts
 
@@ -233,5 +230,6 @@ fix-image-pull-secrets: ### Add image pull secret to get around image download r
 .PHONY: delete-all-helm-mp-items
 delete-all-helm-mp-items: ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
 	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
+	@make unpublish-all-helm-bps ENVIRONMENT=${ENVIRONMENT}
 	ls dsl/blueprints/helm_charts | xargs -I {} calm get marketplace bps -q -n {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}
 	

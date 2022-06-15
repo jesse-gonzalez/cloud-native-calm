@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #chmod 700 ~/.ssh
 
 echo '' | tee -a ~/.bashrc

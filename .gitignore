@@ -1,15 +1,16 @@
+site/
+
 __pycache__
 .DS_Store
 .envrc.bkup
 
 # ignore local secrets dir
 .local/*
-!.local/templates
 
 # ignore anything under configs that's not templates
 config/*
 !config/templates
-!config/common
+!config/_common
 
 # ignore kubectl config files
 *.cfg
