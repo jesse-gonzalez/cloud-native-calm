@@ -7,6 +7,12 @@ SSH_PRIVATE_KEY_PATH=$1
 SSH_PUBLIC_KEY_PATH=$2
 ENVIRONMENT=$3
 HPOC_CLUSTER_PASS=$4
+DOCKER_HUB_USER=$5
+DOCKER_HUB_PASS=$6
+GITHUB_USER=$7
+GITHUB_PASS=$8
+
+PGP_EMAIL="sops-pgp-$RANDOM@email.com"
 
 ## values below are set based on inputs provided
 ARTIFACTORY_USER="admin"
@@ -45,9 +51,9 @@ if [ ! -f /.dockerenv ]; then
   exit
 fi
 
-if [ ${#ARGS_LIST[@]} -lt 4 ]; then
-	echo 'Usage: ./init_hpoc_secrets.sh [~/.ssh/ssh-private-key] [~/.ssh/ssh-private-key.pub] [kalm-env-hpoc-id] [hpoc-global-pass]'
-	echo 'Example: ./init_hpoc_secrets.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-10-1 ntnxTech/4u!'
+if [ ${#ARGS_LIST[@]} -lt 8 ]; then
+	echo 'Usage: ./init_hpoc_secrets.sh [~/.ssh/ssh-private-key] [~/.ssh/ssh-private-key.pub] [kalm-env-hpoc-id] [hpoc-global-pass] [docker-hub-user] [docker-hub-pass] [github-user] [github-pass]'
+	echo 'Example: ./init_hpoc_secrets.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-10-1 ntnxTech/4u! ntnx-docker-user ntnxDocker/4u! ntnx-github-user ntnxGithub/4u!'
 	exit
 fi
 
@@ -93,11 +99,14 @@ prism_element_user: $(echo $PRISM_ELEMENT_USER)
 prism_element_password: $(echo $PRISM_ELEMENT_PASS)
 windows_domain_user: $(echo $WINDOWS_DOMAIN_ADMIN)
 windows_domain_password: $(echo $WINDOWS_DOMAIN_PASS)
+docker_hub_user: $(echo $DOCKER_HUB_USER)
+docker_hub_password: $(echo $DOCKER_HUB_PASS)
+github_user: $(echo $GITHUB_USER)
+github_password: $(echo $GITHUB_PASS)
 EOF
 
-echo "Generating PGP key for SOPS Secrets"
 
-PGP_EMAIL="sops-pgp-$RANDOM@email.com"
+echo "Generating PGP key for SOPS Secrets"
 
 # generate pgp key for Secrets
 
@@ -130,7 +139,8 @@ sops --encrypt --in-place --pgp $GPG_FINGERPRINT config/$ENVIRONMENT/secrets.yam
 
 # OVERRIDING YAML and PGP KEY PATH if _common sops_gpg_key is unavailable
 
-echo -n "PGP_KEY_PATH=.local/$ENVIRONMENT/sops_gpg_key" >> config/$ENVIRONMENT/.env
-echo -n "YAML_SECRETS_PATH=config/$ENVIRONMENT/secrets.yaml" >> config/$ENVIRONMENT/.env
+echo "PGP_KEY_PATH = .local/$ENVIRONMENT/sops_gpg_key" >> config/$ENVIRONMENT/.env
+echo "YAML_SECRETS_PATH = config/$ENVIRONMENT/secrets.yaml" >> config/$ENVIRONMENT/.env
 
 ## sops --decrypt .local/$ENVIRONMENT/secrets.yaml
+

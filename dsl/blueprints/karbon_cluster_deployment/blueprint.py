@@ -37,7 +37,6 @@ NutanixPasswordCred = basic_cred(
 
 PrismCentralUser = os.environ['PRISM_CENTRAL_USER']
 PrismCentralPassword = os.environ['PRISM_CENTRAL_PASS']
-# PrismCentralPassword = read_local_file("prism_central_password")
 PrismCentralCred = basic_cred(
                     PrismCentralUser,
                     name="Prism Central User",

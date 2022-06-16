@@ -51,5 +51,15 @@ spec:
             imagePullSecrets:
             - name: image-pull-secret  ## imagePullSecret that you created with docker hub pro account
             (containers):
-            - (image): "*" ## match all container images
+            - (image): "docker.io/*" ## match all container images
 EOF
+
+## adding these steps due to kyverno issues
+
+## https://kyverno.io/docs/troubleshooting/
+
+kubectl delete validatingwebhookconfiguration kyverno-resource-validating-webhook-cfg
+kubectl delete  mutatingwebhookconfiguration kyverno-resource-mutating-webhook-cfg
+
+kubectl scale deploy kyverno -n kyverno --replicas 0
+kubectl scale deploy kyverno -n kyverno --replicas 3

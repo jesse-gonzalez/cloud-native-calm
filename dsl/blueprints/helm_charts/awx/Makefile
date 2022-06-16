@@ -1,4 +1,4 @@
-CATEGORY_NAME						:= ConfigManagement
+CATEGORY_NAME						:= InfraManagement
 HELM_CHART_NAME					:= awx
 
 # Default Action Name to run for custom day 2 actions

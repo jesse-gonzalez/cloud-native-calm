@@ -14,27 +14,7 @@ ContextObj = get_context()
 init_data = ContextObj.get_init_config()
 
 # Credentials definition
-
-if file_exists(os.path.join(init_data["LOCAL_DIR"]["location"], "nutanix_key_user")):
-    NutanixKeyUser = read_local_file("nutanix_key_user")
-else:
-    NutanixKeyUser = "nutanix"
-
-if file_exists(os.path.join(init_data["LOCAL_DIR"]["location"], "nutanix_user")):
-    NutanixUser = read_local_file("nutanix_user")
-else:
-    NutanixUser = "nutanix"
-
-if file_exists(os.path.join(init_data["LOCAL_DIR"]["location"], "prism_central_user")):
-    PrismCentralUser = read_local_file("prism_central_user")
-else:
-    PrismCentralUser = "admin"
-
-if file_exists(os.path.join(init_data["LOCAL_DIR"]["location"], "prism_element_user")):
-    PrismElementUser = read_local_file("prism_element_user")
-else:
-    PrismElementUser = "admin"
-
+NutanixKeyUser = os.environ['NUTANIX_KEY_USER']
 NutanixPublicKey = read_local_file("nutanix_public_key")
 NutanixKey = read_local_file("nutanix_key")
 
@@ -46,7 +26,9 @@ NutanixCred = basic_cred(
                     default=True
                 )
 
-NutanixPassword = read_local_file("nutanix_password")
+NutanixUser = os.environ['NUTANIX_USER']
+NutanixPassword = os.environ['NUTANIX_PASS']
+# NutanixPassword = read_local_file("nutanix_password")
 NutanixPasswordCred = basic_cred(
                     NutanixUser,
                     name="Nutanix Password",
@@ -55,7 +37,8 @@ NutanixPasswordCred = basic_cred(
                     default=True
                 )
 
-PrismCentralPassword = read_local_file("prism_central_password")
+PrismCentralUser = os.environ['PRISM_CENTRAL_USER']
+PrismCentralPassword = os.environ['PRISM_CENTRAL_PASS']
 PrismCentralCred = basic_cred(
                     PrismCentralUser,
                     name="Prism Central User",
@@ -64,7 +47,8 @@ PrismCentralCred = basic_cred(
                     default=False
                 )
 
-PrismElementPassword = read_local_file("prism_element_password")
+PrismElementUser = os.environ['PRISM_ELEMENT_USER']
+PrismElementPassword = os.environ['PRISM_ELEMENT_PASS']
 PrismElementCred = basic_cred(
                     PrismElementUser,
                     name="Prism Element User",
@@ -73,38 +57,9 @@ PrismElementCred = basic_cred(
                     default=False
                 )
 
-# OS_USERNAME = read_local_file(os.path.join(init_data["LOCAL_DIR"]["location"], "nutanix_key_user"))
-# OS_KEY = read_local_file(os.path.join(init_data["LOCAL_DIR"]["location"], "nutanix_key"))
-# NutanixPublicKey = read_local_file(os.path.join(init_data["LOCAL_DIR"]["location"], "nutanix_public_key"))
-# NutanixCred = basic_cred(
-#     OS_USERNAME,
-#     OS_KEY,
-#     name="NutanixCred",
-#     type="KEY",
-#     default=True,
-# )
+EncrypedPrismCentralCreds = base64.b64encode(bytes(PrismCentralPassword, 'utf-8'))
 
-
-# PC_USERNAME = read_local_file(os.path.join(init_data["LOCAL_DIR"]["location"], "prism_central_user"))
-# PC_PASSWORD = read_local_file(os.path.join(init_data["LOCAL_DIR"]["location"], "prism_central_password"))
-# PrismCentralCred = basic_cred(
-#     PC_USERNAME,
-#     PC_PASSWORD,
-#     name="PrismCentralCred",
-#     type="PASSWORD",
-#     default=False,
-# )
-
-
-# PE_USERNAME = read_local_file(os.path.join(init_data["LOCAL_DIR"]["location"], "prism_element_user"))
-# PE_PASSWORD = read_local_file(os.path.join(init_data["LOCAL_DIR"]["location"], "prism_element_password"))
-# PrismElementCred = basic_cred(
-#     PE_USERNAME,
-#     PE_PASSWORD,
-#     name="PrismElementCred",
-#     type="PASSWORD",
-#     default=False,
-# )
+EncrypedPrismElementCreds = base64.b64encode(bytes(PrismElementPassword, 'utf-8'))
 
 
 # Downloadable image for AHV

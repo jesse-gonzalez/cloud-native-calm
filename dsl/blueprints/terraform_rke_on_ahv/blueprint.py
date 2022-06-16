@@ -72,99 +72,6 @@ BastionHostEndpoint = os.getenv("BASTION_WS_ENDPOINT")
 class Rke_WorkstationService(Service):
     """Workstation Service"""
 
-    # @action
-    # def InstallDocker(name="Install Docker"):
-    #     CalmTask.Exec.ssh(
-    #         name="Intall Docker",
-    #         filename="../_common/centos/scripts/install_docker.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Intall Docker Compose",
-    #         filename="../_common/centos/scripts/install_docker_compose.sh",
-    #         cred=NutanixCred
-    #     )
-
-    # @action
-    # def InstallKubeCTL(name="Install kubectl"):
-    #     CalmTask.Exec.ssh(
-    #         name="Install Kube CTL",
-    #         filename="../_common/centos/scripts/install_kubectl.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Configure Kubectl Aliases",
-    #         filename="../_common/centos/scripts/configure_kubectl_aliases.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Install Kubectx and Kubens",
-    #         filename="../_common/centos/scripts/install_kubectx_kubens.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Install Kube PS1",
-    #         filename="../_common/centos/scripts/install_kube-ps1.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Install Kubectl Krew Package Manager",
-    #         filename="../_common/centos/scripts/install_kubectl_krew.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Install Stern",
-    #         filename="../_common/centos/scripts/install_stern.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Install JQ",
-    #         filename="../_common/centos/scripts/install_jq.sh",
-    #         cred=NutanixCred
-    #     )
-
-    # @action
-    # def InstallPackages(name="Install Packages"):
-    #     CalmTask.Exec.ssh(
-    #         name="Install Packages",
-    #         filename="../_common/centos/scripts/install_required_packages.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Install Helm",
-    #         filename="../_common/centos/scripts/install_helm.sh",
-    #         cred=NutanixCred
-    #     )
-
-    # @action
-    # def InstallVim(name="Install Vim"):
-    #     CalmTask.Exec.ssh(
-    #         name="Install Vim",
-    #         filename="../_common/centos/scripts/install_vim.sh",
-    #         cred=NutanixCred
-    #     )
-
-    # @action
-    # def ConfigureUser(name="Configure User"):
-    #     CalmTask.Exec.ssh(
-    #         name="Configure User",
-    #         filename="../_common/centos/scripts/configure_user.sh",
-    #         cred=NutanixCred
-    #     )
-
-    # @action
-    # def InstallTerraform(name="Install Terraform"):
-    #     CalmTask.Exec.ssh(
-    #         name="Install Terraform",
-    #         filename="../_common/centos/scripts/install_terraform.sh",
-    #         cred=NutanixCred
-    #     )
-    #     CalmTask.Exec.ssh(
-    #         name="Install GoLang",
-    #         filename="../_common/centos/scripts/install_golang.sh",
-    #         cred=NutanixCred
-    #     )
-
     @action
     def DeployRKECluster(name="Deploy RKE"):
         CalmTask.Exec.ssh(
@@ -258,35 +165,7 @@ class Rke_WorkstationPackage(Package):
 
     @action
     def __install__():
-        # Rke_WorkstationService.ConfigureUser(name="Configure User")
-        # Rke_WorkstationService.InstallDocker(name="Install Docker")
-        # Rke_WorkstationService.InstallKubeCTL(name="Install KubeCTL")
-        # Rke_WorkstationService.InstallPackages(name="Install Required Packages")
-        # Rke_WorkstationService.InstallVim(name="Install Vim")
-        # Rke_WorkstationService.InstallTerraform(name="Install Terraform")
         Rke_WorkstationService.DeployRKECluster(name="Deploy RKE Cluster")
-
-
-# class Rke_WorkstationVmResources(AhvVmResources):
-
-#     memory = 4
-#     vCPUs = 2
-#     cores_per_vCPU = 1
-#     disks = [
-#         AhvVmDisk.Disk.Scsi.cloneFromVMDiskPackage(Centos74_Image, bootable=True)
-#     ]
-#     nics = [
-#         AhvVmNic.NormalNic(os.getenv("IPAM_VLAN")),
-#     ]
-
-#     boot_type = "BIOS"
-
-#     guest_customization = AhvVmGC.CloudInit(filename="scripts/guest_customizations/guest_cus.yaml")
-
-# class Rke_WorkstationVm(AhvVm):
-
-#     resources = Rke_WorkstationVmResources
-#     categories = {"AppFamily": "Demo", "AppType": "Default"}
 
 
 class Rke_WorkstationSubstrate(Substrate):
@@ -443,22 +322,6 @@ class Rke_WorkstationProfile(Profile):
             description="",
         )
         Rke_WorkstationService.Rke_Scale_In_Cluster(name="Rke_Scale_In_Cluster")
-
-    # @action
-    # def UpgradeRke():
-    #     """This action will upgrade the Rke cluster to a new version"""
-
-    #     ANTHOS_VERSION = CalmVariable.Simple(
-    #         "",
-    #         label="Rke cluster version",
-    #         regex="^(\d+\.)?(\d+\.)?(\*|\d+)$",
-    #         validate_regex=True,
-    #         is_mandatory=True,
-    #         is_hidden=False,
-    #         runtime=True,
-    #         description="The only supported version is 1.6.1, but 1.6.2 or 1.7.0 can be tested.",
-    #     )
-    #     AdminVM.Rke_Upgrade_Cluster(name="Rke_Upgrade_Cluster")
 
 
 class Rke_Workstation(Blueprint):

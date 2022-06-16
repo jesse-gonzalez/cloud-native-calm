@@ -23,7 +23,9 @@ RUN apk update \
         perl \
         ncurses \
         jq \
-        aws-cli
+        aws-cli \
+        packer \
+        terraform
 
 ## configure zsh
 RUN apk add --no-cache zsh \

@@ -1,6 +1,6 @@
 .ONESHELL:
 
-ENVIRONMENT ?= kalm-main-20-1
+ENVIRONMENT ?= kalm-main-15-2
 DEFAULT_SHELL ?= /bin/zsh
 
 ## load common variables and anything environment specific that overrides
@@ -13,7 +13,7 @@ export ENV_OVERRIDE_PATH ?= $(CURDIR)/config/${ENVIRONMENT}/.env
 ## export all vars
 export
 
-REQUIRED_TOOLS_LIST := docker git make jq sops yq gpg kubectl
+REQUIRED_TOOLS_LIST := docker git make jq
 CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)),some string,$(error "No $(tool) in PATH")))
 
 ####
@@ -124,15 +124,14 @@ create-dsl-runbook create-all-dsl-runbooks run-dsl-runbook run-all-dsl-runbook-s
 create-dsl-runbook: ### Create Runbook. i.e., make create-dsl-runbook RUNBOOK=update_ad_dns
 	calm create runbook -f ./dsl/runbooks/${RUNBOOK}/runbook.py --name ${RUNBOOK} -fc 
 
-create-all-dsl-runbooks: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-runbooks
+create-all-dsl-runbooks: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-runbooks ENVIRONMENT=kalm-main-16-1
 	ls dsl/runbooks | xargs -I {} make create-dsl-runbook RUNBOOK={} ENVIRONMENT=${ENVIRONMENT}
 
-run-dsl-runbook: ### Run Runbook with Specific Scenario. i.e., make run-dsl-runbook RUNBOOK=update_ad_dns SCENARIO=create_ingress_dns_params
+run-dsl-runbook: ### Run Runbook with Specific Scenario. i.e., make run-dsl-runbook RUNBOOK=update_ad_dns SCENARIO=create_ingress_dns_params ENVIRONMENT=${ENVIRONMENT}
 	calm run runbook -i --input-file ./dsl/runbooks/${RUNBOOK}/init-scenarios/${SCENARIO}.py ${RUNBOOK}
 
 run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runbook i.e., make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns
 	@ls dsl/runbooks/${RUNBOOK}/init-scenarios/*.py | cut -d/ -f5 | cut -d. -f1 | xargs -I {} make run-dsl-runbook RUNBOOK=${RUNBOOK} SCENARIO={}
-
 
 ## WORKFLOWS
 
@@ -140,16 +139,21 @@ init-bastion-host-svm init-shared-infra init-kalm-cluster: init-dsl-config
 
 init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
-	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
-		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = \"$$BASTION_HOST_SVM_IP\"/g" $(ENV_OVERRIDE_PATH) || echo "BASTION_HOST_SVM_IP = \"$$BASTION_HOST_SVM_IP\"" >> $(ENV_OVERRIDE_PATH)
+	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 
-init-shared-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-shared-infra ENVIRONMENT=kalm-main-16-1
+set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint
+	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
+		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
+
+init-shared-infra: set-bastion-host ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-shared-infra ENVIRONMENT=kalm-main-16-1
+	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
-init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
+init-kalm-cluster: set-bastion-host ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
+	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
 

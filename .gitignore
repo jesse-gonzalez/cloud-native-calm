@@ -1,4 +1,5 @@
 site/
+.scratch
 
 __pycache__
 .DS_Store
@@ -83,3 +84,30 @@ config/**/secrets.yaml.dec
 
 # ignore bin contents
 bin/**
+
+# Terraform
+**/*.tfvars
+**/*.log
+**/*.tfstate
+**/*.tfstate.backup
+**/.terraform
+**/.DS_Store
+**/.terraform.tfstate.lock.info
+**/*id_rsa*
+**/org_scripts
+**/*.txt
+**/go.mod
+**/go.sum
+**/.terraform.local.hcl
+.terraform.lock.hcl
+*.pub
+
+# Kubernetes
+**/*kubeconfig
+**/kube_config_cluster.yml
+
+# Visual Studio Code
+**/.vscode
+
+# Various
+**/*.pptx

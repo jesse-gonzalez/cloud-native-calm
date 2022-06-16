@@ -1,3 +1,5 @@
+CATEGORY_NAME						:= KubernetesDistro
+
 # Test params file name assumes that target folder is tests
 TEST_PARAMS_FILENAME    ?= test_default_params.py
 TEST_SCENARIO_NAME      := $(shell echo ${TEST_PARAMS_FILENAME} | cut -d. -f1 | cut -c 6-30)
@@ -78,12 +80,12 @@ delete-app: print-env
 
 publish-new-bp: print-env
 	calm create app_icon -n ${MARKETPLACE_ICON_NAME} -f ${MARKETPLACE_ICON_LOC}
-	calm publish bp -v ${MP_GIT_TAG} --with_secrets -n ${MARKETPLACE_ITEM_NAME} -i ${MARKETPLACE_ICON_NAME} -d "$$(cat mp_meta/mp-description.md)" --all_projects --publish_to_marketplace --category DevOps ${BLUEPRINT_NAME}
+	calm publish bp -v ${MP_GIT_TAG} --with_secrets -n ${MARKETPLACE_ITEM_NAME} -i ${MARKETPLACE_ICON_NAME} -d "$$(cat mp_meta/mp-description.md)" --all_projects --publish_to_marketplace --category ${CATEGORY_NAME} ${BLUEPRINT_NAME}
 	calm get marketplace bps -n ${MARKETPLACE_ITEM_NAME} -a PUBLISHED
 
 publish-existing-bp: print-env
 	# Publish a new version of an existing blueprint to marketplace manager. This should only be executed from master stable branch.
-	calm publish bp -v ${MP_GIT_TAG} --existing_markeplace_bp --with_secrets -n ${MARKETPLACE_ITEM_NAME} -i ${MARKETPLACE_ICON_NAME} -d "$$(cat mp_meta/mp-description.md)" --all_projects --publish_to_marketplace --category DevOps ${BLUEPRINT_NAME}
+	calm publish bp -v ${MP_GIT_TAG} --existing_markeplace_bp --with_secrets -n ${MARKETPLACE_ITEM_NAME} -i ${MARKETPLACE_ICON_NAME} -d "$$(cat mp_meta/mp-description.md)" --all_projects --publish_to_marketplace --category ${CATEGORY_NAME} ${BLUEPRINT_NAME}
 	# service account doesn't have permission to auto-approve --publish_to_marketplace
 	calm get marketplace bps -n ${MARKETPLACE_ITEM_NAME} -a PUBLISHED
 

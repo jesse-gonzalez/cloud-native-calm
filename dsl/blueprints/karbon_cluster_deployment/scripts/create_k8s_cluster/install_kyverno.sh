@@ -75,7 +75,7 @@ spec:
             imagePullSecrets:
             - name: image-pull-secret  ## imagePullSecret that you created with docker hub pro account
             (containers):
-            - (image): "*" ## match all container images
+            - (image): "docker.io/*" ## match all container images
 EOF
 
 ## adding these steps due to kyverno issues

@@ -1,4 +1,4 @@
-CATEGORY_NAME						:= Database
+CATEGORY_NAME						:= Databases
 HELM_CHART_NAME					:= mongodb
 
 # Default Action Name to run for custom day 2 actions

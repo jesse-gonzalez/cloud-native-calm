@@ -1,4 +1,4 @@
-CATEGORY_NAME						:= CICD_GitOps
+CATEGORY_NAME						:= InfraManagement
 HELM_CHART_NAME					:= crossplane
 
 # Default Action Name to run for custom day 2 actions
