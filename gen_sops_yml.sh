@@ -11,8 +11,8 @@ GITHUB_USER_ID="jesse-gonzalez"
 GITHUB_EMAIL_ADDRESS="jesse.gonzalez@nutanix.com"
 
 ENVIRONMENT=$1
-GPG_USER_ID="jesse-gonzalez"
-GPG_EMAIL_ADDRESS="jesse.gonzalez@nutanix.com"
+GPG_USER_ID="jesseagonzalez"
+GPG_EMAIL_ADDRESS="jesse.gonzalez@gmail.com"
 
 gpg --batch --generate-key <<EOF
 %echo Generating a basic OpenPGP key
@@ -31,10 +31,13 @@ EOF
 
 GPG_KEY_ID=$(gpg --list-key --keyid-format=long ${GPG_USER_ID} | grep pub | cut -d/ -f2 | cut -d ' ' -f1)
 
+
 git config --global user.signingkey $GPG_KEY_ID
+git config --global user.signingkey $GPG_KEY_ID
+
+
 
 echo "Add the following key to Github. https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-new-gpg-key-to-your-github-account"
 gpg --armor --export $GPG_KEY_ID
 
 #gpg --export-secret-key --armor "$PGP_EMAIL" > .local/$ENVIRONMENT/sops_gpg_key
-
