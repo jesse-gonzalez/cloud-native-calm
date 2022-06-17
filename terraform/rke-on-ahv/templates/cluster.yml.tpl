@@ -27,48 +27,48 @@ network:
 ssh_key_path: .ssh/id_rsa
 
 # All add-on manifests MUST specify a namespace
-addons: |-
-    ---
-    apiVersion: storage.k8s.io/v1beta1
-    kind: CSIDriver
-    metadata:
-        name: csi.nutanix.com
-    spec:
-        attachRequired: false
-        podInfoOnMount: true
-    ---
-    apiVersion: v1
-    kind: Secret
-    metadata:
-        name: ntnx-secret
-        namespace: kube-system
-    data:
-        key: ${csi_secret}
-    ---
-    allowVolumeExpansion: true
-    apiVersion: storage.k8s.io/v1
-    kind: StorageClass
-    metadata:
-        annotations:
-            storageclass.kubernetes.io/is-default-class: "true"
-        name: nutanix-default
-    parameters:
-        csi.storage.k8s.io/provisioner-secret-name: ntnx-secret
-        csi.storage.k8s.io/provisioner-secret-namespace: kube-system
-        csi.storage.k8s.io/node-publish-secret-name: ntnx-secret  
-        csi.storage.k8s.io/node-publish-secret-namespace: kube-system
-        csi.storage.k8s.io/controller-expand-secret-name: ntnx-secret
-        csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
-        csi.storage.k8s.io/fstype: ext4
-        dataServiceEndPoint: ${ntnx_pe_dataservice_ip}:3260
-        flashMode: DISABLED
-        storageContainer: ${ntnx_pe_storage_container}
-        chapAuth: DISABLED
-        storageType: NutanixVolumes
-    provisioner: csi.nutanix.com
-    reclaimPolicy: Delete
+# addons: |-
+#     ---
+#     apiVersion: storage.k8s.io/v1beta1
+#     kind: CSIDriver
+#     metadata:
+#         name: csi.nutanix.com
+#     spec:
+#         attachRequired: false
+#         podInfoOnMount: true
+#     ---
+#     apiVersion: v1
+#     kind: Secret
+#     metadata:
+#         name: ntnx-secret
+#         namespace: kube-system
+#     data:
+#         key: ${csi_secret}
+#     ---
+#     allowVolumeExpansion: true
+#     apiVersion: storage.k8s.io/v1
+#     kind: StorageClass
+#     metadata:
+#         annotations:
+#             storageclass.kubernetes.io/is-default-class: "true"
+#         name: nutanix-default
+#     parameters:
+#         csi.storage.k8s.io/provisioner-secret-name: ntnx-secret
+#         csi.storage.k8s.io/provisioner-secret-namespace: kube-system
+#         csi.storage.k8s.io/node-publish-secret-name: ntnx-secret  
+#         csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+#         csi.storage.k8s.io/controller-expand-secret-name: ntnx-secret
+#         csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
+#         csi.storage.k8s.io/fstype: ext4
+#         dataServiceEndPoint: ${ntnx_pe_dataservice_ip}:3260
+#         flashMode: DISABLED
+#         storageContainer: ${ntnx_pe_storage_container}
+#         chapAuth: DISABLED
+#         storageType: NutanixVolumes
+#     provisioner: csi.nutanix.com
+#     reclaimPolicy: Delete
 
-addons_include:
-    - csi/ntnx-csi-rbac.yaml
-    - csi/ntnx-csi-node.yaml
-    - csi/ntnx-csi-provisioner.yaml
+# addons_include:
+#     - csi/ntnx-csi-rbac.yaml
+#     - csi/ntnx-csi-node.yaml
+#     - csi/ntnx-csi-provisioner.yaml
