@@ -195,12 +195,12 @@ unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git re
 
 .PHONY: print-vars
 print-vars: ### Print environment variables. i.e., make print-vars ENVIRONMENT={environment_folder_name}
-	@find .local -name sops_gpg_key | xargs -I {} gpg --import {}
+	@find .local -name sops_gpg_key | xargs -I {} gpg --quiet --import {} 2>/dev/null
 	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep -vi "pass" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 .PHONY: print-secrets
 print-secrets: ### Print variables including secrets. i.e., make print-secrets ENVIRONMENT={environment_folder_name}
-	@find .local -name sops_gpg_key | xargs -I {} gpg --import {}
+	@find .local -name sops_gpg_key | xargs -I {} gpg --quiet --import {} 2>/dev/null
 	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep "USER|PASS|KEY|SECRET" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 .DEFAULT_GOAL := help

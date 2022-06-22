@@ -111,3 +111,6 @@ bin/**
 
 # Various
 **/*.pptx
+
+secrets.yaml
+secrets-**.yaml

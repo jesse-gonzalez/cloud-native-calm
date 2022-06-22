@@ -27,13 +27,21 @@ In any case, as I was porting things to some interim cluster, I realized that th
     make docker-run
     ```
 
-1. Initialize HPOC Configurations and Secrets. `Environment` value should be either `kalm-main-{hpoc_id}` or `kalm-develop-{hpoc_id}`.
+1. Copy ./secrets.yaml.example and update all required values with a `required_secrets`. i.e., `artifactory_password: required_secret` should be changed to reflect correct password.
+   Optionally set the `optional_secrets` for optional use cases - i.e., github_user and password for jenkins, azure/aws for cloud blueprints.
+
+    ```bash
+    cp ./secrets.yaml.example ./secrets.yaml
+    vi ./secrets.yaml
+    ```
+
+1. Initialize Environment Configurations and Secrets. `Environment` value should be either `kalm-main-{hpoc_id}` or `kalm-develop-{hpoc_id}`.
     `hpoc-id` are last 4 characters of HPOC Name. i.e., `PHX-SPOC011-2` is `kalm-main-11-2` or `kalm-develop-11-2`
 
     ```bash
-    $ ./init_hpoc_secrets.sh                                                                                                                                                                     ─╯
-    Usage: ./init_hpoc_secrets.sh [~/.ssh/ssh-private-key] [~/.ssh/ssh-private-key.pub] [kalm-env-hpoc-id] [hpoc-global-pass]
-    Example: ./init_hpoc_secrets.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-11-2 ntnxTech/4u!
+    $ ./init_local_configs.sh                                                                                                                                                                     ─╯
+    Usage: ./init_local_configs.sh [~/.ssh/ssh-private-key] [~/.ssh/ssh-private-key.pub] [kalm-env-hpoc-id]
+    Example: ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-10-1
     ```
 
 1. Bootstrap Nutanix Calm & Karbon `Production` (i.e., `kalm-main-{hpoc_id}`) Infratructure. [Additional Details](#bootstrapping-calm-blueprints--marketplace--karbon-kalm-main-hpoc-id-cluster)
@@ -169,13 +177,22 @@ Generally speaking, this cluster can be used to serve multiple demonstration pur
 1. All the tools needed to run Calm DSL run are available within a local development container that will automount the local directory into the `dsl-workspace` directory.  Initiate Calm DSL docker container workspace by running `make docker-run ENVIRONMENT=kalm-main-{hpoc-id}`
     > For Example: `make docker-run`
 
-1. Initialize local kalm-main-{hpoc-id} environment configs and secrets by running `init_hpoc_secrets.sh` script.  This will require `gnugpg` to create pgp key, sops yaml.
+1. Copy ./secrets.yaml.example and update all required values with a `required_secrets`. i.e., `artifactory_password: required_secret` should be changed to reflect correct password.
+   Optionally set the `optional_secrets` for optional use cases - i.e., github_user and password for jenkins, azure/aws for cloud blueprints.
 
-```bash
-$ ./init_hpoc_secrets.sh
-Usage: ./init_hpoc_secrets.sh [kalm-env-hpoc-id] [hpoc-global-pass] [~/.ssh/ssh-private-key] [~/.ssh/ssh-private-key.pub]
-Example: ./init_hpoc_secrets.sh kalm-main-11-2 ntnxTech/4u! ~/.ssh/nutanix ~/.ssh/nutanix.pub
-```
+    ```bash
+    cp ./secrets.yaml.example ./secrets.yaml
+    vi ./secrets.yaml
+    ```
+
+1. Initialize Environment Configurations and Secrets. `Environment` value should be either `kalm-main-{hpoc_id}` or `kalm-develop-{hpoc_id}`.
+    `hpoc-id` are last 4 characters of HPOC Name. i.e., `PHX-SPOC011-2` is `kalm-main-11-2` or `kalm-develop-11-2`
+
+    ```bash
+    $ ./init_local_configs.sh                                                                                                                                                                     ─╯
+    Usage: ./init_local_configs.sh [~/.ssh/ssh-private-key] [~/.ssh/ssh-private-key.pub] [kalm-env-hpoc-id]
+    Example: ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-10-1
+    ```
 
 #### Boostrapping Option 1: Bootstrap `kalm-main-{hpoc-id}` Environment - Single Command
 
@@ -293,6 +310,6 @@ Now that you've got your latest changes into the `main/master` branch. Let's cre
 
 Most environment configs are stored within the `.local` and `configs`
 
-### Update `.local` and `configs` environment specific folders to override anything needed
+### Update environment specific folder to override anything needed
 
- (i.e., `configs\kalm-main-{hpoc-id}\.env`)
+> For Example, Override Number of Default Karbon Workers needed for `Production-like` cluster by adding `KARBON_WORKER_COUNT=1` into `configs\kalm-main-{hpoc-id}\.env`)
