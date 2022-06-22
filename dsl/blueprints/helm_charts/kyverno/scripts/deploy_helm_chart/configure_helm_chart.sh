@@ -45,13 +45,19 @@ spec:
         resources:
           kinds:
           - Pod
+      preconditions:
+        any:
+        - key: "docker.io"
+          operator: In
+          value: "{{ images.initContainers.*.registry }}"
+        - key: "docker.io"          
+          operator: In
+          value: "{{ images.containers.*.registry }}"
       mutate:
         patchStrategicMerge:
           spec:
             imagePullSecrets:
             - name: image-pull-secret  ## imagePullSecret that you created with docker hub pro account
-            (containers):
-            - (image): "docker.io/*" ## match all container images
 EOF
 
 ## adding these steps due to kyverno issues

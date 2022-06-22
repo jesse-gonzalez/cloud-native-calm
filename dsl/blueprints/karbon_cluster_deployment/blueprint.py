@@ -254,15 +254,15 @@ class DeveloperWorkstation(Service):
         #     cred=NutanixCred
         # )
 
-    @action
-    def InstallMetricsServer(name="Install Metrics Server"):
+    # @action
+    # def InstallMetricsServer(name="Install Metrics Server"):
 
-        CalmTask.Exec.ssh(
-            name="Install Metrics Server",
-            filename="scripts/create_k8s_cluster/install_metrics_server.sh",
-            target=ref(DeveloperWorkstation),
-            cred=NutanixCred
-        )
+    #     CalmTask.Exec.ssh(
+    #         name="Install Metrics Server",
+    #         filename="scripts/create_k8s_cluster/install_metrics_server.sh",
+    #         target=ref(DeveloperWorkstation),
+    #         cred=NutanixCred
+    #     )
 
     @action
     def InstallKubernetesDashboard(name="Install Kubernetes Dashboard"):
@@ -522,7 +522,7 @@ class DeveloperWorkstationPackage(Package):
         #DeveloperWorkstation.CreateProject(name="Create Project")
         DeveloperWorkstation.InstallKyverno(name="Install Kyverno")
         DeveloperWorkstation.InstallMetalLB(name="Install MetalLB")
-        DeveloperWorkstation.InstallMetricsServer(name="Install Metrics Server")
+        #DeveloperWorkstation.InstallMetricsServer(name="Install Metrics Server")
         DeveloperWorkstation.InstallKubernetesDashboard(name="Install Kubernetes Dashboard")
         DeveloperWorkstation.InstallCertManager(name="Install Certificate Manager")
         DeveloperWorkstation.InstallIngressNginx(name="Install Ingress Nginx")

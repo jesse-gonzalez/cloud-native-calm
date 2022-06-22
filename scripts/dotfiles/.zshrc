@@ -174,3 +174,5 @@ PROMPT='$(kube_ps1)'$PROMPT
 export PATH=/usr/local/bin:/usr/local/sbin:${PATH}
 
 alias reload="source ~/.zshrc"
+
+source <(kubectl completion zsh) 
