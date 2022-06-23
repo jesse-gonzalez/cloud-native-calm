@@ -4,7 +4,7 @@ The HPOC bootstrapping process assumes that the server was built using the follo
 
 ## Quick Start - Single Node HPOC Cluster ONLY
 
-> Pre-Requisites: Reserve Single Node HPOC Cluster using instructions below: [Bootstrapping a SingleNode HPOC - Kalm Environment](#bootstrapping-a-singlenode-hpoc---kalm-environment)
+> Pre-Requisites: Reserve Single Node HPOC Cluster using instructions below: [Staging Initial HPOC, Karbon and Calm Cluster](#staging-initial-hpoc-karbon-and-calm-cluster)
 
 1. Clone repo and change directory (cd):
 
