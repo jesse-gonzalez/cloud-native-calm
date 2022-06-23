@@ -106,11 +106,11 @@ It will subsequently launch the deployment of the underlying Karbon `kalm-main-{
 
 Generally speaking, this cluster can be used to serve multiple demonstration purposes, listed below.
 
-- Zero Downtime Upgrades during Karbon OS and Kubernetes Cluster Upgrades
-- Ability for Karbon to host pseudo "centralized" services, such as:
-  - multi-cluster management solutions (e.g., rancher, kasten, etc.) deployed by Calm
-  - shared utility services (e.g., artifactory, harbor, grafana, argocd, etc.) deployed by Calm
-- Horizontal Pod Autoscaling scenarios across nodes
+* Zero Downtime Upgrades during Karbon OS and Kubernetes Cluster Upgrades
+* Ability for Karbon to host pseudo "centralized" services, such as:
+  * multi-cluster management solutions (e.g., rancher, kasten, etc.) deployed by Calm
+  * shared utility services (e.g., artifactory, harbor, grafana, argocd, etc.) deployed by Calm
+* Horizontal Pod Autoscaling scenarios across nodes
 
 1. All the tools needed to run Calm DSL run are available within a local development container that will automount the local directory into the `dsl-workspace` directory.  Initiate Calm DSL docker container workspace by running `make docker-run ENVIRONMENT=kalm-main-{hpoc-id}`
     > For Example: `make docker-run`
@@ -200,8 +200,12 @@ Generally speaking, this cluster can be used to serve multiple demonstration pur
 
 ## Defining Custom Environment Configurations
 
-Most environment configs are stored within the `.local` and `configs`
+Most environment configs can be found within the `.local/[_common|kalm-main-{hpoc-id}]/` and `configs/[_common|kalm-main-{hpoc-id}]/]`.  
 
-### Update environment specific folder to override anything needed
+All `default` environment configs are stored within the `config/_common/.env` file
 
-> For Example, Override Number of Default Karbon Workers needed for `Production-like` cluster by adding `KARBON_WORKER_COUNT=1` into `configs\kalm-main-{hpoc-id}\.env`)
+if you need to override anything, update the environment specific folder to override. You can validate afterwards using `make print-vars`
+
+> For Example, Override Number of Default Karbon Workers needed for `Production-like` cluster by adding `KARBON_WORKER_COUNT=1` into `configs/kalm-main-{hpoc-id}/.env`)
+
+See `./dot-env.example` for example ovverride of multiple vars for a multi-node hpoc cluster.
