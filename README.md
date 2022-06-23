@@ -126,7 +126,7 @@ unpublish-helm-bps   Unpublish Single Helm Chart Blueprint - latest git release.
 
 1. [Optional] Most environment configs can be found within the `.local/[_common|kalm-main-{hpoc-id}]/` and `configs/[_common|kalm-main-{hpoc-id}]/]`.  All `default` environment configs are stored within the `config/_common/.env` file. If you need to override anything, update the environment specific folder to override. You can validate afterwards using `make print-vars`
   
-  > See `./dot-env.example` for example ovverride of multiple vars for a multi-node hpoc cluster.
+    > See `./dot-env.example` for example ovverride of multiple vars for a multi-node hpoc cluster.
 
 1. Always validate configs and secrets are set correctly via `make print-vars ENVIRONMENT=kalm-main-{hpoc-id}` and/or `make print-secrets ENVIRONMENT=kalm-main-{hpoc-id}`
 
