@@ -57,7 +57,7 @@ The HPOC bootstrapping process assumes that the server was built using the follo
 1. Navigate to `https://rx.corp.nutanix.com/` hpoc reservation site and reserve cluster a single node hpoc (i.e., PHX-SPOC011-2) cluster.  This process takes roughly 3 hours to complete, but can be reserved on-demand or scheduled in advance.
 
     > `TIP 1`: During your reservation, set password to something you're familiar with as to avoid having to update creds within `.local\<environment>` path
-        ![rx-cluster-pass](docs/images/rx-cluster-pass.png)
+        ![rx-cluster-pass](images/rx-cluster-pass.png)
 
     > `TIP 2`: Select the `Custom Workloads` option, and select the following options to ensure that you can start with a baseline deplyment of Objects, Calm, Karbon and Files:
         - `Core: Run LCM Updates & Upload OS Images`
@@ -65,4 +65,4 @@ The HPOC bootstrapping process assumes that the server was built using the follo
         - `Calm`
         - `Karbon`
         - `Objects: Create Object Store` - Needed for Kasten Scenarios.
-        ![rx-custom-workloads-option](docs/images/rx-custom-workloads-option.png)
+        ![rx-custom-workloads-option](images/rx-custom-workloads-option.png)
