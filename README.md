@@ -188,5 +188,4 @@ Generally speaking, this `Production-like` cluster can be used to serve multiple
   `make init-kalm-cluster ENVIRONMENT=kalm-main-{hpoc_id}`
   > For Example: `make init-kalm-cluster ENVIRONMENT=kalm-main-11-2`
 
-
-1. [Bootstrapping a Single-Node HPOC - Kalm Environment](docs/single-node-hpoc-bootstrap.md)
+## Nutanix Employees ONLY: See [Bootstrapping a Single-Node HPOC - Kalm Environment](docs/single-node-hpoc-bootstrap.md)
