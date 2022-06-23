@@ -1,0 +1,44 @@
+## Things to Override in non-hpoc environments
+## Validate environment variables using `make print-vars ENVIRONMENT={environment-id}
+
+##################################################################################
+# CALM INFRA DEFAULTS
+##################################################################################
+
+CALM_PROJECT  =  BootcampInfra
+
+##################################################################################
+# INFRA OVERRIDES
+##################################################################################
+
+## domain configs
+DOMAIN_NAME=ntnxlab.local
+PE_STORAGE_CONTAINER=Default
+PE_CLUSTER_NAME=PHX-POC124
+IPAM_VLAN=Primary
+SUBNET_PREFIX=10.42.124
+
+NETWORK=${SUBNET_PREFIX}.0
+GATEWAY=${SUBNET_PREFIX}.1
+CIDR=25
+
+## prism central / element configs
+PE_CLUSTER_VIP=${SUBNET_PREFIX}.37
+PE_DATASERVICES_VIP=${SUBNET_PREFIX}.38
+PC_IP_ADDRESS=${SUBNET_PREFIX}.39
+
+## ldap / dns configs
+DNS=${SUBNET_PREFIX}.41
+
+## explicitly for objects
+OBJECTS_STORE_PUBLIC_IP=${SUBNET_PREFIX}.???
+
+##################################################################################
+# KARBON OVERRIDES
+##################################################################################
+
+KARBON_CONTAINER_OS_VER=ntnx-1.1
+KARBON_K8S_VER=1.19.13-1
+KARBON_EXT_IPV4=${SUBNET_PREFIX}.10
+KARBON_INGRESS_VIP=${SUBNET_PREFIX}.11
+KARBON_LB_ADDRESSPOOL=${SUBNET_PREFIX}.12-${SUBNET_PREFIX}.14

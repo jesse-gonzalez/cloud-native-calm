@@ -1,14 +1,20 @@
-# Karbon and Calm (aka KALM) DSL Demo
+# Cloud Native Calm DSL Blueprints
 
-This repo was built after the SA team had issues with our shared cluster being used for demonstrations and I had to cancel an important customer meeting in response.
+The purpose of this repo is to seed any Nutanix Prism Central environment with a collection of curated Calm Blueprints used to standup a production ready Kubernetes distribution and subsequently customize it with one of the many kubernetes applications that are available in the Self-Service Marketplace items
 
-In any case, as I was porting things to some interim cluster, I realized that this will most likely not be the last time that this will happen, so in light of being a considerate `infrastructure as code` citizen, I decided to treat the demo lab more like a "cattle" environment versus a "pet".
+This repo was built after our team had issues with the shared cluster being used for demonstrations.  These types of issues lead to critical customer meeting cancellations and a significant loss of time / productivity.
+
+In any case, as I was porting our existing stuff to some interim cluster, I realized that this will most likely not be the last time that this will happen, so in light of being a considerate `infrastructure as code` citizen, I decided to treat the demo lab more like a "cattle" environment versus a "pet".
 
 ## Pre-Requisites
 
 - docker
 - git
 - make
+
+- ssh keys
+  [Generating SSH Key on a Linux VM](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Calm-Admin-Operations-Guide-v3_5_1:nuc-app-mgmt-generate-private-key-t.html)
+  [Generating SSH Key on a Windows VM](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Calm-Admin-Operations-Guide-v3_5_1:nuc-app-mgmt-generate-ssh-key-windows-t.html)
 
 ## Quick Start - Single Node HPOC Cluster ONLY
 

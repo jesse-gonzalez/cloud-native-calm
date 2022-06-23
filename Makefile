@@ -21,13 +21,13 @@ CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)
 ####
 
 .PHONY: docker-build
-docker-build: ## Build Calm DSL Util Image with necessary tools to develop and manage Cloud-Native Apps (e.g., kubectl, argocd, git, helm, helmfile, etc.)
+docker-build: ### Build Calm DSL Util Image with necessary tools to develop and manage Cloud-Native Apps (e.g., kubectl, argocd, git, helm, helmfile, etc.)
 	@docker rmi -f calm-dsl-utils:latest
 	@docker rmi -f ntnx/calm-dsl:latest
 	@docker build -t calm-dsl-utils .
 
 .PHONY: docker-run
-docker-run: ## Launch into Calm DSL development container. If image isn't available, build will auto-run
+docker-run: ### Launch into Calm DSL development container. If image isn't available, build will auto-run
 	[ -n "$$(docker image ls calm-dsl-utils -q)" ] || make docker-build
 	# this will exec you into the interactive container
 	@docker run --rm -it \
@@ -37,7 +37,7 @@ docker-run: ## Launch into Calm DSL development container. If image isn't availa
 		calm-dsl-utils /bin/sh -c ${DEFAULT_SHELL}
 
 .PHONY: init-dsl-config
-init-dsl-config: print-vars ## Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
+init-dsl-config: print-vars ### Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
 	@mkdir -p ${CALM_DSL_LOCAL_DIR_LOCATION} && cp -rf .local/* /root/.calm
@@ -141,7 +141,7 @@ init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., m
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 
-set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint
+set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
 	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
 		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
 
@@ -151,9 +151,6 @@ init-shared-infra: set-bastion-host ### Initialize Calm Shared Infra from Endpoi
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
-
-init-opt-infra: ### Initializes Additional - Optional Infra - such as creating buckets for various integration use cases. .i.e., make init-opt-infra ENVIRONMENT=kalm-main-16-1
-	@make create-dsl-runbook run-dsl-runbook RUNBOOK=update_objects_bucket SCENARIO=update_objects_bucket_params ENVIRONMENT=${ENVIRONMENT}
 
 init-kalm-cluster: set-bastion-host ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
@@ -196,18 +193,15 @@ unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git re
 ##############
 ## Helpers
 
-.PHONY: print-vars
 print-vars: ### Print environment variables. i.e., make print-vars ENVIRONMENT={environment_folder_name}
 	@find .local -name sops_gpg_key | xargs -I {} gpg --quiet --import {} 2>/dev/null
-	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep -vi "pass" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
+	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep -vi "USER|PASS|KEY|SECRET|CRED" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
-.PHONY: print-secrets
 print-secrets: ### Print variables including secrets. i.e., make print-secrets ENVIRONMENT={environment_folder_name}
 	@find .local -name sops_gpg_key | xargs -I {} gpg --quiet --import {} 2>/dev/null
-	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep "USER|PASS|KEY|SECRET" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
+	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep "USER|PASS|KEY|SECRET|CRED" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 .DEFAULT_GOAL := help
-.PHONY: help
 help: ### Show this help
 	@egrep -h '\s###\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?### "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
@@ -217,28 +211,31 @@ help: ### Show this help
 
 download-karbon-creds fix-image-pull-secrets: print-vars
 
-.PHONY: download-karbon-creds
 download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
 	@kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user admin --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force
-	make merge-kubectl-contexts
+	@make merge-kubectl-contexts
 
-.PHONY: merge-kubectl-contexts
 merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to config file.  Needed to support multiple clusters in future
-	export KUBECONFIG=$$KUBECONFIG:~/.kube/${KARBON_CLUSTER}.cfg; \
+	@export KUBECONFIG=$$KUBECONFIG:~/.kube/${KARBON_CLUSTER}.cfg; \
 		kubectl config view --flatten >| ~/.kube/config && chmod 600 ~/.kube/config;
-	kubectl config use-context ${KUBECTL_CONTEXT};
-	kubectl cluster-info
+	@kubectl config use-context ${KUBECTL_CONTEXT};
+	@kubectl cluster-info
 
-.PHONY: fix-image-pull-secrets
 fix-image-pull-secrets: ### Add image pull secret to get around image download rate limiting issues
 	@kubectl get ns -o name | cut -d / -f2 | xargs -I {} sh -c "kubectl create secret docker-registry image-pull-secret --docker-username=${DOCKER_HUB_USER} --docker-password=${DOCKER_HUB_PASS} -n {} --dry-run=client -o yaml | kubectl apply -f - "
-	kubectl get serviceaccount --no-headers --all-namespaces | awk '{ print $$1 , $$2 }' | xargs -n2 sh -c 'kubectl patch serviceaccount $$2 -p "{\"imagePullSecrets\": [{\"name\": \"image-pull-secret\"}]}" -n $$1' sh
+	@kubectl get serviceaccount --no-headers --all-namespaces | awk '{ print $$1 , $$2 }' | xargs -n2 sh -c 'kubectl patch serviceaccount $$2 -p "{\"imagePullSecrets\": [{\"name\": \"image-pull-secret\"}]}" -n $$1' sh
+
+seed-calm-task-library: ## Seed the calm task library
+	@rm -rf /tmp/blueprints
+	@git clone https://github.com/nutanix/blueprints.git /tmp/blueprints
+	@cd /tmp/blueprints/calm-integrations/generate_task_library_items
+	@bash generate_task_library_items.sh
+	
 
 ####
 ## Maintenance Tasks
 ####
 
-.PHONY: delete-all-helm-mp-items
 delete-all-helm-mp-items: init-dsl-config ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
 	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
 	@make unpublish-all-helm-bps ENVIRONMENT=${ENVIRONMENT}

@@ -114,3 +114,4 @@ bin/**
 
 secrets.yaml
 secrets-**.yaml
+.env
