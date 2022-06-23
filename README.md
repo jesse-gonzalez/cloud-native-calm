@@ -47,7 +47,11 @@ As part of the initial deployment, Calm will also provision the latest Nutanix C
 ## Setup Local Development Environment
 
 1. Clone repo and change directory (cd):
-    `git clone https://github.com/nutanix-enterprise/shared-demo-karbon-calm.git` && `cd shared-demo-karbon-calm`
+
+  ```bash
+    git clone https://github.com/nutanix-enterprise/shared-demo-karbon-calm.git
+    cd shared-demo-karbon-calm
+  ```
 
 1. Review `make help` to see the various options that can be executed via make command.
 
