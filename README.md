@@ -96,21 +96,6 @@ unpublish-dsl-bps    UnPublish Standard DSL BP of already existing. i.e., make u
 unpublish-helm-bps   Unpublish Single Helm Chart Blueprint - latest git release. i.e., make unpublish-helm-bps CHART=argocd
 ```
 
-## Bootstrapping Calm Blueprints / Marketplace & Karbon `kalm-main-{hpoc-id}` Cluster
-
-The following tasks will create/compile/launch all available runbooks, endpoints, DNS records, helm charts and blueprints required to stage environment (i.e., bastion host vm used as target linux endpoint for all underlying helm-chart blueprint deployments).
-It will subsequently launch the deployment of the underlying Karbon `kalm-main-{hpoc-id}` production cluster along with key components such as `MetalLB`, `Cert-Manager` and `Ingress-Nginx`. `Kyverno` is also deployed (along with admission controller policies) to handle docker hub rate limiting causes issues.
-
-> NOTE: The default Karbon kalm-main-{hpoc-id} includes 5 worker nodes to handle running all the helm charts simultaneously.
-
-Generally speaking, this `Production-like` cluster can be used to serve multiple demonstration purposes, such as:
-
-* Zero Downtime Upgrades during Karbon OS and Kubernetes Cluster Upgrades
-* Ability for Karbon to host pseudo "centralized" services, such as:
-  * multi-cluster management solutions (e.g., rancher, kasten, etc.) deployed by Calm
-  * shared utility services (e.g., artifactory, harbor, grafana, argocd, etc.) deployed by Calm
-* Horizontal Pod Autoscaling scenarios across nodes
-
 1. All the tools needed to run Calm DSL run are available within a local development container that will automount the local directory into the `dsl-workspace` directory.  Initiate Calm DSL docker container workspace by running `make docker-run ENVIRONMENT=kalm-main-{hpoc-id}`
     > For Example: `make docker-run`
 
@@ -155,6 +140,23 @@ Generally speaking, this `Production-like` cluster can be used to serve multiple
     PE_DATASERVICES_VIP=10.38.19.200
     ...
     ```
+
+
+## Bootstrapping Calm Blueprints / Marketplace & Karbon `kalm-main-{hpoc-id}` Cluster
+
+The following tasks will create/compile/launch all available runbooks, endpoints, DNS records, helm charts and blueprints required to stage environment (i.e., bastion host vm used as target linux endpoint for all underlying helm-chart blueprint deployments).
+It will subsequently launch the deployment of the underlying Karbon `kalm-main-{hpoc-id}` production cluster along with key components such as `MetalLB`, `Cert-Manager` and `Ingress-Nginx`. `Kyverno` is also deployed (along with admission controller policies) to handle docker hub rate limiting causes issues.
+
+> NOTE: The default Karbon kalm-main-{hpoc-id} includes 5 worker nodes to handle running all the helm charts simultaneously.
+
+Generally speaking, this `Production-like` cluster can be used to serve multiple demonstration purposes, such as:
+
+* Zero Downtime Upgrades during Karbon OS and Kubernetes Cluster Upgrades
+* Ability for Karbon to host pseudo "centralized" services, such as:
+  * multi-cluster management solutions (e.g., rancher, kasten, etc.) deployed by Calm
+  * shared utility services (e.g., artifactory, harbor, grafana, argocd, etc.) deployed by Calm
+* Horizontal Pod Autoscaling scenarios across nodes
+
 
 ### Boostrapping Option 1: Bootstrap `kalm-main-{hpoc-id}` Environment - Single Command
 
