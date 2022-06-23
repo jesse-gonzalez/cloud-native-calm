@@ -99,12 +99,11 @@ unpublish-helm-bps   Unpublish Single Helm Chart Blueprint - latest git release.
 ## Bootstrapping Calm Blueprints / Marketplace & Karbon `kalm-main-{hpoc-id}` Cluster
 
 The following tasks will create/compile/launch all available runbooks, endpoints, DNS records, helm charts and blueprints required to stage environment (i.e., bastion host vm used as target linux endpoint for all underlying helm-chart blueprint deployments).
-It will subsequently launch the deployment of the underlying Karbon `kalm-main-{hpoc-id}` production cluster along with key components such as `MetalLB`, `Cert-Manager` and `Ingress-Nginx`.  
-`Kyverno` is also deployed (along with admission controller policies) to handle docker hub rate limiting causes issues.
+It will subsequently launch the deployment of the underlying Karbon `kalm-main-{hpoc-id}` production cluster along with key components such as `MetalLB`, `Cert-Manager` and `Ingress-Nginx`. `Kyverno` is also deployed (along with admission controller policies) to handle docker hub rate limiting causes issues.
 
 > NOTE: The default Karbon kalm-main-{hpoc-id} includes 5 worker nodes to handle running all the helm charts simultaneously.
 
-Generally speaking, this cluster can be used to serve multiple demonstration purposes, listed below.
+Generally speaking, this `Production-like` cluster can be used to serve multiple demonstration purposes, such as:
 
 * Zero Downtime Upgrades during Karbon OS and Kubernetes Cluster Upgrades
 * Ability for Karbon to host pseudo "centralized" services, such as:
@@ -132,7 +131,11 @@ Generally speaking, this cluster can be used to serve multiple demonstration pur
     Example: ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-10-1
     ```
 
-1. Validate configs and secrets are set correctly via `make print-vars ENVIRONMENT=kalm-main-{hpoc-id}` and/or `make print-secrets ENVIRONMENT=kalm-main-{hpoc-id}`
+1. [Optional] Most environment configs can be found within the `.local/[_common|kalm-main-{hpoc-id}]/` and `configs/[_common|kalm-main-{hpoc-id}]/]`.  All `default` environment configs are stored within the `config/_common/.env` file. If you need to override anything, update the environment specific folder to override. You can validate afterwards using `make print-vars`
+  
+  > See `./dot-env.example` for example ovverride of multiple vars for a multi-node hpoc cluster.
+
+1. Always validate configs and secrets are set correctly via `make print-vars ENVIRONMENT=kalm-main-{hpoc-id}` and/or `make print-secrets ENVIRONMENT=kalm-main-{hpoc-id}`
 
     ```bash
     $ make print-vars ENVIRONMENT=kalm-main-19-4
@@ -197,15 +200,3 @@ Generally speaking, this cluster can be used to serve multiple demonstration pur
 1. Configure Access Keys
 1. Configure Bucket
 1. Configure Access Permission
-
-## Defining Custom Environment Configurations
-
-Most environment configs can be found within the `.local/[_common|kalm-main-{hpoc-id}]/` and `configs/[_common|kalm-main-{hpoc-id}]/]`.  
-
-All `default` environment configs are stored within the `config/_common/.env` file
-
-if you need to override anything, update the environment specific folder to override. You can validate afterwards using `make print-vars`
-
-> For Example, Override Number of Default Karbon Workers needed for `Production-like` cluster by adding `KARBON_WORKER_COUNT=1` into `configs/kalm-main-{hpoc-id}/.env`)
-
-See `./dot-env.example` for example ovverride of multiple vars for a multi-node hpoc cluster.
