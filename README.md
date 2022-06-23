@@ -8,10 +8,17 @@ In any case, as I was porting our existing stuff to some interim cluster, I real
 
 ## Pre-Requisites
 
-* docker
-* git
-* make
-* ssh key: [Generating SSH Key on a Linux VM](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Calm-Admin-Operations-Guide-v3_5_1:nuc-app-mgmt-generate-private-key-t.html)
+* Nutanix Prism Central
+* Nutanix AHV Cluster
+* Nutanix Calm (Self-Service/Nutanix Cloud Manager)
+* Nutanix Karbon Enabled (Nutanix Kubernetes Engine)
+* [Optional] Nutanix Objects Enabled 
+  * User/Access Key Generated
+* [Optional] Nutanix Files Enabled
+* Docker Desktop
+* Git
+* Make
+* ssh-keys: [Generating SSH Key on a Linux VM](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Calm-Admin-Operations-Guide-v3_5_1:nuc-app-mgmt-generate-private-key-t.html)
 
 ## What is the purpose of this repo?
 
@@ -108,7 +115,7 @@ unpublish-helm-bps   Unpublish Single Helm Chart Blueprint - latest git release.
     ```
 
 1. Initialize Environment Configurations and Secrets. `Environment` value should be either `kalm-main-{hpoc_id}` or `kalm-develop-{hpoc_id}`.
-    `hpoc-id` are last 4 characters of HPOC Name. i.e., `PHX-SPOC011-2` is `kalm-main-11-2` or `kalm-develop-11-2`
+    `hpoc-id` are last digits of HPOC Name. i.e., `PHX-SPOC011-2` is `kalm-main-11-2` and `PHX-SPOC005-2` `kalm-develop-5-2`
 
     ```bash
     $ ./init_local_configs.sh                                                                                                                                                                     ─╯
