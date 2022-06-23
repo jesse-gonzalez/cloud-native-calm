@@ -43,6 +43,7 @@ init-dsl-config: print-vars ### Initialize calm dsl configuration with environme
 	@mkdir -p ${CALM_DSL_LOCAL_DIR_LOCATION} && cp -rf .local/* /root/.calm
 	@touch ${CALM_DSL_CONFIG_FILE_LOCATION} ${CALM_DSL_DB_LOCATION}
 	@calm init dsl --project "${CALM_PROJECT}";
+	@calm get apps -o json > config/${ENVIRONMENT}/nutanix.ncmstate
 
 ## Common BP command based on DSL_BP path passed in. To Run, make create-dsl-bps <dsl_bp_folder_name>
 
