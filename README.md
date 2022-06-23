@@ -148,3 +148,5 @@ unpublish-helm-bps   Unpublish Single Helm Chart Blueprint - latest git release.
     PE_DATASERVICES_VIP=10.38.19.200
     ...
     ```
+
+1. [Bootstrapping a Single-Node HPOC - Kalm Environment](docs/single-node-hpoc-bootstrap.md)
