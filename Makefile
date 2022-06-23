@@ -152,6 +152,9 @@ init-shared-infra: set-bastion-host ### Initialize Calm Shared Infra from Endpoi
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
+init-opt-infra: ### Initializes Additional - Optional Infra - such as creating buckets for various integration use cases. .i.e., make init-opt-infra ENVIRONMENT=kalm-main-16-1
+	@make create-dsl-runbook run-dsl-runbook RUNBOOK=update_objects_bucket SCENARIO=update_objects_bucket_params ENVIRONMENT=${ENVIRONMENT}
+
 init-kalm-cluster: set-bastion-host ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}

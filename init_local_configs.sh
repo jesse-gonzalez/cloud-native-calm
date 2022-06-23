@@ -154,7 +154,7 @@ echo "Setting config/$ENVIRONMENT/.env with Override Paths"
 
 if [ -f config/$ENVIRONMENT/.env ]; then
   echo "config/$ENVIRONMENT/.env already exist, backing up and overwriting"
-  mv config/$ENVIRONMENT/.env config/$ENVIRONMENT/.env-$TIMESTAMP.yaml
+  mv config/$ENVIRONMENT/.env config/$ENVIRONMENT/.env-$TIMESTAMP
 fi
 
 echo "PGP_KEY_PATH = .local/$ENVIRONMENT/sops_gpg_key" >> config/$ENVIRONMENT/.env
