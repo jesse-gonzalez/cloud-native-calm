@@ -132,14 +132,35 @@ Generally speaking, this cluster can be used to serve multiple demonstration pur
     Example: ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-10-1
     ```
 
-#### Boostrapping Option 1: Bootstrap `kalm-main-{hpoc-id}` Environment - Single Command
+1. Validate configs and secrets are set correctly via `make print-vars ENVIRONMENT=kalm-main-{hpoc-id}` and/or `make print-secrets ENVIRONMENT=kalm-main-{hpoc-id}`
+
+    ```bash
+    $ make print-vars ENVIRONMENT=kalm-main-19-4
+
+    PE_CLUSTER_NAME=PHX-SPOC019-4
+    KARBON_EXT_IPV4=10.38.19.212
+    KARBON_INGRESS_VIP=10.38.19.213
+    KARBON_LB_ADDRESSPOOL=10.38.19.213-10.38.19.214
+    CIDR=26
+    DNS=10.38.19.203
+    GATEWAY=10.38.19.193
+    KARBON_WORKER_COUNT=5
+    NETWORK=10.38.19.192
+    OBJECTS_STORE_PUBLIC_IP=10.38.19.210
+    PC_IP_ADDRESS=10.38.19.201
+    PE_CLUSTER_VIP=10.38.19.199
+    PE_DATASERVICES_VIP=10.38.19.200
+    ...
+    ```
+
+### Boostrapping Option 1: Bootstrap `kalm-main-{hpoc-id}` Environment - Single Command
 
 1. Provision Primary Calm and Karbon "Main" Environment using the following command:
 
   `make bootstrap-kalm-all ENVIRONMENT=kalm-main-{hpoc_id}`
   > For Example: `make bootstrap-kalm-all ENVIRONMENT=kalm-main-11-2`
 
-#### Boostrapping Option 2: Bootstrap `kalm-main-{hpoc-id}` Environment - Multi-Step
+### Boostrapping Option 2: Bootstrap `kalm-main-{hpoc-id}` Environment - Multi-Step
 
 1. Create Bastion Host and Set IP for Downstream Runbooks
   
