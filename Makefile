@@ -7,9 +7,11 @@ DEFAULT_SHELL ?= /bin/zsh
 export ENV_GLOBAL_PATH 	 := $(CURDIR)/config/_common/.env
 export ENV_OVERRIDE_PATH := $(CURDIR)/config/${ENVIRONMENT}/.env
 
+## execute gpg import and include environment variables only when running in container
 ifneq ("$(wildcard /.dockerenv)","")
-		include $(ENV_GLOBAL_PATH)
-		include $(ENV_OVERRIDE_PATH)
+	GPG_IMPORT = $(shell find .local -name sops_gpg_key | egrep -i "common|${ENVIRONMENT}" | xargs -I {} gpg --quiet --import {} 2>/dev/null)
+	include $(ENV_GLOBAL_PATH)
+	-include $(ENV_OVERRIDE_PATH)
 endif
 
 ## export all vars
@@ -167,8 +169,6 @@ init-kalm-cluster: set-bastion-host ### Initialize Karbon Cluster. i.e., make in
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
 	@make init-bastion-host-svm init-shared-infra init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
 
-reset-bootstrap:
-
 ## RELEASE MANAGEMENT
 
 ## Following should be run from master branch along with git tag v1.0.x-$(git rev-parse --short HEAD), git push origin --tags, validate with git tag -l
@@ -217,11 +217,9 @@ unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git re
 ## Helpers
 
 print-vars: ### Print environment variables. i.e., make print-vars ENVIRONMENT={environment_folder_name}
-	@find .local -name sops_gpg_key | xargs -I {} gpg --quiet --import {} 2>/dev/null
 	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep -vi "USER|PASS|KEY|SECRET|CRED" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 print-secrets: ### Print variables including secrets. i.e., make print-secrets ENVIRONMENT={environment_folder_name}
-	@find .local -name sops_gpg_key | xargs -I {} gpg --quiet --import {} 2>/dev/null
 	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep "USER|PASS|KEY|SECRET|CRED" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 .DEFAULT_GOAL := help
@@ -232,10 +230,8 @@ help: ### Show this help
 ## Configure Local KUBECTL config and ssh keys for Karbon
 ####
 
-download-karbon-creds fix-image-pull-secrets: print-vars
-
 download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
-	@kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user admin --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force
+	@KARBON_PASSWORD=${PC_PASSWORD} kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user ${PC_USER} --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force
 	@make merge-kubectl-contexts
 
 merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to config file.  Needed to support multiple clusters in future
@@ -243,6 +239,10 @@ merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to con
 		kubectl config view --flatten >| ~/.kube/config && chmod 600 ~/.kube/config;
 	@kubectl config use-context ${KUBECTL_CONTEXT};
 	@kubectl cluster-info
+
+download-all-karbon-cfgs: ### Download all kubeconfigs from all environments that have Karbon Cluster running
+	@ls config/*/nutanix.ncmstate | cut -d/ -f2 | xargs -I {} sh -c 'jq -r ".entities[].status | select((.description | contains(\"karbon-clusters\")) and (.state == \"running\")) | .name " config/{}/nutanix.ncmstate' \
+		| xargs -I {} grep -l {} config/*/nutanix.ncmstate | cut -d/ -f2 | xargs -I {} make download-karbon-creds ENVIRONMENT={} && echo "reload shell. i.e., source ~/.zshrc and run kubectx to switch clusters"
 
 fix-image-pull-secrets: ### Add image pull secret to get around image download rate limiting issues
 	@kubectl get ns -o name | cut -d / -f2 | xargs -I {} sh -c "kubectl create secret docker-registry image-pull-secret --docker-username=${DOCKER_HUB_USER} --docker-password=${DOCKER_HUB_PASS} -n {} --dry-run=client -o yaml | kubectl apply -f - "
@@ -253,7 +253,6 @@ seed-calm-task-library: ## Seed the calm task library. make seed-calm-task-libra
 	@git clone https://github.com/nutanix/blueprints.git /tmp/blueprints
 	@cd /tmp/blueprints/calm-integrations/generate_task_library_items
 	@bash generate_task_library_items.sh
-	
 
 ####
 ## Maintenance Tasks
