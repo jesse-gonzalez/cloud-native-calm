@@ -37,7 +37,7 @@ kubectl krew install grep # Filter Kubernetes resources by matching their names
 kubectl krew install df-pv # Show disk usage (like unix df) for persistent volumes
 
 kubectl krew install karbon # Connect to Nutanix Karbon cluster                   
-kubectl krew install deprecations # Checks for deprecated objects in a cluster
+#kubectl krew install deprecations # Checks for deprecated objects in a cluster
 
 #kubectl krew install preflight # Executes application preflight tests in a cluster
 #kubectl krew install pv-migrate # Migrate data across persistent volumes

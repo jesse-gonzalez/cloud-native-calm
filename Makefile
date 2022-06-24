@@ -1,19 +1,21 @@
 .ONESHELL:
 
-ENVIRONMENT ?= kalm-main-15-2
+ENVIRONMENT ?= kalm-main-8-2
 DEFAULT_SHELL ?= /bin/zsh
 
 ## load common variables and anything environment specific that overrides
-export ENV_GLOBAL_PATH 	 ?= $(CURDIR)/config/_common/.env
-export ENV_OVERRIDE_PATH ?= $(CURDIR)/config/${ENVIRONMENT}/.env
+export ENV_GLOBAL_PATH 	 := $(CURDIR)/config/_common/.env
+export ENV_OVERRIDE_PATH := $(CURDIR)/config/${ENVIRONMENT}/.env
 
--include $(ENV_GLOBAL_PATH)
--include $(ENV_OVERRIDE_PATH)
+ifneq ("$(wildcard /.dockerenv)","")
+		include $(ENV_GLOBAL_PATH)
+		include $(ENV_OVERRIDE_PATH)
+endif
 
 ## export all vars
 export
 
-REQUIRED_TOOLS_LIST := docker git make jq
+REQUIRED_TOOLS_LIST := docker git make
 CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)),some string,$(error "No $(tool) in PATH")))
 
 ####
@@ -154,6 +156,7 @@ init-shared-infra: set-bastion-host ### Initialize Calm Shared Infra from Endpoi
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=${ENVIRONMENT}
 	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
 init-kalm-cluster: set-bastion-host ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
@@ -164,6 +167,8 @@ init-kalm-cluster: set-bastion-host ### Initialize Karbon Cluster. i.e., make in
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
 	@make init-bastion-host-svm init-shared-infra init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
 
+reset-bootstrap:
+
 ## RELEASE MANAGEMENT
 
 ## Following should be run from master branch along with git tag v1.0.x-$(git rev-parse --short HEAD), git push origin --tags, validate with git tag -l
@@ -172,6 +177,20 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 # Run git reset --hard origin/master to return your local working copy back to latest master HEAD.
 
 publish-new-helm-bpsm publish-existing-helm-bps unpublish-helm-bps publish-all-new-helm-bps publish-all-existing-helm-bps unpublish-all-helm-bps: check-dsl-init
+
+promote:
+	@git fetch --tags
+	@echo "VERSION:$(GIT_VERSION) IS_SNAPSHOT:$(GIT_IS_SNAPSHOT) NEW_VERSION:$(GIT_NEW_VERSION)"
+ifeq (false,$(GIT_IS_SNAPSHOT))
+	@echo "Unable to promote a non-snapshot"
+	@exit 1
+endif
+ifneq ($(shell git status -s),)
+	@echo "Unable to promote a dirty workspace"
+	@exit 1
+endif
+	# git tag -a -m "releasing v$(GIT_NEW_VERSION)" v$(GIT_NEW_VERSION)
+	# git push origin v$(GIT_NEW_VERSION)
 
 publish-new-helm-bps: ### First Time Publish of Single Helm Chart. i.e., make publish-new-helm-bps CHART=argocd
 	# promote stable release to marketplace for new

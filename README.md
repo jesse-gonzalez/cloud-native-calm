@@ -19,6 +19,8 @@ In any case, as I was porting our existing stuff to some interim cluster, I real
 * Git
 * Make
 * jq
+* yq
+* sops
 * ssh-keys - [Generating SSH Key on a Linux VM](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Calm-Admin-Operations-Guide-v3_5_1:nuc-app-mgmt-generate-private-key-t.html)
 
 ## What is the purpose of this repo?

@@ -1,8 +1,30 @@
-name: GitHub Actions Demo
-on: [push]
+name: Calm DSL Pipeline
+defaults:
+  run:
+    # Needed to load .bashrc for kubectl plugins
+    shell: bash -ieo pipefail {0}
+on:
+  push:
+    #branches-ignore:
+      #- '**'
+    branches:
+      # Put your branch name HERE, default is "feat-doc-updat"
+      - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
-jobs:›
-  Explore-GitHub-Actions:
+env:
+  ENVIRONMENT: "kalm-main-20-3"
+
+jobs:
+  # Checkout Git repo and copy .local with secrets folder to github workspace
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+  testing:
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -15,4 +37,6 @@ jobs:›
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
+          ls ${{ github.workspace }}/config
+          make help
       - run: echo "🍏 This job's status is ${{ job.status }}."

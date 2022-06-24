@@ -52,15 +52,13 @@ RUN chmod +x *.sh \
     && ./configure_kubectl_aliases.sh \
     && ./install_stern.sh \
     && ./install_argocd_cli.sh \
+    && ./install_vault_cli.sh \
     && ./install_istio_cli.sh \
     && ./install_crossplane.sh \
     && ./install_clusterctl.sh \
     && ./install_rancher_cli.sh \
     && calm completion install zsh && \
     rm -rf /tmp/*
-
-
-#&& ./install_vault_cli.sh \
 
 SHELL ["/bin/zsh", "-c"]
 RUN source /root/.zshrc

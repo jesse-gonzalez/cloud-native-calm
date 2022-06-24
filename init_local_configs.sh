@@ -158,8 +158,8 @@ if [ -f config/$ENVIRONMENT/.env ]; then
 fi
 
 touch config/$ENVIRONMENT/.env
-grep -i PGP_KEY_PATH config/$ENVIRONMENT/.env && sed -i "s/PGP_KEY_PATH =.*/PGP_KEY_PATH = .local\/$ENVIRONMENT\/sops_gpg_key/g" config/$ENVIRONMENT/.env || echo -e "PGP_KEY_PATH = .local/$ENVIRONMENT/sops_gpg_key" >> config/$ENVIRONMENT/.env;
-grep -i YAML_SECRETS_PATH config/$ENVIRONMENT/.env && sed -i "s/YAML_SECRETS_PATH =.*/YAML_SECRETS_PATH = config\/$ENVIRONMENT\/secrets.yaml/g" config/$ENVIRONMENT/.env || echo -e "YAML_SECRETS_PATH = config/$ENVIRONMENT/secrets.yaml" >> config/$ENVIRONMENT/.env;
+grep -i PGP_KEY_PATH config/$ENVIRONMENT/.env && sed -i "s/PGP_KEY_PATH =.*/PGP_KEY_PATH = .local\/$\{ENVIRONMENT\}\/sops_gpg_key/g" config/$ENVIRONMENT/.env || echo -e "PGP_KEY_PATH = .local/\${ENVIRONMENT}/sops_gpg_key" >> config/$ENVIRONMENT/.env;
+grep -i YAML_SECRETS_PATH config/$ENVIRONMENT/.env && sed -i "s/YAML_SECRETS_PATH =.*/YAML_SECRETS_PATH = config\/$\{ENVIRONMENT\}\/secrets.yaml/g" config/$ENVIRONMENT/.env || echo -e "YAML_SECRETS_PATH = config/\${ENVIRONMENT}/secrets.yaml" >> config/$ENVIRONMENT/.env;
 
 #echo "PGP_KEY_PATH = .local/$ENVIRONMENT/sops_gpg_key" >> config/$ENVIRONMENT/.env
 #echo "YAML_SECRETS_PATH = config/$ENVIRONMENT/secrets.yaml" >> config/$ENVIRONMENT/.env
