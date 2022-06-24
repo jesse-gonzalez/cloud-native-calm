@@ -1,4 +1,4 @@
-# Cloud Native Calm DSL Blueprints
+# Cloud Native Focused - Nutanix Cloud Management [NCM] on Nutanix Kubernetes Engine [NKE] Blueprints
 
 The purpose of this repo is to seed any Nutanix Prism Central environment with a collection of curated Calm Blueprints used to standup a production ready Kubernetes distribution and subsequently customize it with one of the many kubernetes applications that are available in the Self-Service Marketplace items
 
@@ -11,15 +11,15 @@ In any case, as I was porting our existing stuff to some interim cluster, I real
 * Nutanix Prism Central
 * Nutanix AHV Cluster
 * Nutanix Calm (Self-Service/Nutanix Cloud Manager)
-* Nutanix Karbon Enabled (Nutanix Kubernetes Engine)
-* [Optional] Nutanix Objects Enabled 
-  * User/Access Key Generated
-* [Optional] Nutanix Files Enabled
+* Nutanix Karbon (Nutanix Kubernetes Engine)
+* [Optional] Nutanix Objects
+  * S3 User/Access Key Generated
+* [Optional] Nutanix Files
 * Docker Desktop
 * Git
 * Make
 * jq
-* ssh-keys: [Generating SSH Key on a Linux VM](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Calm-Admin-Operations-Guide-v3_5_1:nuc-app-mgmt-generate-private-key-t.html)
+* ssh-keys - [Generating SSH Key on a Linux VM](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Calm-Admin-Operations-Guide-v3_5_1:nuc-app-mgmt-generate-private-key-t.html)
 
 ## What is the purpose of this repo?
 
@@ -29,7 +29,7 @@ Alternatively, having a space that is highly transient and ephemeral in nature l
 
 ![kalm-marketplace](docs/images/kalm-marketplace.png)
 
-### 1. Karbon Focused - Helm Chart Marketplace
+### 1. Karbon [NKE] Focused - Helm Chart Marketplace
 
 Since this repository is highly focused on Nutanix Karbon and Calm integration, the goal was to be able to provide a means of deploying the respective Helm charts on any Karbon Cluster that is currently deployed into the respective Prism Central instance.  The only pre-requisite is that the running cluster already has MetalLB, Ingress and Cert-Manager.  Alternatively, one can demo the Calm blueprint that actually deploys the underlying Karbon cluster with all the pre-requisites already deployed / configured.
 
@@ -189,3 +189,10 @@ Generally speaking, this `Production-like` cluster can be used to serve multiple
   > For Example: `make init-kalm-cluster ENVIRONMENT=kalm-main-11-2`
 
 ### INTERNAL ONLY: [Bootstrapping a Single-Node HPOC - Kalm Environment](docs/single-node-hpoc-bootstrap.md)
+
+## Troubleshooting
+
+### Access Karbon Cluster
+
+1. Download kubeconfig from karbon cluster via krew plugin.  
+  `make download-karbon-creds ENVIRONMENT=kalm-main-{hpoc_id}`

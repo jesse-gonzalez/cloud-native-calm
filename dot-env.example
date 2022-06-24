@@ -31,14 +31,12 @@ PC_IP_ADDRESS=${SUBNET_PREFIX}.39
 DNS=${SUBNET_PREFIX}.41
 
 ## explicitly for objects
-OBJECTS_STORE_PUBLIC_IP=${SUBNET_PREFIX}.???
+OBJECTS_STORE_PUBLIC_IP=${SUBNET_PREFIX}.18
 
 ##################################################################################
 # KARBON OVERRIDES
 ##################################################################################
 
-KARBON_CONTAINER_OS_VER=ntnx-1.1
-KARBON_K8S_VER=1.19.13-1
 KARBON_EXT_IPV4=${SUBNET_PREFIX}.10
 KARBON_INGRESS_VIP=${SUBNET_PREFIX}.11
 KARBON_LB_ADDRESSPOOL=${SUBNET_PREFIX}.12-${SUBNET_PREFIX}.14
