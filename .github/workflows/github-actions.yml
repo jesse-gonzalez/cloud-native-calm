@@ -14,5 +14,7 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
+          cp ./secrets.yaml.example ./secrets.yaml
+          sed -i "s/required_secret/ntnxpass/g" ./secrets.yaml
           make help
       - run: echo "🍏 This job's status is ${{ job.status }}."

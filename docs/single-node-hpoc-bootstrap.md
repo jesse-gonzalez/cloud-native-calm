@@ -52,3 +52,7 @@ The HPOC bootstrapping process assumes that the server was built using the follo
 1. Configure NFS Protocol / Export to be leveraged by Karbon
     ![enable-nfs-protocol](images/enable-nfs-protocol.png)
 1. Configure NFS Export with Whitelist for Subnet
+
+
+## Troubleshooting
+

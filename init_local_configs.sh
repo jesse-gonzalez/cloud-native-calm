@@ -9,6 +9,7 @@
 SSH_PRIVATE_KEY_PATH=$1
 SSH_PUBLIC_KEY_PATH=$2
 ENVIRONMENT=$3
+SKIP_DELETE_PROMPT=$4
 
 TIMESTAMP=$(date +%s)
 
@@ -164,7 +165,11 @@ grep -i YAML_SECRETS_PATH config/$ENVIRONMENT/.env && sed -i "s/YAML_SECRETS_PAT
 #echo "PGP_KEY_PATH = .local/$ENVIRONMENT/sops_gpg_key" >> config/$ENVIRONMENT/.env
 #echo "YAML_SECRETS_PATH = config/$ENVIRONMENT/secrets.yaml" >> config/$ENVIRONMENT/.env
 
-read  -p "Would you like to delete plaintext ./secrets.yaml? (y or n): " delete_prompt
+delete_prompt="y"
+
+if [ "$SKIP_DELETE_PROMPT" != "true" ]; then
+  read -p "Would you like to delete plaintext ./secrets.yaml? (y or n): " delete_prompt
+fi
 
 if [ "$delete_prompt" == "y" ]; then
   echo "Deleting ./secrets.yaml"

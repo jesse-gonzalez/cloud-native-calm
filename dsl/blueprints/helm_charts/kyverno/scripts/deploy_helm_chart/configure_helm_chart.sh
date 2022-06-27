@@ -21,10 +21,24 @@ spec:
   background: false
   rules:
   - name: sync-image-pull-secret
+    exclude:
+      any:
+        - resources:
+            names: 
+            - "u-*"
+            - "c-*"
+            - "p-*"
+            - "cattle-*"
+            - "fleet-*"
+            - "kube-system"
+            - "ntnx-system"
+            kinds:
+            - Namespace
     match:
-      resources:
-        kinds:
-        - Namespace
+      any:
+      - resources:
+          kinds:
+          - Namespace
     generate:
       kind: Secret
       name: image-pull-secret
@@ -39,20 +53,38 @@ kind: ClusterPolicy
 metadata:
   name: mutate-imagepullsecret
 spec:
+  background: true
   rules:
     - name: mutate-imagepullsecret
       match:
-        resources:
-          kinds:
-          - Pod
+        any:
+        - resources:
+            kinds:
+            - Pod
+      exclude:
+        any:
+        - resources:
+            names: 
+            - "u-*"
+            - "c-*"
+            - "p-*"
+            - "cattle-*"
+            - "fleet-*"
+            - "kube-system"
+            - "ntnx-system"
+            kinds:
+            - Namespace
       preconditions:
         any:
-        - key: "docker.io"
+        - key: "ghcr.io"          
+          operator: NotIn
+          value: "{{ images.*.registry }}"
+        - key: "quay.io"          
+          operator: NotIn
+          value: "{{ images.*.registry }}"
+        - key: "*"
           operator: In
           value: "{{ images.initContainers.*.registry }}"
-        - key: "docker.io"          
-          operator: In
-          value: "{{ images.containers.*.registry }}"
       mutate:
         patchStrategicMerge:
           spec:
