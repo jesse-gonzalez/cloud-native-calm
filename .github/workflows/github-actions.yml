@@ -22,9 +22,10 @@ jobs:
           ls -alth ${{ github.workspace }}
           pwd
           cp ./secrets.yaml.example ./secrets.yaml
-          sed -i "s/required_secret/ntnxpass/g" ./secrets.yaml
-          cat secrets.yaml
+          sed -i "s/required_secret/nx2Tech404!/g" ./secrets.yaml
+          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-8-2 true
           make help
-          make docker-run
+          make docker-login
+          make print-vars ENVIRONMENT=kalm-main-8-2
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
