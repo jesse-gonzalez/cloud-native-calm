@@ -48,16 +48,14 @@ spec:
     exclude:
       any:
         - resources:
-            names: 
-            - "u-*"
-            - "c-*"
-            - "p-*"
-            - "cattle-*"
-            - "fleet-*"
+            names:
             - "kube-system"
             - "ntnx-system"
             kinds:
             - Namespace
+            selector:
+              matchExpressions:
+                - {key: field.cattle.io/projectId, operator: Exists}
     match:
       any:
       - resources:
@@ -85,19 +83,18 @@ spec:
         - resources:
             kinds:
             - Pod
+            - Deployment
       exclude:
         any:
         - resources:
-            names: 
-            - "u-*"
-            - "c-*"
-            - "p-*"
-            - "cattle-*"
-            - "fleet-*"
+            names:
             - "kube-system"
             - "ntnx-system"
             kinds:
             - Namespace
+            selector:
+              matchExpressions:
+                - {key: field.cattle.io/projectId, operator: Exists}
       preconditions:
         any:
         - key: "ghcr.io"          
