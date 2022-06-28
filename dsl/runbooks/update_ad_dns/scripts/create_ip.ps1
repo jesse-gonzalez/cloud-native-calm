@@ -15,16 +15,16 @@ $dns_ptr_ip = "@@{ip_number}@@"
 $dns_ptr_zone = "@@{reversed_ip}@@.in-addr.arpa"
 $dns_domain_name = "@@{dns_name}@@.@@{domain_name}@@"
 
-try {
-    $oldobj = Get-DnsServerResourceRecord -Name $dnshost -ZoneName $dnszone -RRType "A" -ComputerName $dnsserver -ErrorAction Stop
-    $newobj = $oldobj.Clone()
-    $newobj.RecordData.ipv4address = [System.Net.IPAddress]::parse($dnsipaddr)
-    Set-dnsserverresourcerecord -newinputobject $newobj -oldinputobject $oldobj -ZoneName $dnszone -PassThru -ComputerName $dnsserver
-}
-catch {
-    Add-DnsServerResourceRecordA -CreatePtr -Name $dnshost -ZoneName $dnszone -IPv4Address $dnsipaddr -ComputerName $dnsserver -PassThru
-    exit
-}
+# try {
+#     $oldobj = Get-DnsServerResourceRecord -Name $dnshost -ZoneName $dnszone -RRType "A" -ComputerName $dnsserver -ErrorAction Stop
+#     $newobj = $oldobj.Clone()
+#     $newobj.RecordData.ipv4address = [System.Net.IPAddress]::parse($dnsipaddr)
+#     Set-dnsserverresourcerecord -newinputobject $newobj -oldinputobject $oldobj -ZoneName $dnszone -PassThru -ComputerName $dnsserver
+# }
+# catch {
+#     Add-DnsServerResourceRecordA -CreatePtr -Name $dnshost -ZoneName $dnszone -IPv4Address $dnsipaddr -ComputerName $dnsserver -PassThru
+#     exit
+# }
 
 ## Updating DNS Server A Record
 $oldobj = Get-DnsServerResourceRecord -Name $dnshost -ZoneName $dnszone -RRType "A" -ComputerName $dnsserver -ErrorAction Stop
