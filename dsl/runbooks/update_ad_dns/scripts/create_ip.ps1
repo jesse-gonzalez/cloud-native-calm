@@ -74,9 +74,9 @@ Else
     { 
         #Objects are different: old - $oldobj, new - $newobj. Performing change in DNS 
         Set-DnsServerResourceRecord -NewInputObject $newobj -OldInputObject $oldobj -ZoneName $theReverseZone -ComputerName $dnsserver -Verbose 
-
     } 
-} 
+}
+
 $oldobj = $null 
 $newobj = $null 
 

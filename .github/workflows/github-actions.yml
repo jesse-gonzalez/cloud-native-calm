@@ -44,8 +44,8 @@ jobs:
           ls
           calm --help
           mkdir -p .local/_common
-          echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
-          echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_public_key
+          echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > .local/_common/nutanix_key
+          echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > .local/_common/nutanix_public_key
           cp ./secrets.yaml.example ./secrets.yaml
           sed -i "s/docker_hub_user: required_secret/docker_hub_user: ${{ secrets.DOCKER_HUB_USER }}/g" ./secrets.yaml
           sed -i "s/docker_hub_password: required_secret/docker_hub_password: ${{ secrets.DOCKER_HUB_PASSWORD }}/g" ./secrets.yaml
