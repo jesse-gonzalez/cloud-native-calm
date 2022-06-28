@@ -9,6 +9,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: self-hosted
+    environment: HPOC_CICD
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -17,12 +18,15 @@ jobs:
           sudo add-apt-repository ppa:rmescandon/yq
           sudo apt update
           sudo apt install yq -y
-      - name: List files in the repository
+      - name: Staging Environment Secrets
         run: |
           ls -alth ${{ github.workspace }}
           pwd
+          mkdir -p ${{ github.workspace }}/.local/_common
+          echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
+          echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
           cp ./secrets.yaml.example ./secrets.yaml
-          sed -i "s/required_secret/nx2Tech404!/g" ./secrets.yaml
+          sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
           ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-8-2 true
           make help
           make docker-login
