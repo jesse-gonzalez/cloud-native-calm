@@ -13,6 +13,13 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Run the build process with Docker
+        uses: addnab/docker-run-action@v3
+        with:
+            image: ntnxdemo/calm-dsl-utils:latest
+            options: -v ${{ github.workspace }}:/dsl-workspace
+            run: |
+              make print-vars ENVIRONMENT=kalm-main-8-2
       - name: Install Pre-Reqs
         run: |
           sudo add-apt-repository ppa:rmescandon/yq
@@ -26,6 +33,7 @@ jobs:
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
           echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_public_key
           cp ./secrets.yaml.example ./secrets.yaml
+          sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
           sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
           ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-8-2 true
           make help
