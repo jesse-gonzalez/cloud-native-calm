@@ -48,6 +48,7 @@ jobs:
         run: |
           ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key ${ENVIRONMENT_NAME} true
           make print-vars ENVIRONMENT=${ENVIRONMENT_NAME}
+          make print-secrets ENVIRONMENT=${ENVIRONMENT_NAME}
       - name: Initialize DSL Config
         run: |
           make init-dsl-config ENVIRONMENT=${ENVIRONMENT_NAME}
