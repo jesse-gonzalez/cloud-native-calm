@@ -23,7 +23,7 @@ env:
 jobs:
   prepare:
     runs-on: self-hosted
-    environment: ${ENVIRONMENT_NAME}
+    environment: ${{ env.ENVIRONMENT_NAME }}
     container:
       image: ntnxdemo/calm-dsl-utils:latest
       credentials:
