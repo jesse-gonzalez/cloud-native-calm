@@ -18,10 +18,10 @@ on:
 ############### Start var config #########
 env:
   # PROJECT_NAME should be the same as project_name in cookiecutter.json
-  ENVIRONMENT: "kalm-main-20-3"
+  KALM_ENVIRONMENT: "kalm-main-8-2"
 
 jobs:
-  login:
+  prepare:
     runs-on: self-hosted
     environment: HPOC_CICD
     container:
@@ -29,42 +29,22 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKER_HUB_USER }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      # volumes:
-      #   - ${{ github.workspace }}:/dsl-workspace
-      # options: -v ${{ github.workspace }}:/dsl-workspace -w '/dsl-workspace'
-      
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: Check for dockerenv file
-        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
       - name: Staging Environment Secrets
         run: |
-          pwd
-          ls
           mkdir -p .local/_common
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > .local/_common/nutanix_key
           echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > .local/_common/nutanix_public_key
           cp ./secrets.yaml.example ./secrets.yaml
           sed -i "s/docker_hub_user: required_secret/docker_hub_user: ${{ secrets.DOCKER_HUB_USER }}/g" ./secrets.yaml
-          CLEAN_SYNTAX=$(echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | sed 's/\W/\\&/g')
-          sed -i "s/docker_hub_password: .*/docker_hub_password: $CLEAN_SYNTAX/g" ./secrets.yaml
+          MOD_DOCKER_HUB_PASS=$(echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | sed 's/\W/\\&/g')
+          sed -i "s/docker_hub_password: .*/docker_hub_password: $MOD_DOCKER_HUB_PASS/g" ./secrets.yaml
           sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
-          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key ${ENVIRONMENT} true
-      # - name: Install Pre-Reqs
-      #   run: |
-      #     sudo add-apt-repository ppa:rmescandon/yq
-      #     sudo apt update
-      #     sudo apt install yq -y
-  # This workflow contains a single job called "build"
-  # build:
-  #   # The type of runner that the job will run on
-  #   runs-on: self-hosted
-  #   environment: HPOC_CICD
-  #   steps:
-  #     - name: Check out repository code
-  #       uses: actions/checkout@v3
-  #     - name: Prin
-  #       run: |
-  #         make print-vars ENVIRONMENT=kalm-main-8-2
+      - name: Initialize Environment Configs
+        run: |
+          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key ${KALM_ENVIRONMENT} true
+          make print-vars ENVIRONMENT=${KALM_ENVIRONMENT}
+
 
