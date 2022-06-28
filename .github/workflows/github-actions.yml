@@ -16,6 +16,13 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_HUB_USER }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+    - name: Run the build process with Docker
+      uses: addnab/docker-run-action@v3
+      with:
+        image: ntnxdemo/calm-dsl-utils:latest
+        options: -v ${{ github.workspace }}:/dsl-workspace
+        run: |
+          echo "SUCCESS"
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
