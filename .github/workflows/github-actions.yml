@@ -15,6 +15,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+
 jobs:
   prepare:
     runs-on: self-hosted
@@ -45,11 +46,15 @@ jobs:
           sed -i "s/required_secret/$MOD_COMMON_SECRET/g" ./secrets.yaml
       - name: Initialize Environment Configs
         run: |
-          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key $ENVIRONMENT_NAME true
-          make print-vars ENVIRONMENT=$ENVIRONMENT_NAME
-          make print-secrets ENVIRONMENT=$ENVIRONMENT_NAME
+          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key ${{ secrets.ENVIRONMENT_NAME }} true
+          make print-vars ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
       - name: Initialize DSL Config
-        run: |
-          make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
+        run: make init-dsl-config ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Compile All Blueprints
+        run: make create-all-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Compile All Endpoints
+        run: make create-all-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Compile All Runbooks
+        run: make create-all-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
 
 
