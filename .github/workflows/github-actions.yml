@@ -15,10 +15,15 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+############### Start var config #########
+env:
+  # PROJECT_NAME should be the same as project_name in cookiecutter.json
+  ENVIRONMENT_NAME: "kalm-main-8-2"
+
 jobs:
   prepare:
     runs-on: self-hosted
-    environment: "kalm-main-8-2"
+    environment: ${{ env.ENVIRONMENT_NAME }}
     container:
       image: ntnxdemo/calm-dsl-utils:latest
       credentials:
@@ -39,7 +44,7 @@ jobs:
           sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
       - name: Initialize Environment Configs
         run: |
-          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key ${KALM_ENVIRONMENT} true
-          make print-vars ENVIRONMENT=${KALM_ENVIRONMENT}
+          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key ${{ env.ENVIRONMENT_NAME }} true
+          make print-vars ENVIRONMENT=${{ env.ENVIRONMENT_NAME }}
 
 
