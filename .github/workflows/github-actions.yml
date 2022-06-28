@@ -58,9 +58,13 @@ jobs:
           make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
           calm get apps
       - name: Initialize All Helm Charts
-        run: make init-helm-charts ENVIRONMENT=$ENVIRONMENT_NAME
+        run:  |
+          make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
+          make init-helm-charts ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Provision Linux Bastion Host Endpoint
-        run:  make init-bastion-host-svm ENVIRONMENT=$ENVIRONMENT_NAME
+        run: |
+          make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
+          make init-bastion-host-svm ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Provision Calm Endpoint & Runbook Infra
         run: make init-runbook-infra ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Provision NKE Karbon Production Cluster
