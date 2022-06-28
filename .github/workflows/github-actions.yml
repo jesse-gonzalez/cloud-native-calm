@@ -15,27 +15,15 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKER_HUB_USER }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      volumes:
+        - ${{ github.workspace }}:/dsl-workspace
     steps:
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_HUB_USER }}
-        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: self-hosted
-    environment: HPOC_CICD
-    container:
-      image: ntnxdemo/calm-dsl-utils:latest
-      credentials:
-        username: ${{ secrets.DOCKER_HUB_USER }}
-        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v3
+      - name: Check for dockerenv file
+        run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
       - name: Staging Environment Secrets
         run: |
+          ls -alth
+          pwd
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
           echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_public_key
           cp ./secrets.yaml.example ./secrets.yaml
@@ -44,11 +32,19 @@ jobs:
           sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
           ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-8-2 true
           make docker-login
-      - name: Install Pre-Reqs
-        run: |
-          sudo add-apt-repository ppa:rmescandon/yq
-          sudo apt update
-          sudo apt install yq -y
+      # - name: Install Pre-Reqs
+      #   run: |
+      #     sudo add-apt-repository ppa:rmescandon/yq
+      #     sudo apt update
+      #     sudo apt install yq -y
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: self-hosted
+    environment: HPOC_CICD
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
       - name: Staging Environment Secrets
         run: |
           make print-vars ENVIRONMENT=kalm-main-8-2
