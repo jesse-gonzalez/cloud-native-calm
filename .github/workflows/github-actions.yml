@@ -13,6 +13,16 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Staging Environment Secrets
+        run: |
+          echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
+          echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_public_key
+          cp ./secrets.yaml.example ./secrets.yaml
+          sed -i "s/docker_hub_user: required_secret/docker_hub_user: ${{ secrets.DOCKER_HUB_USER }}/g" ./secrets.yaml
+          sed -i "s/docker_hub_password: required_secret/docker_hub_password: ${{ secrets.DOCKER_HUB_PASSWORD }}/g" ./secrets.yaml
+          sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
+          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-8-2 true
+          make docker-login
       - name: Run the build process with Docker
         uses: addnab/docker-run-action@v3
         with:
@@ -27,17 +37,6 @@ jobs:
           sudo apt install yq -y
       - name: Staging Environment Secrets
         run: |
-          ls -alth ${{ github.workspace }}
-          pwd
-          mkdir -p ${{ github.workspace }}/.local/_common
-          echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
-          echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_public_key
-          cp ./secrets.yaml.example ./secrets.yaml
-          sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
-          sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
-          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-8-2 true
-          make help
-          make docker-login
           make print-vars ENVIRONMENT=kalm-main-8-2
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
