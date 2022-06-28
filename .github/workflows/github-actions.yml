@@ -1,10 +1,24 @@
 name: GitHub Actions Workflow
 
+defaults:
+  run:
+    # Needed to load .bashrc for kubectl plugins
+    shell: bash -ieo pipefail {0}
+
 on:
   push:
-      branches: [main]
+    branches:
+      # Put your branch name HERE, default is "feat-doc-updat"
+      - main
+    paths-ignore:
+      - 'docs/**'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+############### Start var config #########
+env:
+  # PROJECT_NAME should be the same as project_name in cookiecutter.json
+  ENVIRONMENT: "kalm-main-8-2"
 
 jobs:
   login:
@@ -22,7 +36,6 @@ jobs:
         run: (ls /.dockerenv && echo Found dockerenv) || (echo No dockerenv)
       - name: Staging Environment Secrets
         run: |
-          ls -alth
           pwd
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
           echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_public_key
@@ -30,7 +43,7 @@ jobs:
           sed -i "s/docker_hub_user: required_secret/docker_hub_user: ${{ secrets.DOCKER_HUB_USER }}/g" ./secrets.yaml
           sed -i "s/docker_hub_password: required_secret/docker_hub_password: ${{ secrets.DOCKER_HUB_PASSWORD }}/g" ./secrets.yaml
           sed -i "s/required_secret/${{ secrets.HPOC_REQUIRED_SECRET }}/g" ./secrets.yaml
-          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key kalm-main-8-2 true
+          ./init_local_configs.sh .local/_common/nutanix_key .local/_common/nutanix_public_key ${ENVIRONMENT} true
           make docker-login
       # - name: Install Pre-Reqs
       #   run: |
