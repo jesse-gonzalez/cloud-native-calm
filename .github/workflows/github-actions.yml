@@ -34,8 +34,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: Use Custom image
-        using: ntnxdemo/calm-dsl-utils:latest
       - name: Staging Environment Secrets
         run: |
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
