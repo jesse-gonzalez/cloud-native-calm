@@ -1,6 +1,8 @@
 name: GitHub Actions Workflow
 
 on:
+  push:
+      branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -13,6 +15,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Staging Environment Secrets
         run: |
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > ${{ github.workspace }}/.local/_common/nutanix_key
