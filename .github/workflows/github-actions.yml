@@ -50,11 +50,16 @@ jobs:
           make print-vars ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
       - name: Initialize DSL Config
         run: make init-dsl-config ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
-      - name: Compile All Blueprints
-        run: make create-all-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
-      - name: Compile All Endpoints
-        run: make create-all-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
-      - name: Compile All Runbooks
-        run: make create-all-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
-
+      - name: Provision Linux Bastion Host Endpoint
+        run:  make init-bastion-host-svm ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Provision Calm Endpoint & Runbook Infra
+        run: make init-runbook-infra ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Initialize All Helm Charts
+        run: make init-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Provision NKE Karbon Production Cluster
+        run: make init-kalm-cluster ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Launch All Helm Charts
+        run: make launch-all-helm-charts ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
+      - name: Cleanup & Reset Cluster
+        run: make bootstrap-reset-all ENVIRONMENT=${{ secrets.ENVIRONMENT_NAME }}
 
