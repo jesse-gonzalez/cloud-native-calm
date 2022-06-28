@@ -29,8 +29,10 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKER_HUB_USER }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      volumes:
-        - ${{ github.workspace }}:/dsl-workspace
+      # volumes:
+      #   - ${{ github.workspace }}:/dsl-workspace
+      options: -v ${{ github.workspace }}:/dsl-workspace -w '/dsl-workspace'
+      
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
