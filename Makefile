@@ -66,16 +66,16 @@ init-dsl-config: ### Initialize calm dsl configuration with environment specific
 
 create-dsl-bps launch-dsl-bps delete-dsl-bps delete-dsl-apps: init-dsl-config
 
-create-dsl-bps: ### Create bp with corresponding git feature branch and short sha code. i.e., make create-dsl-bps DSL_BP=bastion_host_svm
+create-dsl-bps: ### Create bp with corresponding git feature branch and short sha code. i.e., make create-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/${DSL_BP} create-bp
 
-launch-dsl-bps: ### Launch Blueprint that matches your git feature branch and short sha code. i.e., make launch-dsl-bps DSL_BP=bastion_host_svm
+launch-dsl-bps: ### Launch Blueprint that matches your git feature branch and short sha code. i.e., make launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/${DSL_BP} launch-bp
 
-delete-dsl-bps: ### Delete Blueprint that matches your git feature branch and short sha code. i.e., make delete-dsl-bps DSL_BP=bastion_host_svm
+delete-dsl-bps: ### Delete Blueprint that matches your git feature branch and short sha code. i.e., make delete-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/${DSL_BP} delete-bp
 
-delete-dsl-apps: ### Delete Application that matches your git feature branch and short sha code. i.e., make delete-dsl-apps DSL_BP=bastion_host_svm
+delete-dsl-apps: ### Delete Application that matches your git feature branch and short sha code. i.e., make delete-dsl-apps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/${DSL_BP} delete-app
 
 ## RELEASE MANAGEMENT
@@ -84,62 +84,62 @@ delete-dsl-apps: ### Delete Application that matches your git feature branch and
 
 publish-new-dsl-bps publish-existing-dsl-bps unpublish-dsl-bps: check-dsl-init
 
-publish-new-dsl-bps: ### First Time Publish of Standard DSL BP. i.e., make publish-new-dsl-bps DSL_BP=bastion_host_svm
+publish-new-dsl-bps: ### First Time Publish of Standard DSL BP. i.e., make publish-new-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/${DSL_BP} publish-new-bp
 
-publish-existing-dsl-bps: ### Publish Standard DSL BP of already existing. i.e., make publish-existing-dsl-bps DSL_BP=bastion_host_svm
+publish-existing-dsl-bps: ### Publish Standard DSL BP of already existing. i.e., make publish-existing-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/${DSL_BP} publish-existing-bp
 
-unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make unpublish-dsl-bps DSL_BP=bastion_host_svm
+unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make unpublish-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -k -C dsl/blueprints/${DSL_BP} unpublish-bp
 
 ## Helm charts specific commands
 
 create-helm-bps launch-helm-bps delete-helm-bps delete-helm-apps publish-new-helm-bps publish-existing-helm-bps unpublish-helm-bps: check-dsl-init
 
-create-helm-bps: ### Create single helm chart bp (with current git branch / tag latest in name). i.e., make create-helm-bps CHART=argocd
+create-helm-bps: ### Create single helm chart bp (with current git branch / tag latest in name). i.e., make create-helm-bps CHART=argocd ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/helm_charts/${CHART} create-bp
 
-launch-helm-bps: ### Launch single helm chart app (with current git branch / tag latest in name). i.e., make launch-helm-bps CHART=argocd
+launch-helm-bps: ### Launch single helm chart app (with current git branch / tag latest in name). i.e., make launch-helm-bps CHART=argocd ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/helm_charts/${CHART} launch-bp
 
-delete-helm-bps: ### Delete single helm chart blueprint (with current git branch / tag latest in name). i.e., make delete-helm-bps CHART=argocd
+delete-helm-bps: ### Delete single helm chart blueprint (with current git branch / tag latest in name). i.e., make delete-helm-bps CHART=argocd ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/helm_charts/${CHART} delete-bp
 
-delete-helm-apps: ### Delete single helm chart app (with current git branch / tag latest in name). i.e., make delete-helm-apps CHART=argocd
+delete-helm-apps: ### Delete single helm chart app (with current git branch / tag latest in name). i.e., make delete-helm-apps CHART=argocd ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/helm_charts/${CHART} delete-app
 
-create-all-helm-charts: ### Create all helm chart blueprints with default test parameters (with current git branch / tag latest in name)
+create-all-helm-charts: ### Create all helm chart blueprints with default test parameters (with current git branch / tag latest in name). i.e., make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT}
 	ls dsl/blueprints/helm_charts | xargs -I {} make create-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
-launch-all-helm-charts: ### Launch all helm chart blueprints with default test parameters (minus already deployed charts)
+launch-all-helm-charts: ### Launch all helm chart blueprints with default test parameters (minus already deployed charts). i.e., make launch-all-helm-charts ENVIRONMENT=${ENVIRONMENT}
 	ls dsl/blueprints/helm_charts | grep -v -E "kyverno|metallb|ingress-nginx|cert-manager" | xargs -I {} make launch-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
-delete-all-helm-charts-apps: ### Delete all helm chart apps (with current git branch / tag latest in name)
+delete-all-helm-apps: ### Delete all helm chart apps (with current git branch / tag latest in name). i.e., make delete-helm-apps ENVIRONMENT=kalm-main-16-1
 	# remove pre-reqs last
 	ls dsl/blueprints/helm_charts | grep -v -E "kyverno|metallb|ingress-nginx|cert-manager" | xargs -I {} make delete-helm-apps ENVIRONMENT=${ENVIRONMENT} CHART={}
 	@make delete-helm-apps CHART=ingress-nginx ENVIRONMENT=${ENVIRONMENT}
 	@make delete-helm-apps CHART=cert-manager ENVIRONMENT=${ENVIRONMENT}
 	@make delete-helm-apps CHART=metallb ENVIRONMENT=${ENVIRONMENT}
 
-delete-all-helm-charts-bps: ### Delete all helm chart blueprints (with current git branch / tag latest in name)
+delete-all-helm-bps: ### Delete all helm chart blueprints (with current git branch / tag latest in name)
 	ls dsl/blueprints/helm_charts | xargs -I {} make delete-helm-bps CHART={} ENVIRONMENT=${ENVIRONMENT}
 
 ## Endpoint specific commands
 
 create-dsl-endpoint create-all-dsl-endpoints: check-dsl-init
 
-create-dsl-endpoint: ### Create Endpoint Resource. i.e., make create-dsl-endpoint EP=bastion_host_svm
+create-dsl-endpoint: ### Create Endpoint Resource. i.e., make create-dsl-endpoint EP=bastion_host_svm ENVIRONMENT=kalm-main-16-1
 	@calm create endpoint -f ./dsl/endpoints/${EP}/endpoint.py --name ${EP} -fc 
 
-create-all-dsl-endpoints: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-endpoints
+create-all-dsl-endpoints: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-endpoints ENVIRONMENT=kalm-main-16-1
 	ls dsl/endpoints | xargs -I {} make create-dsl-endpoint EP={} ENVIRONMENT=${ENVIRONMENT}
 
 ## Runbook specific commands
 
 create-dsl-runbook create-all-dsl-runbooks run-dsl-runbook run-all-dsl-runbook-scenarios: check-dsl-init
 
-create-dsl-runbook: ### Create Runbook. i.e., make create-dsl-runbook RUNBOOK=update_ad_dns
+create-dsl-runbook: ### Create Runbook. i.e., make create-dsl-runbook RUNBOOK=update_ad_dns ENVIRONMENT=kalm-main-16-1
 	@calm create runbook -f ./dsl/runbooks/${RUNBOOK}/runbook.py --name ${RUNBOOK} -fc 
 
 create-all-dsl-runbooks: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-runbooks ENVIRONMENT=kalm-main-16-1
@@ -153,31 +153,40 @@ run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runb
 
 ## WORKFLOWS
 
-init-bastion-host-svm init-shared-infra init-kalm-cluster: check-dsl-init
+init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts: set-bastion-host
 
 init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 
-set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
+set-bastion-host: check-dsl-init ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
 	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
 		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo -e "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
+	@make create-dsl-endpoint EP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
+	@make create-dsl-runbook run-dsl-runbook RUNBOOK=update_ad_dns SCENARIO=create_bastion_host_ws_dns_params ENVIRONMENT=${ENVIRONMENT};
 
-init-shared-infra: set-bastion-host ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-shared-infra ENVIRONMENT=kalm-main-16-1
-	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+init-runbook-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-runbook-infra ENVIRONMENT=kalm-main-16-1
 	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=${ENVIRONMENT}
-	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
 
-init-kalm-cluster: set-bastion-host ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
-	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
 	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
 
+init-helm-charts: ### Intialize Helm Chart Marketplace. i.e., make init-helm-charts ENVIRONMENT=kalm-main-16-1
+	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
+
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
-	@make init-bastion-host-svm init-shared-infra init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
+	@make init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts ENVIRONMENT=${ENVIRONMENT}
+
+bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
+	@make delete-all-helm-mp-items ENVIRONMENT=${ENVIRONMENT}
+	@make delete-all-helm-apps ENVIRONMENT=${ENVIRONMENT}
+	@make delete-dsl-apps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
+	@make delete-dsl-apps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
+
 
 ## RELEASE MANAGEMENT
 
