@@ -15,15 +15,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-############### Start var config #########
-env:
-  # PROJECT_NAME should be the same as project_name in cookiecutter.json
-  KALM_ENVIRONMENT: "kalm-main-8-2"
-
 jobs:
   prepare:
     runs-on: self-hosted
-    environment: HPOC_CICD
+    environment: "kalm-main-8-2"
     container:
       image: ntnxdemo/calm-dsl-utils:latest
       credentials:
