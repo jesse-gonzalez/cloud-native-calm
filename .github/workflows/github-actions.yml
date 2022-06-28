@@ -55,8 +55,7 @@ jobs:
           make print-vars ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Initialize DSL Config
         run:  |
-          make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
-          calm get apps
+          make check-dsl-init ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Initialize All Helm Charts
         run:  |
           make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
