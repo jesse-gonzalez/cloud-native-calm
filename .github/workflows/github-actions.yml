@@ -15,11 +15,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-############### Start var config #########
-env:
-  # ENVIRONMENT_NAME should be the kalm-main cluster name
-  ENVIRONMENT_NAME: "kalm-main-8-2"
-
 jobs:
   prepare:
     runs-on: self-hosted
@@ -40,7 +35,7 @@ jobs:
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > .local/_common/nutanix_key
           echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > .local/_common/nutanix_public_key
           cp ./secrets.yaml.example ./secrets.yaml
-          
+
           sed -i "s/docker_hub_user: required_secret/docker_hub_user: ${{ secrets.DOCKER_HUB_USER }}/g" ./secrets.yaml
 
           MOD_DOCKER_HUB_PASS=$(echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | sed 's/\W/\\&/g')

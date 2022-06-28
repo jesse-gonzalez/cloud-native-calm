@@ -1,5 +1,5 @@
-CATEGORY_NAME						:= Databases
-HELM_CHART_NAME					:= mongodb
+CATEGORY_NAME						:= CICD_GitOps
+HELM_CHART_NAME					:= github-runners
 
 # Default Action Name to run for custom day 2 actions
 ACTION_NAME             := "Upgrade Helm Chart"

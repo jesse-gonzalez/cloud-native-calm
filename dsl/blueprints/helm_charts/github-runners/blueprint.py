@@ -4,9 +4,9 @@ Blueprint to Deploy Helm Chart onto Target Karbon Cluster
 """
 
 ## Update at minimum these vars
-helm_chart_name = "Mongodb"
-helm_chart_namespace = "mongodb"
-helm_chart_instance_name = "mongodb"
+helm_chart_name = "github-runner"
+helm_chart_namespace = "github-runners"
+helm_chart_instance_name = "github-runners"
 
 import base64
 import json
@@ -38,6 +38,16 @@ NutanixCred = basic_cred(
                     type="KEY",
                     password=NutanixKey,
                     default=True
+                )
+
+GitHubUser = os.environ['GITHUB_USER']
+GitHubPassword = os.environ['GITHUB_PASS']
+GitHubCred = basic_cred(
+                    GitHubUser,
+                    name="GitHub User",
+                    type="PASSWORD",
+                    password=GitHubPassword,
+                    default=False
                 )
 
 BastionHostEndpoint = os.getenv("BASTION_WS_ENDPOINT")
@@ -95,8 +105,8 @@ class HelmService(Service):
     @action
     def ConfigureService(name="Configuring "+helm_chart_name):
         CalmTask.Exec.ssh(
-            name="Configuring MongoDB Instance",
-            filename="scripts/deploy_helm_chart/configure_mongdb_instance.sh",
+            name="Configuring GitHub Runner Instance",
+            filename="scripts/deploy_helm_chart/configure_gh_runner_instance.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
@@ -186,6 +196,15 @@ class Default(Profile):
         description="Wildcard Ingress Domain for Applications, must be unique per Karbon cluster - i.e., dev.karbon-infra.drm-poc.local",
     )
 
+    github_repo_url = CalmVariable.Simple(
+        "",
+        label="Target Github Repo URL",
+        is_mandatory=True,
+        is_hidden=False,
+        runtime=True,
+        description="Target Github Repo URL where Runners will be configure - i.e., https://github.com/jesse-gonzalez/cloud-native-calm.git",
+    )
+
     k8s_cluster_name = CalmVariable.WithOptions.FromTask(
         CalmTask.Exec.escript(
             name="",
@@ -220,4 +239,4 @@ class HelmBlueprint(Blueprint):
     packages = [HelmPackage]
     substrates = [BastionHostWorkstation]
     profiles = [Default]
-    credentials = [PrismCentralCred, NutanixCred]
+    credentials = [PrismCentralCred, NutanixCred, GitHubCred]
