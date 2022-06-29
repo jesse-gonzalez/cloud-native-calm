@@ -60,7 +60,9 @@ init-dsl-config: ### Initialize calm dsl configuration with environment specific
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
 	@mkdir -p ${CALM_DSL_LOCAL_DIR_LOCATION} && cp -rf .local/* /root/.calm
 	@touch ${CALM_DSL_CONFIG_FILE_LOCATION} ${CALM_DSL_DB_LOCATION}
+	@calm update cache
 	@calm init dsl --project "${CALM_PROJECT}";
+
 
 ## Common BP command based on DSL_BP path passed in. To Run, make create-dsl-bps <dsl_bp_folder_name>
 
@@ -195,7 +197,7 @@ bootstrap-reset-all: ## Reset Environment Configurations that can't be easily ov
 	@calm get app_icons -q | xargs -I {} calm delete app_icon {}
 	@calm get endpoints -q | xargs -I {} calm delete endpoint {}
 	@calm get runbooks -q | xargs -I {} calm delete runbook {}
-	@ls dsl/blueprints/helm_charts | xargs -I {} sh -c "calm get marketplace bps -q | grep {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}"
+	ls dsl/blueprints/helm_charts | xargs -I {} sh -c "calm get marketplace bps -q | grep {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}"
 
 
 ## RELEASE MANAGEMENT
