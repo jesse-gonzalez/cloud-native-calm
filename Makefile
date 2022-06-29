@@ -48,13 +48,13 @@ docker-run: ### Launch into Calm DSL development container. If image isn't avail
 		-w '/dsl-workspace' \
 		${IMAGE_REGISTRY_ORG}/calm-dsl-utils /bin/sh -c ${DEFAULT_SHELL}
 
+.PHONY: check-dsl-init
 check-dsl-init: ### Validate whether calm init dsl needs to be executed with target environment.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
 	@export DSL_ACCOUNT_IP=$(shell calm describe account NTNX_LOCAL_AZ | grep 'IP' | cut -d: -f2 | tr -d " "); \
 		[ "$$DSL_ACCOUNT_IP" == "${PC_IP_ADDRESS}" ] || make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
-
-#@calm get apps -o json 2>/dev/null > config/${ENVIRONMENT}/nutanix.ncmstate
+	@calm get apps -o json 2>/dev/null > config/${ENVIRONMENT}/nutanix.ncmstate
 
 init-dsl-config: ### Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
