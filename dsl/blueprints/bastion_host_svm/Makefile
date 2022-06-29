@@ -67,13 +67,13 @@ launch-bp: print-env
 	make monitor-app-state APP_NAME=${APP_NAME}
 
 monitor-app-state: print-env
-	@echo "Waiting for Calm Application (${APP_NAME}) to finish provisioning." && touch /tmp/app.state
-	while [ "$(shell cat /tmp/app.state)" == "provisioning" ];
-	do
-		echo -n $(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state") > /tmp/app.state
-		echo "Current State: $$(cat /tmp/app.state)"
-		sleep 5
-	done
+	@echo "Waiting for Calm Application (${APP_NAME}) to finish provisioning."
+	touch /tmp/app.state
+	while [ "$(shell cat /tmp/app.state)" == "provisioning" ]; do \
+		echo -n $(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state") > /tmp/app.state ; \
+		echo "Current State: $$(cat /tmp/app.state)" ; \
+		sleep 5 ; \
+	done;
 ifeq ($(shell cat /tmp/app.state),error)
 	@echo "Application Failed to Deploy"
 	@exit 1
