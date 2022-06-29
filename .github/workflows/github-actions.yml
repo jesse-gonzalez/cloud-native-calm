@@ -57,13 +57,15 @@ jobs:
       - name: Provision Linux Bastion Host Endpoint
         run: make init-bastion-host-svm ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Initialize All Helm Charts
-        run:  make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=$ENVIRONMENT_NAME
+        run:  make create-all-helm-charts ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Provision Calm Endpoint & Runbook Infra
         run: make init-runbook-infra ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Provision NKE Karbon Production Cluster
         run: make init-kalm-cluster ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Launch All Helm Charts
         run: make launch-all-helm-charts ENVIRONMENT=$ENVIRONMENT_NAME
-      - name: Cleanup & Reset Cluster
-        run: make bootstrap-reset-all ENVIRONMENT=$ENVIRONMENT_NAME
+      - name: Publish All Helm Charts
+        run:  make publish-all-new-helm-bps ENVIRONMENT=$ENVIRONMENT_NAME
+      # - name: Cleanup & Reset Cluster
+      #   run: make bootstrap-reset-all ENVIRONMENT=$ENVIRONMENT_NAME
 
