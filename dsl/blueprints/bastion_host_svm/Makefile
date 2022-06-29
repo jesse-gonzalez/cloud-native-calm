@@ -64,6 +64,20 @@ launch-bp: print-env
 	calm launch bp ${BLUEPRINT_NAME} --app_name ${APP_NAME} --launch_params tests/${TEST_PARAMS_FILENAME} --watch --poll-interval 60
 	calm get apps --name ${APP_NAME}
 	calm describe app ${APP_NAME}
+	make monitor-app-state APP_NAME=${APP_NAME}
+
+monitor-app-state: print-env
+	@echo "Waiting for Calm Application (${APP_NAME}) to finish provisioning." && touch /tmp/app.state
+	while [ "$$(cat /tmp/app.state)" == "provisioning" ];
+	do
+		echo -n $(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state") > /tmp/app.state
+		echo "Current State: $$(cat /tmp/app.state)"
+		sleep 5
+	done
+ifeq ($(shell cat /tmp/app.state),error)
+	@echo "Application Failed to Deploy"
+	@exit 1
+endif
 
 run-action: print-env
 	calm run action --app ${APP_NAME} --runtime_params tests/${TEST_PARAMS_FILENAME} --watch ${ACTION_NAME}

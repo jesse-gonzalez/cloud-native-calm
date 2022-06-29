@@ -38,7 +38,7 @@ env:
 
 jobs:
   build-kalm-cicd-env:
-    timeout-minutes: 15
+    timeout-minutes: 120
     if: github.event.pull_request.draft == false
     runs-on: self-hosted
     ### COMMON_SECRET for Github Environment should be updated appropriately
