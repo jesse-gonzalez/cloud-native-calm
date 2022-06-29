@@ -61,7 +61,7 @@ create-bp: print-env
 	calm describe bp ${BLUEPRINT_NAME}
 
 launch-bp: print-env
-	calm launch bp ${BLUEPRINT_NAME} --app_name ${APP_NAME} --launch_params tests/${TEST_PARAMS_FILENAME}
+	calm launch bp ${BLUEPRINT_NAME} --app_name ${APP_NAME} --launch_params tests/${TEST_PARAMS_FILENAME} --watch --poll-interval 60
 	calm get apps --name ${APP_NAME}
 	calm describe app ${APP_NAME}
 

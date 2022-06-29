@@ -48,7 +48,6 @@ docker-run: ### Launch into Calm DSL development container. If image isn't avail
 		-w '/dsl-workspace' \
 		${IMAGE_REGISTRY_ORG}/calm-dsl-utils /bin/sh -c ${DEFAULT_SHELL}
 
-.PHONY: check-dsl-init
 check-dsl-init: ### Validate whether calm init dsl needs to be executed with target environment.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
@@ -83,7 +82,7 @@ delete-dsl-apps: ### Delete Application that matches your git feature branch and
 
 ## Following should be run from master branch along with git tag v1.0.x-$(git rev-parse --short HEAD), git push origin --tags, validate with git tag -l
 
-publish-new-dsl-bps publish-existing-dsl-bps unpublish-dsl-bps: init-dsl-config
+publish-new-dsl-bps publish-existing-dsl-bps unpublish-dsl-bps: check-dsl-init
 
 publish-new-dsl-bps: ### First Time Publish of Standard DSL BP. i.e., make publish-new-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/${DSL_BP} publish-new-bp
@@ -96,7 +95,7 @@ unpublish-dsl-bps: ### UnPublish Standard DSL BP of already existing. i.e., make
 
 ## Helm charts specific commands
 
-create-helm-bps launch-helm-bps delete-helm-bps delete-helm-apps publish-new-helm-bps publish-existing-helm-bps unpublish-helm-bps: init-dsl-config
+create-helm-bps launch-helm-bps delete-helm-bps delete-helm-apps publish-new-helm-bps publish-existing-helm-bps unpublish-helm-bps: check-dsl-init
 
 create-helm-bps: ### Create single helm chart bp (with current git branch / tag latest in name). i.e., make create-helm-bps CHART=argocd ENVIRONMENT=${ENVIRONMENT}
 	@make -C dsl/blueprints/helm_charts/${CHART} create-bp
@@ -128,7 +127,7 @@ delete-all-helm-bps: ### Delete all helm chart blueprints (with current git bran
 
 ## Endpoint specific commands
 
-create-dsl-endpoint create-all-dsl-endpoints: init-dsl-config
+create-dsl-endpoint create-all-dsl-endpoints: check-dsl-init
 
 create-dsl-endpoint: ### Create Endpoint Resource. i.e., make create-dsl-endpoint EP=bastion_host_svm ENVIRONMENT=kalm-main-16-1
 	@calm create endpoint -f ./dsl/endpoints/${EP}/endpoint.py --name ${EP} -fc 
@@ -138,7 +137,7 @@ create-all-dsl-endpoints: ### Create ALL Endpoint Resources. i.e., make create-a
 
 ## Runbook specific commands
 
-create-dsl-runbook create-all-dsl-runbooks run-dsl-runbook run-all-dsl-runbook-scenarios: init-dsl-config
+create-dsl-runbook create-all-dsl-runbooks run-dsl-runbook run-all-dsl-runbook-scenarios: check-dsl-init
 
 create-dsl-runbook: ### Create Runbook. i.e., make create-dsl-runbook RUNBOOK=update_ad_dns ENVIRONMENT=kalm-main-16-1
 	@calm create runbook -f ./dsl/runbooks/${RUNBOOK}/runbook.py --name ${RUNBOOK} -fc 
@@ -160,7 +159,7 @@ init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., m
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 
-set-bastion-host: init-dsl-config ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
+set-bastion-host: check-dsl-init ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
 	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
 		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo -e "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
 	@make create-dsl-endpoint EP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
@@ -196,7 +195,7 @@ bootstrap-reset-all: ## Reset Environment Configurations that can't be easily ov
 # If needing to publish from a previous commit/tag than current master HEAD, from master, run git reset --hard tagname to set local working copy to that point in time.
 # Run git reset --hard origin/master to return your local working copy back to latest master HEAD.
 
-publish-new-helm-bpsm publish-existing-helm-bps unpublish-helm-bps publish-all-new-helm-bps publish-all-existing-helm-bps unpublish-all-helm-bps: init-dsl-config
+publish-new-helm-bpsm publish-existing-helm-bps unpublish-helm-bps publish-all-new-helm-bps publish-all-existing-helm-bps unpublish-all-helm-bps: check-dsl-init
 
 promote:
 	@git fetch --tags
@@ -278,7 +277,7 @@ seed-calm-task-library: ## Seed the calm task library. make seed-calm-task-libra
 ## Maintenance Tasks
 ####
 
-delete-all-helm-mp-items: init-dsl-config ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
+delete-all-helm-mp-items: check-dsl-init ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
 	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
 	@make unpublish-all-helm-bps ENVIRONMENT=${ENVIRONMENT}
 	ls dsl/blueprints/helm_charts | xargs -I {} calm get marketplace bps -q -n {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}
