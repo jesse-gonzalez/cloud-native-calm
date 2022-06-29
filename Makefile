@@ -278,7 +278,7 @@ seed-calm-task-library: ## Seed the calm task library. make seed-calm-task-libra
 ## Maintenance Tasks
 ####
 
-delete-all-helm-mp-items: check-dsl-init ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
+delete-all-helm-mp-items: ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
 	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
 	@make unpublish-all-helm-bps ENVIRONMENT=${ENVIRONMENT}
 	ls dsl/blueprints/helm_charts | xargs -I {} calm get marketplace bps -q -n {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}
