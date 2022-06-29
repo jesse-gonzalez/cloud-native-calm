@@ -4,7 +4,7 @@ Blueprint to Deploy Helm Chart onto Target Karbon Cluster
 """
 
 ## Update at minimum these vars
-helm_chart_name = "github-runner"
+helm_chart_name = "GitHubRunner"
 helm_chart_namespace = "github-runners"
 helm_chart_instance_name = "github-runners"
 

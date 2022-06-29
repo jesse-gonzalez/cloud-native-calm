@@ -19,7 +19,7 @@ env:
   ENVIRONMENT_NAME: kalm-main-7-2
 
 jobs:
-  prepare:
+  build:
     runs-on: self-hosted
     environment: kalm-main-cicd
     container:
