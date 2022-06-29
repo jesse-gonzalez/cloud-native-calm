@@ -32,15 +32,17 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
       - name: Staging Environment Secrets
         run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
           # get latest tag
           t=$(git describe --tags `git rev-list --tags --max-count=1`)
           # print latest
           echo $t
 
           env
-          git config --global --add safe.directory $GITHUB_WORKSPACE
           mkdir -p .local/_common
           echo "${{ secrets.NTNX_SSH_PRIVATE_KEY }}" > .local/_common/nutanix_key
           echo "${{ secrets.NTNX_SSH_PUB_KEY }}" > .local/_common/nutanix_public_key
