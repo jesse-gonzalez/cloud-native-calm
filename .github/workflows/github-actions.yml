@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  ENVIRONMENT_NAME: kalm-main-15-2
+  ENVIRONMENT_NAME: kalm-main-7-2
 
 jobs:
   prepare:
