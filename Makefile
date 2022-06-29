@@ -159,14 +159,11 @@ init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts publ
 
 init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
-	@make create-dsl-runbook RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT};
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 
 set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
 	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
 		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo -e "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
-	@make create-dsl-endpoint EP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
-	@make run-dsl-runbook RUNBOOK=update_ad_dns SCENARIO=create_bastion_host_ws_dns_params ENVIRONMENT=${ENVIRONMENT};
 
 init-runbook-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-runbook-infra ENVIRONMENT=kalm-main-16-1
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
