@@ -24,6 +24,9 @@ MARKETPLACE_PRJ_LIST    ?= default
 # Set Blueprint Prefix and Suffix Name
 BLUEPRINT_PREFIX_NAME   := karbon-clusters
 BLUEPRINT_SUFFIX_NAME   :=
+
+STATE :=
+
 # if branch is master, then push with latest tag.  All builds from master should be considered a release and should have tag
 ## GIT_BRANCH_NAME, GIT_COMMIT_ID and CALM_ENVIRONMENT are passed in by parent Makefile as environment vars.
 ifeq ($(GIT_BRANCH_NAME),main)
@@ -70,13 +73,11 @@ launch-bp: print-env
 
 monitor-app-state: print-env
 	@echo "Waiting for Calm Application (${APP_NAME}) to finish ${STATE}."
-	@echo "${STATE}" >| /tmp/app.state
-	while [ "$(shell cat /tmp/app.state)" == "${STATE}" ]; do \
-		echo -n $(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state") >| /tmp/app.state ; \
-		echo "${APP_NAME} current state: $$(cat /tmp/app.state)" ; \
-		sleep 5 ; \
+	while [ "$$(calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state")" == "${STATE}" ]; do \
+		echo "${APP_NAME} current state: $$(calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state")" ; \
+		sleep 10 ; \
 	done;
-ifeq ($(shell cat /tmp/app.state),error)
+ifeq ($(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state"),error)
 	@echo "Application failed ${STATE}"
 	@exit 1
 endif

@@ -68,13 +68,11 @@ launch-bp: print-env
 
 monitor-app-state: print-env
 	@echo "Waiting for Calm Application (${APP_NAME}) to finish ${STATE}."
-	@echo "${STATE}" >| /tmp/app.state
-	while [ "$(shell cat /tmp/app.state)" == "${STATE}" ]; do \
-		echo -n $(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state") >| /tmp/app.state ; \
-		echo "${APP_NAME} current state: $$(cat /tmp/app.state)" ; \
-		sleep 5 ; \
+	while [ "$$(calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state")" == "${STATE}" ]; do \
+		echo "${APP_NAME} current state: $$(calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state")" ; \
+		sleep 10 ; \
 	done;
-ifeq ($(shell cat /tmp/app.state),error)
+ifeq ($(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state"),error)
 	@echo "Application failed ${STATE}"
 	@exit 1
 endif
