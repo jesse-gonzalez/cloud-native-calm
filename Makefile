@@ -153,7 +153,7 @@ run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runb
 
 ## WORKFLOWS
 
-init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts bootstrap-reset-all: check-dsl-init
+init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts publish-all-blueprints bootstrap-reset-all: check-dsl-init
 
 init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
@@ -166,22 +166,28 @@ set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make 
 
 init-runbook-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-runbook-infra ENVIRONMENT=kalm-main-16-1
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
-	@make create-all-dsl-endpoints create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT}
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT}
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=${ENVIRONMENT}
+	@make create-all-dsl-endpoints ENVIRONMENT=${ENVIRONMENT};
+	@make create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT};
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT};
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT};
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=${ENVIRONMENT};
 
 init-helm-charts: ### Intialize Helm Chart Marketplace. i.e., make init-helm-charts ENVIRONMENT=kalm-main-16-1
-	@make create-all-helm-charts publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT}
+	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
 
 init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT};
 	@make download-all-karbon-cfgs ENVIRONMENT=${ENVIRONMENT};
-	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
+	@make create-dsl-bps launch-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
+
+publish-all-blueprints: ### Publish all stable helm charts and blueprints
+	@make publish-new-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+	@make publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
+	@make publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
-	@make init-bastion-host-svm init-runbook-infra init-helm-charts init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
+	@make init-bastion-host-svm init-runbook-infra init-helm-charts init-kalm-cluster publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
 	@calm get apps -q | xargs -I {} calm delete app {}
