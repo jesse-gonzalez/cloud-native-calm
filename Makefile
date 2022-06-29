@@ -153,7 +153,7 @@ run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runb
 
 ## WORKFLOWS
 
-init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts: check-dsl-init
+init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts bootstrap-reset-all: check-dsl-init
 
 init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
 	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
@@ -177,12 +177,14 @@ init-helm-charts: ### Intialize Helm Chart Marketplace. i.e., make init-helm-cha
 init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT}
+	@make download-all-karbon-cfgs ENVIRONMENT=${ENVIRONMENT};
 	@make create-dsl-bps launch-dsl-bps publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
 
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
 	@make init-bastion-host-svm init-runbook-infra init-helm-charts init-kalm-cluster ENVIRONMENT=${ENVIRONMENT}
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
+  @calm get apps -q | xargs -I {} calm delete app {} 
 	@make delete-all-helm-mp-items ENVIRONMENT=${ENVIRONMENT}
 	@make delete-all-helm-apps ENVIRONMENT=${ENVIRONMENT}
 	@make delete-dsl-apps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
