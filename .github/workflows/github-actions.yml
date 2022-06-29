@@ -1,9 +1,9 @@
 name: cloud-native-calm-builds-workflow
 
-# defaults:
-#   run:
-#     # Needed to load .bashrc for kubectl plugins
-#     shell: bash -ieo pipefail {0}
+defaults:
+  run:
+    # Needed to load .bashrc for kubectl plugins
+    shell: bash -ieo pipefail {0}
 
 on:
   push:
