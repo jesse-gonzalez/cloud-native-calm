@@ -1,5 +1,5 @@
 # Download Calm DSL latest from hub.docker.com
-FROM ntnx/calm-dsl:latest
+FROM ntnx/calm-dsl:v3.4.0
 
 # Add packages needed for development
 RUN apk update \
