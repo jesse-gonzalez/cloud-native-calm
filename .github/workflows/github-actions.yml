@@ -27,7 +27,6 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKER_HUB_USER }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      options: -t
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
