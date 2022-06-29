@@ -80,6 +80,7 @@ jobs:
       - name: Initialize DSL Config
         run: make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Cleanup Existing Artifacts
+        continue-on-error: true
         run: make bootstrap-reset-all ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Provision Linux Bastion Host Endpoint
         run: make init-bastion-host-svm ENVIRONMENT=$ENVIRONMENT_NAME
@@ -93,6 +94,7 @@ jobs:
         run: make launch-all-helm-charts ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Publish All Helm Charts & Helm Charts
         run:  make publish-all-blueprints ENVIRONMENT=$ENVIRONMENT_NAME
-      # - name: Cleanup & Reset Cluster
-      #   run: make bootstrap-reset-all ENVIRONMENT=$ENVIRONMENT_NAME
+      - name: Cleanup & Reset Cluster
+        if: success() || failure()
+        run: make bootstrap-reset-all ENVIRONMENT=$ENVIRONMENT_NAME
 

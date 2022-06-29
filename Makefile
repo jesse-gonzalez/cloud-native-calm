@@ -191,13 +191,13 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make init-bastion-host-svm init-runbook-infra init-helm-charts init-kalm-cluster publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	@calm get apps -q | xargs -I {} calm delete app {}
-	@calm get bps -q | xargs -I {} calm delete bp {}
-	@calm get app_icons -q | xargs -I {} calm delete app_icon {}
-	@calm get endpoints -q | xargs -I {} calm delete endpoint {}
-	@calm get runbooks -q | xargs -I {} calm delete runbook {}
-	ls dsl/blueprints/helm_charts | xargs -I {} sh -c "calm get marketplace bps -q | grep {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}"
-
+	@calm get apps -q --filter=_state==running | xargs -I {} calm delete app {} 2>/dev/null
+	@calm get apps -q --filter=_state==error | xargs -I {} calm delete app {} 2>/dev/null
+	@calm get bps -q | xargs -I {} calm delete bp {} 2>/dev/null
+	@calm get app_icons -q | xargs -I {} calm delete app_icon {} 2>/dev/null
+	@calm get endpoints -q | xargs -I {} calm delete endpoint {} 2>/dev/null
+	@calm get runbooks -q | xargs -I {} calm delete runbook {} 2>/dev/null
+	@make delete-all-helm-mp-items ENVIRONMENT=${ENVIRONMENT};
 
 ## RELEASE MANAGEMENT
 
@@ -291,4 +291,4 @@ seed-calm-task-library: ## Seed the calm task library. make seed-calm-task-libra
 delete-all-helm-mp-items: ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
 	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
 	@make unpublish-all-helm-bps ENVIRONMENT=${ENVIRONMENT}
-	ls dsl/blueprints/helm_charts | xargs -I {} sh -c "calm get marketplace bps -q | grep {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG}"
+	ls dsl/blueprints/helm_charts | xargs -I {} calm get marketplace bps -q | grep {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG} 2>/dev/null

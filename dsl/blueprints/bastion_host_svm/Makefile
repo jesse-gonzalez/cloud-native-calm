@@ -64,18 +64,18 @@ launch-bp: print-env
 	calm launch bp ${BLUEPRINT_NAME} --app_name ${APP_NAME} --launch_params tests/${TEST_PARAMS_FILENAME} --watch --poll-interval 60
 	calm get apps --name ${APP_NAME}
 	calm describe app ${APP_NAME}
-	make monitor-app-state APP_NAME=${APP_NAME}
+	make monitor-app-state APP_NAME=${APP_NAME} STATE=provisioning
 
 monitor-app-state: print-env
-	@echo "Waiting for Calm Application (${APP_NAME}) to finish provisioning."
-	@echo "provisioning" >| /tmp/app.state
-	while [ "$(shell cat /tmp/app.state)" == "provisioning" ]; do \
+	@echo "Waiting for Calm Application (${APP_NAME}) to finish ${STATE}."
+	@echo "${STATE}" >| /tmp/app.state
+	while [ "$(shell cat /tmp/app.state)" == "${STATE}" ]; do \
 		echo -n $(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state") >| /tmp/app.state ; \
-		echo "Current State: $$(cat /tmp/app.state)" ; \
+		echo "${APP_NAME} current state: $$(cat /tmp/app.state)" ; \
 		sleep 5 ; \
 	done;
 ifeq ($(shell cat /tmp/app.state),error)
-	@echo "Application Failed to Deploy"
+	@echo "Application failed ${STATE}"
 	@exit 1
 endif
 
@@ -89,6 +89,7 @@ delete-bp: print-env
 
 delete-app: print-env
 	calm delete app ${APP_NAME}
+	make monitor-app-state APP_NAME=${APP_NAME} STATE=deleting
 
 publish-new-bp: print-env
 	calm create app_icon -n ${MARKETPLACE_ICON_NAME} -f ${MARKETPLACE_ICON_LOC}
