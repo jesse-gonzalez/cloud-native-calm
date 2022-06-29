@@ -185,10 +185,8 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
 	@calm get apps -q | xargs -I {} calm delete app {}
+	@calm get bps -q | xargs -I {} calm delete bp {}
 	@make delete-all-helm-mp-items ENVIRONMENT=${ENVIRONMENT}
-	@make delete-all-helm-apps ENVIRONMENT=${ENVIRONMENT}
-	@make delete-dsl-apps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT}
-	@make delete-dsl-apps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT}
 
 
 ## RELEASE MANAGEMENT
