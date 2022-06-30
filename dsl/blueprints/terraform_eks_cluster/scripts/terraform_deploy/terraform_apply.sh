@@ -1,5 +1,5 @@
 # change working directory
-cd learn-terraform-provision-eks-cluster
+cd $(HOME)/terraform-stuff/eks-cluster
 
 # initializa azure cli
 AWS_ACCESS_KEY_ID=@@{Eks Service Account User.username}@@
@@ -10,7 +10,7 @@ mkdir -p ~/.aws
 
 cat <<EOF >| ~/.aws/config
 [default]
-region = us-east-1
+region = us-east-2
 output = json
 EOF
 

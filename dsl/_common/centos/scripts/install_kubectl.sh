@@ -15,6 +15,7 @@ sudo yum install -y bash-completion
 sudo mkdir -p ~/.kube
 sudo chown $(id -u):$(id -g) $HOME/.kube
 touch $HOME/.kube/config
+chmod 0600 $HOME/.kube/config
 
 # configure bashrc
 

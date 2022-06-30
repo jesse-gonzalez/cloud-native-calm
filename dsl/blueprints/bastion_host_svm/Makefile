@@ -73,8 +73,8 @@ monitor-app-state: print-env
 		sleep 10 ; \
 	done;
 ifeq ($(shell calm get apps -n ${APP_NAME} -o json | jq -r ".entities[].status.state"),error)
-	@echo "Application failed ${STATE}"
-	@exit 1
+	echo "Application failed ${STATE}"
+	exit 1
 endif
 
 run-action: print-env

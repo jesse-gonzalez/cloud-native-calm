@@ -1,5 +1,5 @@
 # change working directory
-cd learn-terraform-provision-eks-cluster
+cd $(HOME)/terraform-stuff/eks-cluster
 
 # get output from terraform
 EKS_REGION=$(terraform output -raw region)

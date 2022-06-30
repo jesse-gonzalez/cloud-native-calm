@@ -1,7 +1,11 @@
 # cleanup existing repos
-if [ -d learn-terraform-provision-eks-cluster ]; then
-  rm -rf learn-terraform-provision-eks-cluster
+if [ -d cloud-native-calm ]; then
+  rm -rf cloud-native-calm
 fi
 
-# Download Terraform EKS repo
-git clone https://github.com/hashicorp/learn-terraform-provision-eks-cluster
+# Download Cloud-Native repo
+git clone https://github.com/jesse-gonzalez/cloud-native-calm
+
+# Copy Terraform Specific Repo Out
+mkdir -p $(HOME)/terraform-stuff
+cp cloud-native-calm/terraform/eks-cluster $(HOME)/terraform-stuff
