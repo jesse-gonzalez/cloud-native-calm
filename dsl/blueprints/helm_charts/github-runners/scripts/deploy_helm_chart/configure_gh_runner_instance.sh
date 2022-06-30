@@ -7,7 +7,7 @@ K8S_CLUSTER_NAME=@@{k8s_cluster_name}@@
 export KUBECONFIG=~/${K8S_CLUSTER_NAME}_${INSTANCE_NAME}.cfg
 
 #GITHUB_REPO_URL=https://github.com/jesse-gonzalez/cloud-native-calm.git
-GITHUB_REPO_URL=@@{github_repo_url}@@
+GITHUB_REPO_URL="@@{github_repo_url}@@"
 
 GITHUB_REPO_URL_WO_SUFFIX="${GITHUB_REPO_URL%.*}"
 GITHUB_REPO_ORG="$(basename "${GITHUB_REPO_URL_WO_SUFFIX}")"

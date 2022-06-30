@@ -27,7 +27,7 @@ Else
         Set-DnsServerResourceRecord -newinputobject $newobj -oldinputobject $oldobj -ZoneName $dns_zone -PassThru -ComputerName $dns_server -Verbose -ErrorAction Stop
         
         #Just Easier to Remove Ptr and Add
-        Remove-DnsServerResourceRecord -Name $dns_ptr_ip -ZoneName $dns_ptr_zone -RRType Ptr -ComputerName $dns_server -Force -ErrorAction SilentlyContinue
+        #Remove-DnsServerResourceRecord -Name $dns_ptr_ip -ZoneName $dns_ptr_zone -RRType Ptr -ComputerName $dns_server -Force -ErrorAction SilentlyContinue
         Add-DnsServerResourceRecordPtr -Name $dns_ptr_ip -ZoneName $dns_ptr_zone -PtrDomainName $dns_host_fqdn -ComputerName $dns_server -Verbose -ErrorAction Stop
     } 
 } 
