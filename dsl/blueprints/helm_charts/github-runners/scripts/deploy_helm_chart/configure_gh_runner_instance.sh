@@ -6,9 +6,13 @@ K8S_CLUSTER_NAME=@@{k8s_cluster_name}@@
 
 export KUBECONFIG=~/${K8S_CLUSTER_NAME}_${INSTANCE_NAME}.cfg
 
-#GITHUB_REPO_URL=https://github.com/jesse-gonzalez/cloud-native-calm.git
+#GITHUB_REPO_URL="https://github.com/jesse-gonzalez/cloud-native-calm.git"
 GITHUB_REPO_URL="@@{github_repo_url}@@"
+kubectl get runnerdeployment.actions.summerwind.dev -A
 
+kubectl get runners.actions.summerwind.dev -A
+
+kubectl get horizontalrunnerautoscalers.actions.summerwind.dev -A
 GITHUB_REPO_URL_WO_SUFFIX="${GITHUB_REPO_URL%.*}"
 GITHUB_REPO_ORG="$(basename "${GITHUB_REPO_URL_WO_SUFFIX}")"
 GITHUB_REPO_NAME="$(basename "${GITHUB_REPO_URL_WO_SUFFIX%/${GITHUB_REPO_ORG}}")"
@@ -24,7 +28,7 @@ metadata:
 spec:
   template:
     spec:
-      repository: $( echo $GITHUB_REPO_SLUG)
+      repository: $( echo $GITHUB_REPO_SLUG )
 ---
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: HorizontalRunnerAutoscaler
@@ -38,7 +42,7 @@ spec:
   metrics:
   - type: TotalNumberOfQueuedAndInProgressWorkflowRuns
     repositoryNames:
-    - $( echo $GITHUB_REPO_SLUG)
+    - $( echo $GITHUB_REPO_SLUG )
 EOF
 
 kubectl get runnerdeployment.actions.summerwind.dev -A
