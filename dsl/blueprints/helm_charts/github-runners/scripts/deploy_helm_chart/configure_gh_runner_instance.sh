@@ -8,11 +8,7 @@ export KUBECONFIG=~/${K8S_CLUSTER_NAME}_${INSTANCE_NAME}.cfg
 
 #GITHUB_REPO_URL="https://github.com/jesse-gonzalez/cloud-native-calm.git"
 GITHUB_REPO_URL="@@{github_repo_url}@@"
-kubectl get runnerdeployment.actions.summerwind.dev -A
 
-kubectl get runners.actions.summerwind.dev -A
-
-kubectl get horizontalrunnerautoscalers.actions.summerwind.dev -A
 GITHUB_REPO_URL_WO_SUFFIX="${GITHUB_REPO_URL%.*}"
 GITHUB_REPO_ORG="$(basename "${GITHUB_REPO_URL_WO_SUFFIX}")"
 GITHUB_REPO_NAME="$(basename "${GITHUB_REPO_URL_WO_SUFFIX%/${GITHUB_REPO_ORG}}")"
@@ -46,11 +42,9 @@ spec:
 EOF
 
 kubectl get runnerdeployment.actions.summerwind.dev -A
-
 kubectl get runners.actions.summerwind.dev -A
-
 kubectl get horizontalrunnerautoscalers.actions.summerwind.dev -A
 
-kubectl scale runnerdeployment.actions.summerwind.dev/runner-deployment --replicas=2
+#kubectl scale runnerdeployment.actions.summerwind.dev/runner-deployment --replicas=2
 
 ## additional workflow
