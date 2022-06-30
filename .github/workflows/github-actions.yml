@@ -36,7 +36,7 @@ concurrency: kalm-main-cicd
 
 env:
   ### Target karbon production environment / hpoc id
-  ENVIRONMENT_NAME: kalm-main-7-2
+  ENVIRONMENT_NAME: kalm-main-16-4
 
 jobs:
   build-kalm-cicd-env:
