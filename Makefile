@@ -192,7 +192,7 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
 	@calm get apps -q --filter=_state==provisioning | xargs -I {} calm stop app --watch {} 2>/dev/null
-	@calm get apps -q | xargs -I {} calm stop app {} --watch 2>/dev/null
+	@calm get apps -q | xargs -I {} calm delete app {} --watch 2>/dev/null
 	@calm get bps -q | xargs -I {} calm delete bp {} 2>/dev/null
 	@calm get app_icons -q | xargs -I {} calm delete app_icon {} 2>/dev/null
 	@calm get endpoints -q | xargs -I {} calm delete endpoint {} 2>/dev/null
