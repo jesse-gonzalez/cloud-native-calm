@@ -198,7 +198,6 @@ bootstrap-reset-all: ## Reset Environment Configurations that can't be easily ov
 	@calm get app_icons -q | xargs -I {} calm delete app_icon {} 2>/dev/null
 	@calm get endpoints -q | xargs -I {} calm delete endpoint {} 2>/dev/null
 	@calm get runbooks -q | xargs -I {} calm delete runbook {} 2>/dev/null
-	@make delete-all-helm-mp-items ENVIRONMENT=${ENVIRONMENT};
 
 ## RELEASE MANAGEMENT
 

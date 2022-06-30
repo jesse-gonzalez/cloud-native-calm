@@ -1,0 +1,1 @@
+eksctl create cluster --name eks-demo-cluster --region us-east-2

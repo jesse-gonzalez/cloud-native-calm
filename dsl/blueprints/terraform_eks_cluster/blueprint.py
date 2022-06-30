@@ -94,7 +94,7 @@ class Terraform_WorkstationService(Service):
     """Workstation Service"""
 
     @action
-    def DeployTerraformCluster(name="Deploy " + terraform_name):
+    def DeployTerraformCluster(name="Deploy " + k8s_distro_name):
         CalmTask.Exec.ssh(
             name="Clone Terraform Repo",
             filename="scripts/terraform_deploy/clone_repo.sh",
@@ -111,7 +111,7 @@ class Terraform_WorkstationService(Service):
             cred=NutanixCred
         )
         CalmTask.Exec.ssh(
-            name="Validate " + terraform_name",
+            name="Validate " + k8s_distro_name",
             filename="scripts/terraform_deploy/validate_k8s_cluster.sh",
             cred=NutanixCred
         )
