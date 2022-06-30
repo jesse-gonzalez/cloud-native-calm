@@ -59,8 +59,8 @@ As part of the initial deployment, Calm will also provision the latest Nutanix C
 1. Clone repo and change directory (cd):
 
   ```bash
-    git clone https://github.com/nutanix-enterprise/shared-demo-karbon-calm.git
-    cd shared-demo-karbon-calm
+    git clone https://github.com/jesse-gonzalez/cloud-native-calm
+    cd cloud-native-calm
   ```
 
 1. Review `make help` to see the various options that can be executed via make command.
@@ -107,7 +107,11 @@ unpublish-helm-bps   Unpublish Single Helm Chart Blueprint - latest git release.
 ```
 
 1. All the tools needed to develop Calm DSL and interact with the target Kubernetes applications / Karbon environments are available within a local docker container.  If the image is unavailable, it will build it, run and attach to it interactively with the local directory `dsl-workspace` already mounted.  
-    > Initiate Calm DSL docker container workspace by running `make docker-run ENVIRONMENT=kalm-main-{hpoc-id}`. For Example: `make docker-run`
+    > Initiate Calm DSL docker container workspace by running `make docker-run`.
+
+    ```bash
+    make docker-run
+    ```
 
 1. Copy ./secrets.yaml.example and update all required values with a `required_secrets`. i.e., `artifactory_password: required_secret` should be changed to reflect correct password.
    Optionally set the `optional_secrets` for optional use cases - i.e., github_user and password for jenkins, azure/aws for cloud blueprints.
