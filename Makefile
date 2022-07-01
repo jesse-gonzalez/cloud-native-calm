@@ -59,7 +59,6 @@ init-dsl-config: ### Initialize calm dsl configuration with environment specific
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
 	@mkdir -p ${CALM_DSL_LOCAL_DIR_LOCATION} && cp -rf .local/* /root/.calm
 	@touch ${CALM_DSL_CONFIG_FILE_LOCATION} ${CALM_DSL_DB_LOCATION}
-	@calm update cache
 	@calm init dsl --project "${CALM_PROJECT}";
 
 
@@ -187,7 +186,12 @@ publish-all-blueprints: ### Publish all stable helm charts and blueprints
 	@make publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
-	@make init-bastion-host-svm init-runbook-infra init-helm-charts init-kalm-cluster publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
+	@make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
+	@make bootstrap-reset-all ENVIRONMENT=${ENVIRONMENT};
+	@make init-bastion-host-svm ENVIRONMENT=${ENVIRONMENT};
+	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
+	@make init-runbook-infra ENVIRONMENT=${ENVIRONMENT};
+	@make init-kalm-cluster ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
 	calm get apps -q --filter=_state==provisioning | xargs -I {} -t calm stop app --watch {} 2>/dev/null
