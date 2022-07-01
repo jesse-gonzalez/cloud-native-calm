@@ -51,6 +51,7 @@ docker-run: ### Launch into Calm DSL development container. If image isn't avail
 check-dsl-init: ### Validate whether calm init dsl needs to be executed with target environment.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
+	@calm get apps -o json 2>/dev/null > config/{}/nutanix.ncmstate
 	@export DSL_ACCOUNT_IP=$(shell calm describe account NTNX_LOCAL_AZ | grep 'IP' | cut -d: -f2 | tr -d " "); \
 		[ "$$DSL_ACCOUNT_IP" == "${PC_IP_ADDRESS}" ] || make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
 
@@ -195,17 +196,17 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	calm get apps -q --filter=_state==provisioning | xargs -I {} -t calm stop app --watch {} 2>/dev/null
-	calm get apps -q --filter=_state==error | xargs -I {} -t calm delete app {} 2>/dev/null
-	calm get apps -q | xargs -I {} -t calm delete app {} 2>/dev/null
-	calm get bps -q | xargs -I {} -t calm delete bp {} 2>/dev/null
-	calm get app_icons -q | xargs -I {} -t calm delete app_icon {} 2>/dev/null
+	calm get apps --limit 50 -q --filter=_state==provisioning | xargs -I {} -t calm stop app --watch {} 2>/dev/null
+	calm get apps --limit 50 -q --filter=_state==error | xargs -I {} -t calm delete app {} 2>/dev/null
+	calm get apps --limit 50 -q | xargs -I {} -t calm delete app {} 2>/dev/null
+	calm get bps --limit 50 -q | xargs -I {} -t calm delete bp {} 2>/dev/null
 	calm get endpoints -q | xargs -I {} -t calm delete endpoint {} 2>/dev/null
 	calm get runbooks -q | xargs -I {} -t calm delete runbook {} 2>/dev/null
 	calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL karbon 2>/dev/null
 	calm delete marketplace bp karbon -v ${MP_GIT_TAG} 2>/dev/null
 	ls dsl/blueprints/helm_charts | xargs -I {} -t sh -c "calm get marketplace items -q | grep {}" | xargs -I {} -t calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} 2>/dev/null
 	ls dsl/blueprints/helm_charts | xargs -I {} -t sh -c "calm get marketplace bps -q | grep {}" | xargs -I {} -t calm delete marketplace bp {} -v ${MP_GIT_TAG} 2>/dev/null
+	calm get app_icons --limit 50 -q | xargs -I {} -t calm delete app_icon {} 2>/dev/null
 
 ## RELEASE MANAGEMENT
 
@@ -279,7 +280,6 @@ merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to con
 	@kubectl cluster-info
 
 download-all-karbon-cfgs: ### Download all kubeconfigs from all environments that have Karbon Cluster running
-	@calm get apps -o json 2>/dev/null > config/${ENVIRONMENT}/nutanix.ncmstate
 	@ls config/*/nutanix.ncmstate | cut -d/ -f2 | xargs -I {} sh -c 'jq -r ".entities[].status | select((.description | contains(\"karbon-clusters\")) and (.state == \"running\")) | .name " config/{}/nutanix.ncmstate' \
 		| xargs -I {} grep -l {} config/*/nutanix.ncmstate | cut -d/ -f2 | xargs -I {} make download-karbon-creds ENVIRONMENT={} && echo "reload shell. i.e., source ~/.zshrc and run kubectx to switch clusters"
 
