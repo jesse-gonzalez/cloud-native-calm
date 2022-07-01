@@ -53,7 +53,6 @@ check-dsl-init: ### Validate whether calm init dsl needs to be executed with tar
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
 	@export DSL_ACCOUNT_IP=$(shell calm describe account NTNX_LOCAL_AZ | grep 'IP' | cut -d: -f2 | tr -d " "); \
 		[ "$$DSL_ACCOUNT_IP" == "${PC_IP_ADDRESS}" ] || make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
-	@calm get apps -o json 2>/dev/null > config/${ENVIRONMENT}/nutanix.ncmstate
 
 init-dsl-config: ### Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
@@ -191,13 +190,17 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make init-bastion-host-svm init-runbook-infra init-helm-charts init-kalm-cluster publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	@calm get apps -q --filter=_state==provisioning | xargs -I {} calm stop app --watch {} 2>/dev/null
-	@calm get apps -q --filter=_state==error | xargs -I {} calm delete app {} 2>/dev/null
-	@calm get apps -q | xargs -I {} calm delete app {} 2>/dev/null
-	@calm get bps -q | xargs -I {} calm delete bp {} 2>/dev/null
-	@calm get app_icons -q | xargs -I {} calm delete app_icon {} 2>/dev/null
-	@calm get endpoints -q | xargs -I {} calm delete endpoint {} 2>/dev/null
-	@calm get runbooks -q | xargs -I {} calm delete runbook {} 2>/dev/null
+	calm get apps -q --filter=_state==provisioning | xargs -I {} -t calm stop app --watch {} 2>/dev/null
+	calm get apps -q --filter=_state==error | xargs -I {} -t calm delete app {} 2>/dev/null
+	calm get apps -q | xargs -I {} -t calm delete app {} 2>/dev/null
+	calm get bps -q | xargs -I {} -t calm delete bp {} 2>/dev/null
+	calm get app_icons -q | xargs -I {} -t calm delete app_icon {} 2>/dev/null
+	calm get endpoints -q | xargs -I {} -t calm delete endpoint {} 2>/dev/null
+	calm get runbooks -q | xargs -I {} -t calm delete runbook {} 2>/dev/null
+	calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL karbon 2>/dev/null
+	calm delete marketplace bp karbon -v ${MP_GIT_TAG} 2>/dev/null
+	ls dsl/blueprints/helm_charts | xargs -I {} -t sh -c "calm get marketplace items -q | grep {}" | xargs -I {} -t calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} 2>/dev/null
+	ls dsl/blueprints/helm_charts | xargs -I {} -t sh -c "calm get marketplace bps -q | grep {}" | xargs -I {} -t calm delete marketplace bp {} -v ${MP_GIT_TAG} 2>/dev/null
 
 ## RELEASE MANAGEMENT
 
@@ -241,7 +244,7 @@ publish-all-existing-helm-bps: ### Publish New Version of all existing helm char
 	@ls dsl/blueprints/helm_charts | xargs -I {} make publish-existing-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
 unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git release (i.e., git tag --list)
-	@ls dsl/blueprints/helm_charts | xargs -I {} make unpublish-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
+	ls dsl/blueprints/helm_charts | xargs -I {} make unpublish-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
 ##############
 ## Helpers
@@ -271,6 +274,7 @@ merge-kubectl-contexts: ### Merge all K8s cluster kubeconfigs within path to con
 	@kubectl cluster-info
 
 download-all-karbon-cfgs: ### Download all kubeconfigs from all environments that have Karbon Cluster running
+	@calm get apps -o json 2>/dev/null > config/${ENVIRONMENT}/nutanix.ncmstate
 	@ls config/*/nutanix.ncmstate | cut -d/ -f2 | xargs -I {} sh -c 'jq -r ".entities[].status | select((.description | contains(\"karbon-clusters\")) and (.state == \"running\")) | .name " config/{}/nutanix.ncmstate' \
 		| xargs -I {} grep -l {} config/*/nutanix.ncmstate | cut -d/ -f2 | xargs -I {} make download-karbon-creds ENVIRONMENT={} && echo "reload shell. i.e., source ~/.zshrc and run kubectx to switch clusters"
 
@@ -283,12 +287,3 @@ seed-calm-task-library: ## Seed the calm task library. make seed-calm-task-libra
 	@git clone https://github.com/nutanix/blueprints.git /tmp/blueprints
 	@cd /tmp/blueprints/calm-integrations/generate_task_library_items
 	@bash generate_task_library_items.sh
-
-####
-## Maintenance Tasks
-####
-
-delete-all-helm-mp-items: ### Remove all existing helm marketplace items for current git version. Easier to republish existing version. 
-	@echo "Current Marketplace Version: ${MP_GIT_TAG}"
-	@make unpublish-all-helm-bps ENVIRONMENT=${ENVIRONMENT}
-	ls dsl/blueprints/helm_charts | xargs -I {} calm get marketplace bps -q | grep {} | xargs -I {} calm delete marketplace bp {} -v ${MP_GIT_TAG} 2>/dev/null
