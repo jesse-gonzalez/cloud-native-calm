@@ -192,6 +192,7 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
 	@make init-runbook-infra ENVIRONMENT=${ENVIRONMENT};
 	@make init-kalm-cluster ENVIRONMENT=${ENVIRONMENT};
+	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
 	calm get apps -q --filter=_state==provisioning | xargs -I {} -t calm stop app --watch {} 2>/dev/null
