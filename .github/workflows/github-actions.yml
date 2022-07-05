@@ -32,19 +32,24 @@ on:
         default: 'kalm-main-cicd'
         type: environment
         required: true
-
-concurrency: ${{ github.event.inputs.github_environment || 'kalm-main-cicd' }}
+      github_runner:
+        description: 'Github self-hosted runner label'
+        default: 'kalm-main-runners'
+        type: string
+        required: true
 
 env:
-  ### Target karbon production environment / hpoc id
+  ### Default environment to deploy and configure calm and karbon.
   ENVIRONMENT_NAME: ${{ github.event.inputs.deploy_environment || 'kalm-main-16-4' }}
+
+concurrency: ${{ github.event.inputs.github_environment || 'kalm-main-cicd' }}
 
 jobs:
   build-kalm-cicd-env:
     timeout-minutes: 240
     if: github.event.pull_request.draft == false
     ### runs-on environment should be different from ephemeral environment
-    runs-on: kalm-main-20-3
+    runs-on: ${{ github.event.inputs.github_runner || 'kalm-main-runners' }}
     ### COMMON_SECRET for Github Environment should be updated appropriately
     environment:
       name: ${{ github.event.inputs.github_environment || 'kalm-main-cicd' }}
