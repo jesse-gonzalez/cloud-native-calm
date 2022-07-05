@@ -25,6 +25,8 @@ spec:
   template:
     spec:
       repository: $( echo $GITHUB_REPO_SLUG )
+      labels:
+       - $( echo $K8S_CLUSTER_NAME )
 ---
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: HorizontalRunnerAutoscaler
@@ -33,7 +35,7 @@ metadata:
 spec:
   scaleTargetRef:
     name: runner-deployment
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 5
   metrics:
   - type: TotalNumberOfQueuedAndInProgressWorkflowRuns

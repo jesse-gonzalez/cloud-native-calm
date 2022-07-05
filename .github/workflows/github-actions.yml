@@ -1,10 +1,5 @@
 name: cloud-native-calm-builds
 
-# defaults:
-#   run:
-#     # Needed to load .bashrc for kubectl plugins
-#     shell: bash -ieo pipefail {0}
-
 on:
   pull_request:
     types:
@@ -27,24 +22,32 @@ on:
       - v*
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'What is target environment? i.e., kalm-main-16-4'
+        type: string
+        required: true
+      github_environment:
+        description: 'Github environment secrets store name.'
+        default: 'kalm-main-cicd'
+        type: environment
+        required: true
 
-# concurrency:
-#   group: ci-tests-${{ github.ref }}-1
-#   cancel-in-progress: true
-
-concurrency: kalm-main-cicd
+concurrency: ${{ github.event.inputs.github_environment || 'kalm-main-cicd' }}
 
 env:
   ### Target karbon production environment / hpoc id
-  ENVIRONMENT_NAME: kalm-main-16-4
+  ENVIRONMENT_NAME: ${{ github.event.inputs.deploy_environment || 'kalm-main-16-4' }}
 
 jobs:
   build-kalm-cicd-env:
     timeout-minutes: 240
     if: github.event.pull_request.draft == false
-    runs-on: kalm-self-hosted
+    ### runs-on environment should be different from ephemeral environment
+    runs-on: kalm-main-20-3
     ### COMMON_SECRET for Github Environment should be updated appropriately
-    environment: kalm-main-cicd
+    environment:
+      name: ${{ github.event.inputs.github_environment || 'kalm-main-cicd' }}
     container:
       image: ntnxdemo/calm-dsl-utils:latest
       credentials:
