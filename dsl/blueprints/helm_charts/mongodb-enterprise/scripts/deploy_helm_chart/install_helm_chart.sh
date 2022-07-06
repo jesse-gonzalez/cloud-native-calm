@@ -13,11 +13,11 @@ helm repo add mongodb https://mongodb.github.io/helm-charts
 
 helm repo update
 helm search repo mongodb/enterprise-operator
-helm upgrade --install enterprise-operator mongodb/enterprise-operator \
+helm upgrade --install ${INSTANCE_NAME} mongodb/enterprise-operator \
 	--namespace ${NAMESPACE} \
 	--wait-for-jobs \
 	--wait
 
-kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=mongodb
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=mongodb-enterprise-operator --namespace ${NAMESPACE}
 
-helm status enterprise-operator -n ${NAMESPACE}
+helm status ${INSTANCE_NAME} -n ${NAMESPACE}

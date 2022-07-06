@@ -4,9 +4,9 @@ Blueprint to Deploy Helm Chart onto Target Karbon Cluster
 """
 
 ## Update at minimum these vars
-helm_chart_name = "Mongodb"
-helm_chart_namespace = "mongodb"
-helm_chart_instance_name = "mongodb"
+helm_chart_name = "MongodbCommunity"
+helm_chart_namespace = "mongodb-community"
+helm_chart_instance_name = "mongodb-community"
 
 import base64
 import json

@@ -19,7 +19,10 @@ metadata:
   name: om-admin-secret
 type: Opaque
 stringData:
-  password: $( echo $MONGODB_PASS )
+  Username: $( echo $MONGODB_USER )
+  Password: $( echo $MONGODB_PASS )
+  FirstName: mongodb-opsmanager
+  LastName: admin
 ---
 apiVersion: mongodb.com/v1
 kind: MongoDBOpsManager
@@ -38,3 +41,8 @@ EOF
 
 ## https://quay.io/repository/mongodb/mongodb-enterprise-appdb-database?tab=tags
 ## additional workflow
+
+
+## additional workflow
+kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-db-svc --timeout=15m -n ${NAMESPACE}
+kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-svc --timeout=15m -n ${NAMESPACE}

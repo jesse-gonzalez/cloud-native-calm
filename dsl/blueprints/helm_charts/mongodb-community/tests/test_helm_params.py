@@ -1,5 +1,5 @@
-helm_chart_namespace = "mongodb"
-helm_chart_instance_name = "mongodb"
+helm_chart_namespace = "mongodb-community"
+helm_chart_instance_name = "mongodb-community"
 
 import os
 

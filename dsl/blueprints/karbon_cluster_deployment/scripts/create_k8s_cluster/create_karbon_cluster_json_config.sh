@@ -123,7 +123,7 @@ echo '
         "ahv_config": {
           "cpu": 4,
           "disk_mib": 122880,
-          "memory_mib": 8192,
+          "memory_mib": 12288,
           "network_uuid": "@@{network_uuid}@@",
           "prism_element_cluster_uuid": "@@{prism_element_uuid}@@"
         },
