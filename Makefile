@@ -196,17 +196,15 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	calm get apps --limit 50 -q --filter=_state==provisioning | xargs -I {} -t calm stop app --watch {} 2>/dev/null
-	calm get apps --limit 50 -q --filter=_state==error | xargs -I {} -t calm delete app {} 2>/dev/null
-	calm get apps --limit 50 -q | xargs -I {} -t calm delete app {} 2>/dev/null
-	calm get bps --limit 50 -q | xargs -I {} -t calm delete bp {} 2>/dev/null
-	calm get endpoints -q | xargs -I {} -t calm delete endpoint {} 2>/dev/null
-	calm get runbooks -q | xargs -I {} -t calm delete runbook {} 2>/dev/null
-	calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL karbon 2>/dev/null
-	calm delete marketplace bp karbon -v ${MP_GIT_TAG} 2>/dev/null
-	ls dsl/blueprints/helm_charts | xargs -I {} -t sh -c "calm get marketplace items -q | grep {}" | xargs -I {} -t calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} 2>/dev/null
-	ls dsl/blueprints/helm_charts | xargs -I {} -t sh -c "calm get marketplace bps -q | grep {}" | xargs -I {} -t calm delete marketplace bp {} -v ${MP_GIT_TAG} 2>/dev/null
-	calm get app_icons --limit 50 -q | xargs -I {} -t calm delete app_icon {} 2>/dev/null
+	calm get apps --limit 50 -q --filter=_state==provisioning | xargs -I {} -t sh -c "calm stop app --watch {}" 2>/dev/null
+	calm get apps --limit 50 -q --filter=_state==error | xargs -I {} -t sh -c "calm delete app {}" 2>/dev/null
+	calm get apps --limit 50 -q | xargs -I {} -t sh -c "calm delete app {}" 2>/dev/null
+	calm get bps --limit 50 -q | xargs -I {} -t sh -c "calm delete bp {}" 2>/dev/null
+	calm get endpoints -q | xargs -I {} -t sh -c "calm delete endpoint {}" 2>/dev/null
+	calm get runbooks -q | xargs -I {} -t sh -c "calm delete runbook {}" 2>/dev/null
+	calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {}" 2>/dev/null
+	calm get marketplace bps -a PUBLISHED -a PENDING -a REJECTED -q | xargs -I {} -t sh -c "calm delete marketplace bp {} -v ${MP_GIT_TAG}" 2>/dev/null
+	calm get app_icons --limit 50 -q | xargs -I {} -t sh -c "calm delete app_icon {}" 2>/dev/null
 
 ## RELEASE MANAGEMENT
 
