@@ -23,6 +23,7 @@ SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{
 argocd login argocd.10.38.15.85.nip.io --grpc-web --insecure --username admin --password $SECRET
 ```
 
+
 > to change password
   argocd account update-password --grpc-web
 
