@@ -196,14 +196,14 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app --watch {}"
-	calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}"
-	calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} 2>/dev/null"
-	calm get bps --limit 50 -q | xargs -I {} -t sh -c "calm delete bp {}"
-	calm get endpoints -q | xargs -I {} -t sh -c "calm delete endpoint {}"
-	calm get runbooks -q | xargs -I {} -t sh -c "calm delete runbook {}"
-	calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} && calm delete marketplace bp {} -v ${MP_GIT_TAG}"
-	calm get app_icons --limit 50 -q | xargs -I {} -t sh -c "calm delete app_icon {}"
+	calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app --watch {}";
+	calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
+	calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
+	calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
+	calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} && calm delete marketplace bp {} -v ${MP_GIT_TAG}";
+	calm get app_icons --limit 50 -q | xargs -I {} -t sh -c "calm delete app_icon {}";
 
 ## RELEASE MANAGEMENT
 
