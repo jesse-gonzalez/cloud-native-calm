@@ -51,5 +51,3 @@ kubectl get horizontalrunnerautoscalers.actions.summerwind.dev -A
 
 ## additional workflow
 
-#runner-deployment-name=runner-deployment
-#./config.sh remove --token ANBO3HQDOSPJNIRM5H6EE7TCX4SGU

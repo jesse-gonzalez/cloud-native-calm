@@ -29,7 +29,7 @@ on:
         required: true
       github_environment:
         description: 'Github environment secrets store name.'
-        default: 'kalm-main-cicd'
+        default: 'kalm-main-common'
         type: environment
         required: true
       github_runner:

@@ -55,7 +55,7 @@ check-dsl-init: ### Validate whether calm init dsl needs to be executed with tar
 	@export DSL_ACCOUNT_IP=$(shell calm describe account NTNX_LOCAL_AZ | grep 'IP' | cut -d: -f2 | tr -d " " 2>/dev/null); \
 		[ "$$DSL_ACCOUNT_IP" == "${PC_IP_ADDRESS}" ] || make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
 
-init-dsl-config: ### Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
+init-dsl-config: print-vars ### Initialize calm dsl configuration with environment specific configs.  Assumes that it will be running withing Container.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
 	[ -f /.dockerenv ] || make docker-run ENVIRONMENT=${ENVIRONMENT};
 	@mkdir -p ${CALM_DSL_LOCAL_DIR_LOCATION} && cp -rf .local/* /root/.calm
@@ -196,14 +196,14 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	calm get apps --limit 50 -q --filter=_state==provisioning | xargs -I {} -t sh -c "calm stop app --watch {}" 2>/dev/null
-	calm get apps --limit 50 -q --filter=_state==error | xargs -I {} -t sh -c "calm delete app {}" 2>/dev/null
-	calm get apps --limit 50 -q | xargs -I {} -t sh -c "calm delete app {}" 2>/dev/null
-	calm get bps --limit 50 -q | xargs -I {} -t sh -c "calm delete bp {}" 2>/dev/null
-	calm get endpoints -q | xargs -I {} -t sh -c "calm delete endpoint {}" 2>/dev/null
-	calm get runbooks -q | xargs -I {} -t sh -c "calm delete runbook {}" 2>/dev/null
-	ls dsl/blueprints/helm_charts | xargs -I {} -t sh -c "calm get marketplace bps -q | grep {} | xargs -I {} -t calm delete marketplace bp {} -v ${MP_GIT_TAG}" 2>/dev/null
-	calm get app_icons --limit 50 -q | xargs -I {} -t sh -c "calm delete app_icon {}" 2>/dev/null
+	calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app --watch {}"
+	calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}"
+	calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} 2>/dev/null"
+	calm get bps --limit 50 -q | xargs -I {} -t sh -c "calm delete bp {}"
+	calm get endpoints -q | xargs -I {} -t sh -c "calm delete endpoint {}"
+	calm get runbooks -q | xargs -I {} -t sh -c "calm delete runbook {}"
+	calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} && calm delete marketplace bp {} -v ${MP_GIT_TAG}"
+	calm get app_icons --limit 50 -q | xargs -I {} -t sh -c "calm delete app_icon {}"
 
 ## RELEASE MANAGEMENT
 
@@ -266,7 +266,7 @@ help: ### Show this help
 ## Configure Local KUBECTL config and ssh keys for Karbon
 ####
 
-download-karbon-creds merge-kubectl-contexts download-all-karbon-cfgs fix-image-pull-secrets: check-dsl-init
+download-karbon-creds download-all-karbon-cfgs fix-image-pull-secrets: print-vars
 
 download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
 	@KARBON_PASSWORD=${PC_PASSWORD} kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user ${PC_USER} --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force

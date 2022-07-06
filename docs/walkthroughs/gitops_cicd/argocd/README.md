@@ -20,7 +20,7 @@ chmod +x /usr/local/bin/argocd
 
 ```bash
 SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-argocd login argocd.10.38.20.150.nip.io --grpc-web --insecure --username admin --password $SECRET
+argocd login argocd.10.38.15.85.nip.io --grpc-web --insecure --username admin --password $SECRET
 ```
 
 > to change password
