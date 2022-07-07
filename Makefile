@@ -204,8 +204,8 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
 	@make unpublish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app --watch {} 2>/dev/null";
-	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} 2>/dev/null";
-	@calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} && calm watch app {}";
+	@calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} && calm watch app {}";
 	@calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
 	@calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
 	@calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
