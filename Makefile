@@ -63,7 +63,6 @@ init-dsl-config: print-vars ### Initialize calm dsl configuration with environme
 	@touch ${CALM_DSL_CONFIG_FILE_LOCATION} ${CALM_DSL_DB_LOCATION}
 	@calm init dsl --project "${CALM_PROJECT}";
 
-
 ## Common BP command based on DSL_BP path passed in. To Run, make create-dsl-bps <dsl_bp_folder_name>
 
 create-dsl-bps launch-dsl-bps delete-dsl-bps delete-dsl-apps: init-dsl-config
@@ -183,26 +182,34 @@ init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster E
 	@make create-dsl-bps launch-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
 
 publish-all-blueprints: ### Publish all stable helm charts and blueprints
+ifeq ($(MP_GIT_TAG),$(shell calm get marketplace bps | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs))
+	@make unpublish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
+endif
+ifneq ($(shell calm get marketplace bps | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs),)
+	@make publish-existing-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+	@make publish-existing-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
+	@make publish-all-existing-helm-bps ENVIRONMENT=${ENVIRONMENT};
+else
 	@make publish-new-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 	@make publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
 	@make publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT};
+endif
 
-unpublish-all-blueprints: ### Un-publish all stable helm charts and blueprints
+unpublish-all-blueprints: ### Un-publish all marketplace items and delete marketplace blueprints (and un-used app icons) for current git tag version.
 	@calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} && calm delete marketplace bp {} -v ${MP_GIT_TAG}";
 	@calm get marketplace bps | grep -i ${MP_GIT_TAG} | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm delete marketplace bp {} -v ${MP_GIT_TAG}";
-	@calm get app_icons --limit 50 -q | xargs -I {} -t sh -c "calm delete app_icon {}";
+	@calm get app_icons --limit 50 --marketplace_use | grep -i false  | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm delete app_icon {}";
 
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
 	@make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
 	@make bootstrap-reset-all ENVIRONMENT=${ENVIRONMENT};
 	@make init-bastion-host-svm ENVIRONMENT=${ENVIRONMENT};
-	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
 	@make init-runbook-infra ENVIRONMENT=${ENVIRONMENT};
 	@make init-kalm-cluster ENVIRONMENT=${ENVIRONMENT};
+	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	@make unpublish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app --watch {} 2>/dev/null";
 	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} && calm watch app {}";
 	@calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} && calm watch app {}";

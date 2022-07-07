@@ -18,6 +18,8 @@ on:
       - task**
     paths-ignore:
       - 'docs/**'
+      - 'scripts/**'
+      - 'terraform/**'
     tags:
       - v*
   # Allows you to run this workflow manually from the Actions tab

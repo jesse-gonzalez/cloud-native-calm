@@ -25,9 +25,9 @@ RUN apk update \
         jq \
         aws-cli \
         packer \
-        terraform && \
-    rm -rf /tmp/* && \
-    rm -rf /var/cache/apk/*
+        terraform \
+        vault \
+        github-cli 
 
 ## configure zsh
 RUN apk add --no-cache zsh \
@@ -37,6 +37,7 @@ RUN apk add --no-cache zsh \
     && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting \
     && git config --global --add safe.directory /dsl-workspace
 
+## bring dotfiles for various shells over
 COPY ./scripts/dotfiles /root
 
 # ## install utils
@@ -53,14 +54,17 @@ RUN chmod +x *.sh \
     && ./configure_kubectl_aliases.sh \
     && ./install_stern.sh \
     && ./install_argocd_cli.sh \
-    && ./install_vault_cli.sh \
     && ./install_istio_cli.sh \
     && ./install_crossplane.sh \
     && ./install_clusterctl.sh \
     && ./install_rancher_cli.sh \
-    && calm completion install zsh && \
-    rm -rf /tmp/*
+    && calm completion install zsh
 
+## preload zsh plugins
 SHELL ["/bin/zsh", "-c"]
 RUN source /root/.zshrc
 RUN zsh -i -c -- 'zinit module build; @zinit-scheduler burst || true '
+
+## cleanup tmp and apk cache
+RUN rm -rf /tmp/* && \
+    rm -rf /var/cache/apk/*
