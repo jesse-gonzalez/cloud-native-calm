@@ -44,9 +44,10 @@ docker-run: ### Launch into Calm DSL development container. If image isn't avail
 	# this will exec you into the interactive container
 	@docker run --rm -it \
 		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v ${HOME}/.kube:/root/.kube \
 		-v `pwd`:/dsl-workspace \
 		-w '/dsl-workspace' \
-		${IMAGE_REGISTRY_ORG}/calm-dsl-utils /bin/sh -c ${DEFAULT_SHELL}
+		${IMAGE_REGISTRY_ORG}/calm-dsl-utils /bin/sh -c "export ENVIRONMENT=${ENVIRONMENT} && ${DEFAULT_SHELL}"
 
 check-dsl-init: ### Validate whether calm init dsl needs to be executed with target environment.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
@@ -188,7 +189,7 @@ publish-all-blueprints: ### Publish all stable helm charts and blueprints
 
 unpublish-all-blueprints: ### Un-publish all stable helm charts and blueprints
 	@calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} && calm delete marketplace bp {} -v ${MP_GIT_TAG}";
-	@calm get marketplace bps | grep -i ${MP_GIT_TAG} | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm get marketplace bps -n {}";
+	@calm get marketplace bps | grep -i ${MP_GIT_TAG} | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm delete marketplace bp {} -v ${MP_GIT_TAG}";
 	@calm get app_icons --limit 50 -q | xargs -I {} -t sh -c "calm delete app_icon {}";
 
 bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
