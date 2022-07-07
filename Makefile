@@ -1,6 +1,6 @@
 .ONESHELL:
 
-ENVIRONMENT ?= kalm-main-8-2
+ENVIRONMENT ?= kalm-main-16-4
 DEFAULT_SHELL ?= /bin/zsh
 
 IMAGE_REGISTRY_ORG = ntnxdemo
@@ -29,9 +29,6 @@ CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)
 docker-build: ### Build Calm DSL Util Image locally with necessary tools to develop and manage Cloud-Native Apps (e.g., kubectl, argocd, git, helm, helmfile, etc.)
 	@docker image ls --filter "reference=${IMAGE_REGISTRY_ORG}/calm-dsl*" --format "{{.Repository}}:{{.Tag}}"   | xargs -I {} docker rmi -f {}
 	@docker build -t ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest .
-
-docker-login: ## Login to Image Repo
-	@echo "$(DOCKER_HUB_PASS)" | docker login --username $(DOCKER_HUB_USER) --password-stdin
 
 docker-push: docker-login ### Tag and Push latest image and short sha version to desired image repo.
 	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/calm-dsl-utils -q)" ] || make docker-build
@@ -182,10 +179,10 @@ init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster E
 	@make create-dsl-bps launch-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
 
 publish-all-blueprints: ### Publish all stable helm charts and blueprints
-ifeq ($(MP_GIT_TAG),$(shell calm get marketplace bps | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs))
+ifeq ($(MP_GIT_TAG),$(shell calm get marketplace bps 2>/dev/null | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs))
 	@make unpublish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 endif
-ifneq ($(shell calm get marketplace bps | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs),)
+ifneq ($(shell calm get marketplace bps 2>/dev/null | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs),)
 	@make publish-existing-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 	@make publish-existing-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
 	@make publish-all-existing-helm-bps ENVIRONMENT=${ENVIRONMENT};
@@ -226,7 +223,7 @@ bootstrap-reset-all: ## Reset Environment Configurations that can't be easily ov
 
 publish-new-helm-bpsm publish-existing-helm-bps unpublish-helm-bps publish-all-new-helm-bps publish-all-existing-helm-bps unpublish-all-helm-bps: check-dsl-init
 
-promote:
+promote-release: github-login ## Promote next version of git tag
 	@git fetch --tags
 	@echo "VERSION:$(GIT_VERSION) IS_SNAPSHOT:$(GIT_IS_SNAPSHOT) NEW_VERSION:$(GIT_NEW_VERSION)"
 ifeq (false,$(GIT_IS_SNAPSHOT))
@@ -265,14 +262,23 @@ unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git re
 ## Helpers
 
 print-vars: ### Print environment variables. i.e., make print-vars ENVIRONMENT={environment_folder_name}
-	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep -vi "USER|PASS|KEY|SECRET|CRED" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
+	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep -vi "USER|PASS|KEY|SECRET|CRED|TOKEN" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 print-secrets: ### Print variables including secrets. i.e., make print-secrets ENVIRONMENT={environment_folder_name}
-	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep "USER|PASS|KEY|SECRET|CRED" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
+	@for envvar in $$(cat $(ENV_GLOBAL_PATH) $(ENV_OVERRIDE_PATH) | cut -d= -f1 | sort -usf | xargs -n 1); do `echo env` | egrep "USER|PASS|KEY|SECRET|CRED|TOKEN" | grep "$$envvar=" 2>/dev/null; done; 2>/dev/null
 
 .DEFAULT_GOAL := help
 help: ### Show this help
 	@egrep -h '\s###\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?### "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+docker-login: ## Login to Container Private Registry
+	@echo "$(DOCKER_HUB_PASS)" | docker login --username $(DOCKER_HUB_USER) --password-stdin
+
+github-login: ## Login to GitHub Repo to support local commits and tag promotion
+	@echo -e "$(GITHUB_PASS)" | gh auth login --with-token
+	@gh auth setup-git;
+	git config user.name "$(GITHUB_USER)"
+	git config user.email "$(GITHUB_EMAIL)"
 
 ####
 ## Configure Local KUBECTL config and ssh keys for Karbon

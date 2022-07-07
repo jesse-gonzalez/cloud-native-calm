@@ -1,6 +1,9 @@
 # Download Calm DSL latest from hub.docker.com
 FROM ntnx/calm-dsl:v3.4.0
 
+# Add lateset edge repo for latest versions if needed
+RUN echo "@community http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+
 # Add packages needed for development
 RUN apk update \
     && apk upgrade \
@@ -26,8 +29,8 @@ RUN apk update \
         aws-cli \
         packer \
         terraform \
-        vault \
-        github-cli 
+        vault  \
+        github-cli@community
 
 ## configure zsh
 RUN apk add --no-cache zsh \
