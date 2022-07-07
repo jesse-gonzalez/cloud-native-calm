@@ -231,11 +231,11 @@ ifeq (false,$(GIT_IS_SNAPSHOT))
 	@exit 1
 endif
 ifneq ($(shell git status -s),)
-	@echo "Unable to promote a dirty workspace"
+	@echo "Unable to promote a dirty workspace. Please commit and push your updates"
 	@exit 1
 endif
-	# git tag -a -m "releasing v$(GIT_NEW_VERSION)" v$(GIT_NEW_VERSION)
-	# git push origin v$(GIT_NEW_VERSION)
+	@git tag -a -m "releasing v$(GIT_NEW_VERSION)" v$(GIT_NEW_VERSION)
+	@git push origin v$(GIT_NEW_VERSION)
 
 publish-new-helm-bps: ### First Time Publish of Single Helm Chart. i.e., make publish-new-helm-bps CHART=argocd
 	# promote stable release to marketplace for new
@@ -277,8 +277,8 @@ docker-login: ## Login to Container Private Registry
 github-login: ## Login to GitHub Repo to support local commits and tag promotion
 	@echo -e "$(GITHUB_PASS)" | gh auth login --with-token
 	@gh auth setup-git;
-	git config user.name "$(GITHUB_USER)"
-	git config user.email "$(GITHUB_EMAIL)"
+	@git config user.name "$(GITHUB_USER)";
+	@git config user.email "$(GITHUB_EMAIL)";
 
 ####
 ## Configure Local KUBECTL config and ssh keys for Karbon
