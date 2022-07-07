@@ -284,7 +284,7 @@ github-login: ## Login to GitHub Repo to support local commits and tag promotion
 ## Configure Local KUBECTL config and ssh keys for Karbon
 ####
 
-download-karbon-creds download-all-karbon-cfgs fix-image-pull-secrets: print-vars
+download-karbon-creds download-all-karbon-cfgs fix-image-pull-secrets: check-init-dsl
 
 download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
 	@KARBON_PASSWORD=${PC_PASSWORD} kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user ${PC_USER} --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force
@@ -304,8 +304,11 @@ fix-image-pull-secrets: ### Add image pull secret to get around image download r
 	@kubectl get ns -o name | cut -d / -f2 | xargs -I {} sh -c "kubectl create secret docker-registry image-pull-secret --docker-username=${DOCKER_HUB_USER} --docker-password=${DOCKER_HUB_PASS} -n {} --dry-run=client -o yaml | kubectl apply -f - "
 	@kubectl get serviceaccount --no-headers --all-namespaces | awk '{ print $$1 , $$2 }' | xargs -n2 sh -c 'kubectl patch serviceaccount $$2 -p "{\"imagePullSecrets\": [{\"name\": \"image-pull-secret\"}]}" -n $$1' sh
 
-seed-calm-task-library: ## Seed the calm task library. make seed-calm-task-library ENVIRONMENT=kalm-main-16-1
+seed-calm-task-library: ### Seed the calm task library from nutanix blueprints github repo. make seed-calm-task-library ENVIRONMENT=kalm-main-16-1
 	@rm -rf /tmp/blueprints
 	@git clone https://github.com/nutanix/blueprints.git /tmp/blueprints
 	@cd /tmp/blueprints/calm-integrations/generate_task_library_items
 	@bash generate_task_library_items.sh
+
+run-gh-workflow-dispatch: github-login ### Run github actions dispatch workflow with common params. Github Repo admins only
+	gh workflow run github-actions.yml --ref ${GIT_BRANCH_NAME} -f deploy_environment=${ENVIRONMENT} -f github_environment=kalm-main-common -f github_runner=kalm-main-runners

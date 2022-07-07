@@ -25,3 +25,5 @@ kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=actions-runner-
 
 helm status actions-runner-controller -n ${NAMESPACE}
 
+# if you ever need to update secret
+# kubectl create secret generic controller-manager --from-literal github_token="${GITHUB_PASS}" -n ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -n ${NAMESPACE} -f -
