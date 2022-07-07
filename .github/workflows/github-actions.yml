@@ -80,6 +80,7 @@ jobs:
           MOD_GH_SECRET=$(echo "${{ secrets.GH_SECRET }}" | sed 's/\W/\\&/g')
           sed -i "s/github_user: .*/github_user: ${{ secrets.GH_USER }}/g" ./secrets.yaml
           sed -i "s/github_password: .*/github_password: $MOD_GH_SECRET/g" ./secrets.yaml
+          sed -i "s/github_email: .*/github_email: ${{ secrets.GH_EMAIL }}/g" ./secrets.yaml
 
           MOD_COMMON_SECRET=$(echo "${{ secrets.COMMON_SECRET }}" | sed 's/\W/\\&/g')
           sed -i "s/required_secret/$MOD_COMMON_SECRET/g" ./secrets.yaml
