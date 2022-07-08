@@ -4,6 +4,12 @@ From Calm Automation Perspective:
 *** - Done for all scenarios
 Manual - During or Before Demo...
 
+
+FOCUS ON DAY 2 ACTIONS for:
+  - Provision Instances
+  - Scaling
+  - Upgrading
+
 - Configure Database Operator and Developer User in Calm / LDAP
 
 ## Provision MongoDB OpsManager Cluster on Karbon via Enterprise Operator
@@ -43,7 +49,7 @@ Manual - During or Before Demo...
 
 - Deploy Development Karbon Cluster as Developer  [DONE]
 - Deploy MongoDB Community Operator Helm Chart as Developer  [DONE]
-- Register MongoDB Instance with OpsManager [enterprise operator]
+- Register MongoDB Instance with OpsManager [FINALIZING]
 
 -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/create-project-using-configmap/
 

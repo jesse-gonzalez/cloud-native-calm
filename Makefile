@@ -27,7 +27,7 @@ CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)
 ####
 
 docker-build: ### Build Calm DSL Util Image locally with necessary tools to develop and manage Cloud-Native Apps (e.g., kubectl, argocd, git, helm, helmfile, etc.)
-	@docker image ls --filter "reference=${IMAGE_REGISTRY_ORG}/calm-dsl*" --format "{{.Repository}}:{{.Tag}}"   | xargs -I {} docker rmi -f {}
+	@docker image ls --filter "reference=${IMAGE_REGISTRY_ORG}/calm-dsl*" --format "{{.Repository}}:{{.Tag}}" | xargs -I {} docker rmi -f {}
 	@docker build -t ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest .
 
 docker-push: docker-login ### Tag and Push latest image and short sha version to desired image repo.
@@ -41,7 +41,6 @@ docker-run: ### Launch into Calm DSL development container. If image isn't avail
 	# this will exec you into the interactive container
 	@docker run --rm -it \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v ${HOME}/.kube:/root/.kube \
 		-v `pwd`:/dsl-workspace \
 		-w '/dsl-workspace' \
 		${IMAGE_REGISTRY_ORG}/calm-dsl-utils /bin/sh -c "export ENVIRONMENT=${ENVIRONMENT} && ${DEFAULT_SHELL}"
@@ -207,9 +206,12 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app --watch {} 2>/dev/null";
-	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} && calm watch app {}";
-	@calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {} && calm watch app {}";
+	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	@calm get apps --limit 50 -q --filter=_state==deleting | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} 2>/dev/null";
+	@calm get apps -q -n karbon | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	@calm get apps -q -n bastion | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	@calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app --soft";
 	@calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
 	@calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
 	@calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
@@ -284,7 +286,7 @@ github-login: ## Login to GitHub Repo to support local commits and tag promotion
 ## Configure Local KUBECTL config and ssh keys for Karbon
 ####
 
-download-karbon-creds download-all-karbon-cfgs fix-image-pull-secrets: check-init-dsl
+download-karbon-creds download-all-karbon-cfgs fix-image-pull-secrets: check-dsl-init
 
 download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
 	@KARBON_PASSWORD=${PC_PASSWORD} kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user ${PC_USER} --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force

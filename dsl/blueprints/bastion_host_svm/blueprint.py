@@ -240,11 +240,11 @@ class Bastion_HostProfile(VmProfile):
             cred=NutanixCred
         )
 
-        CalmTask.Exec.ssh(
-            name="Install AWS IAM Authenticator",
-            filename="../../_common/centos/scripts/install_aws_iam_authenticator.sh",
-            cred=NutanixCred
-        )
+        # CalmTask.Exec.ssh(
+        #     name="Install AWS IAM Authenticator",
+        #     filename="../../_common/centos/scripts/install_aws_iam_authenticator.sh",
+        #     cred=NutanixCred
+        # )
 
         CalmTask.Exec.ssh(
             name="Install EKS Ctl",

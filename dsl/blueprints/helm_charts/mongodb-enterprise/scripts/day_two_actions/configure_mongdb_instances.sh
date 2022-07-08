@@ -12,17 +12,17 @@ MONGODB_PASS=@@{MongoDB User.secret}@@
 ## Create Organization
 ## Move to Day 2 Action
 
-OM_BASE_URL="http://mongodb-opsmanager.10.38.15.87.nip.io:8080"
-OM_ORG_NAME="mongodb-demo-org"
-OM_ORG_ID="62c7a4dbbdff127f78561be3"
-OM_USER_BASE64="jgejkwud"
-OM_API_KEY_BASE64="827c16bb-5f6e-4ed8-a234-95066d7a6684"
+OM_BASE_URL="http://${NIPIO_INGRESS_DOMAIN}:8080"
+#OM_ORG_NAME="mongodb-demo-org"
+OM_ORG_ID=@@{om_org_id}@@
+OM_API_USER=@@{om_api_user}@@
+OM_API_KEY=@@{om_api_key}@@
 
 ## Create a secret that will be used by the operator to connect with the ops manager
 
 kubectl -n ${NAMESPACE} create secret generic organization-secret \
-  --from-literal="user=$OM_USER_BASE64" \
-  --from-literal="publicApiKey=$OM_API_KEY_BASE64" \
+  --from-literal="user=$OM_API_USER" \
+  --from-literal="publicApiKey=$OM_API_KEY" \
   --dry-run=client -o yaml | kubectl apply -n ${NAMESPACE} -f -
 
 ## Create Common Database User Secret

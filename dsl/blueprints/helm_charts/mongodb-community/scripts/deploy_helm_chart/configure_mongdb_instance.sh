@@ -47,4 +47,4 @@ EOF
 
 ## additional workflow
 
-kubectl wait --for=condition=Ready pod -l app=example-mongodb-svc --timeout=15m -n ${NAMESPACE}
+##kubectl wait --for=condition=Ready pod -l app=example-mongodb-svc --timeout=15m -n ${NAMESPACE}

@@ -111,6 +111,20 @@ class HelmService(Service):
             cred=ref(NutanixCred)
         )
 
+    @action
+    def ConfigureMongoDBInstances(name="Configure MongoDB Application DB Instances"):
+        CalmTask.Exec.ssh(
+            name="Get Kubeconfig",
+            filename="../../../_common/karbon/scripts/get_kubeconfig.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
+        CalmTask.Exec.ssh(
+            name="Validate PreReqs",
+            filename="scripts/day_two_actions/configure_mongdb_instances.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
 
 class BastionHostWorkstation(Substrate):
 
@@ -216,12 +230,37 @@ class Default(Profile):
         description="Kubernetes Namespace to deploy helm chart",
     )
 
-    enc_pc_creds = CalmVariable.Simple(
-        EncrypedPrismCreds.decode("utf-8"),
-        is_mandatory=True,
-        is_hidden=True,
-        runtime=False,
-    )
+    @action
+    def ConfigureMongoDBInstances(name="Configure MongoDB Application DB Instances"):
+        """
+    Configure Standalone Mongodb Instance
+        """
+        om_org_id = CalmVariable.Simple(
+            "",
+            label="OpsManager Organization ID",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        )
+        om_api_user = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key User",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key User. i.e., jgejkwud",
+        )
+        om_api_key = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
+        )
+
+        HelmService.ConfigureMongoDBInstances(name="Configure MongoDB Application DB Instances")
 
 
 class HelmBlueprint(Blueprint):
