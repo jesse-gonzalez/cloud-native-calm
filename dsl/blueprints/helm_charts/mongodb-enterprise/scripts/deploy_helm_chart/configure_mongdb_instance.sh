@@ -9,146 +9,201 @@ export KUBECONFIG=~/${K8S_CLUSTER_NAME}_${INSTANCE_NAME}.cfg
 MONGODB_USER=@@{MongoDB User.username}@@
 MONGODB_PASS=@@{MongoDB User.secret}@@
 
-## Yaml to Deploy Instance of OpsManager
+## Create Organization
+## Move to Day 2 Action
+
+OM_BASE_URL="http://mongodb-opsmanager.10.38.15.87.nip.io:8080"
+OM_ORG_NAME="mongodb-demo-org"
+OM_ORG_ID="62c7a4dbbdff127f78561be3"
+OM_USER_BASE64="jgejkwud"
+OM_API_KEY_BASE64="827c16bb-5f6e-4ed8-a234-95066d7a6684"
+
+## Create a secret that will be used by the operator to connect with the ops manager
+
+kubectl -n ${NAMESPACE} create secret generic organization-secret \
+  --from-literal="user=$OM_USER_BASE64" \
+  --from-literal="publicApiKey=$OM_API_KEY_BASE64" \
+  --dry-run=client -o yaml | kubectl apply -n ${NAMESPACE} -f -
+
+## Create Common Database User Secret
 
 cat <<EOF | kubectl apply -n ${NAMESPACE} -f -
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: om-admin-secret
+  name: mms-user-1-password
 type: Opaque
 stringData:
-  Username: $( echo $MONGODB_USER )
-  Password: $( echo $MONGODB_PASS )
-  FirstName: mongodb-opsmanager
-  LastName: admin
----
-apiVersion: mongodb.com/v1
-kind: MongoDBOpsManager
-metadata:
-  name: mongodb-opsmanager
-spec:
-  replicas: 2
-  version: "5.0.10"
-  adminCredentials: om-admin-secret
-  externalConnectivity:
-    type: NodePort
-  applicationDatabase:
-    members: 3
-    version: "4.2.6-ent"
-  configuration:
-    mms.ignoreInitialUiSetup: "true"
-    automation.versions.source: "remote"
-    mms.adminEmailAddr: cloud-admint@no-reply.com
-    mms.fromEmailAddr: cloud-support@no-reply.com
-    mms.mail.hostname: email-smtp.nutanix.demo
-    mms.mail.port: "465"
-    mms.mail.ssl: "false"
-    mms.mail.transport: smtp
-    mms.minimumTLSVersion: TLSv1.2
-    mms.replyToEmailAddr: cloud-support@no-reply.com
+  password: $( echo $MONGODB_PASS )
 EOF
 
+## Create MongoDB Standalone Cluster, Project and Database User
 
-## Create Replica Set
+OM_PROJECT_NAME="mongodb-demo-standalone"
+
 cat <<EOF | kubectl apply -n ${NAMESPACE} -f -
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: $( echo $OM_PROJECT_NAME )-config
+data:
+  baseUrl: $( echo $OM_BASE_URL )
+  projectName: $( echo $OM_PROJECT_NAME )-project
+  orgId: $( echo $OM_ORG_ID )
 ---
 apiVersion: mongodb.com/v1
 kind: MongoDB
 metadata:
-  name: my-replica-set
+  name: $( echo $OM_PROJECT_NAME )
+spec:
+  version: "4.2.6-ent"
+  type: Standalone
+  opsManager:
+    configMapRef:
+      name: $( echo $OM_PROJECT_NAME )-config
+  credentials: organization-secret
+  persistent: false
+---
+apiVersion: mongodb.com/v1
+kind: MongoDBUser
+metadata:
+  name: $( echo $OM_PROJECT_NAME )-scram-user-1
+spec:
+  passwordSecretKeyRef:
+    name: mms-user-1-password
+    key: password
+  username: "$( echo $OM_PROJECT_NAME )-scram-user-1"
+  db: "admin"
+  mongodbResourceRef:
+    name: $( echo $OM_PROJECT_NAME )
+    # Match to MongoDB resource using authenticaiton
+  roles:
+  - db: "admin"
+    name: "clusterAdmin"
+  - db: "admin"
+    name: "userAdminAnyDatabase"
+  - db: "admin"
+    name: "readWrite"
+  - db: "admin"
+    name: "userAdminAnyDatabase"
+EOF
+
+#kubectl wait --for=condition=Ready pod -l app=${OM_PROJECT_NAME}-svc --timeout=15m -n ${NAMESPACE}
+
+##############
+## Create MongoDB ReplicaSet Cluster, Project and Database User
+
+OM_PROJECT_NAME="mongodb-demo-replicaset"
+
+cat <<EOF | kubectl apply -n ${NAMESPACE} -f -
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: $( echo $OM_PROJECT_NAME )-config
+data:
+  baseUrl: $( echo $OM_BASE_URL )
+  projectName: $( echo $OM_PROJECT_NAME )-project
+  orgId: $( echo $OM_ORG_ID )
+---
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: $( echo $OM_PROJECT_NAME )
 spec:
   members: 3
   version: "4.2.6-ent"
-  service: my-service
-  opsManager: # Alias of cloudManager
+  service: $( echo $OM_PROJECT_NAME )-service
+  opsManager:
     configMapRef:
-      name: my-project
-  credentials: my-credentials
+      name: $( echo $OM_PROJECT_NAME )-config
+  credentials: organization-secret
   persistent: true
   type: ReplicaSet
   podSpec:
+    podTemplate:
+      spec:
+       containers:
+        - name: mongodb-enterprise-database
+          resources:
+            limits:
+              cpu: 2
+              memory: 1.5G
+            requests:
+              cpu: 1
+              memory: 1G
     persistence:
       multiple:
         data:
           storage: "10Gi"
         journal:
           storage: "1Gi"
-          labelSelector:
-            matchLabels:
-              app: "my-app"
         logs:
           storage: "500M"
-          storageClass: standard
-  security:
-    tls:
-      enabled: true
-      secretRef:
-        prefix: "prefix"
-    authentication:
-      enabled: true
-      modes: ["X509"]
-      internalCluster: "X509"
-  additionalMongodConfig:
-    net:
-      ssl:
-        mode: preferSSL
+---
+apiVersion: mongodb.com/v1
+kind: MongoDBUser
+metadata:
+  name: $( echo $OM_PROJECT_NAME )-scram-user-1
+spec:
+  passwordSecretKeyRef:
+    name: mms-user-1-password
+    key: password
+  username: "$( echo $OM_PROJECT_NAME )-scram-user-1"
+  db: "admin"
+  mongodbResourceRef:
+    name: $( echo $OM_PROJECT_NAME )
+    # Match to MongoDB resource using authenticaiton
+  roles:
+  - db: "admin"
+    name: "clusterAdmin"
+  - db: "admin"
+    name: "userAdminAnyDatabase"
+  - db: "admin"
+    name: "readWrite"
+  - db: "admin"
+    name: "userAdminAnyDatabase"
 EOF
 
-## Create Sharded Cluster
+#kubectl wait --for=condition=Ready pod -l app=${OM_PROJECT_NAME}-service --timeout=15m -n ${NAMESPACE}
+
+## Create Sharded Cluster, Project and Database User
+
+OM_PROJECT_NAME="mongodb-demo-shardedcluster"
+
 cat <<EOF | kubectl apply -n ${NAMESPACE} -f -
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: $( echo $OM_PROJECT_NAME )-config
+data:
+  baseUrl: $( echo $OM_BASE_URL )
+  projectName: $( echo $OM_PROJECT_NAME )-project
+  orgId: $( echo $OM_ORG_ID )
 ---
 apiVersion: mongodb.com/v1
 kind: MongoDB
 metadata:
-  name: my-sharded-cluster
+  name: $( echo $OM_PROJECT_NAME )
 spec:
   shardCount: 2
   mongodsPerShardCount: 3
   mongosCount: 2
   configServerCount: 3
-  version: "4.2.2-ent"
-  service: my-service
+  version: "4.2.6-ent"
+  service: $( echo $OM_PROJECT_NAME )-service
   type: ShardedCluster
-
-  ## Please Note: The default Kubernetes cluster name is
-  ## `cluster.local`.
-  ## If your cluster has been configured with another name, you can
-  ## specify it with the `clusterDomain` attribute.
-
-  opsManager: # Alias of cloudManager
+  opsManager:
     configMapRef:
-      name: my-project
-  credentials: my-credentials
+      name: $( echo $OM_PROJECT_NAME )-config
+  credentials: organization-secret
   persistent: true
-  mongosPodSpec:
-    podAntiAffinityTopologyKey: rackId
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 1
-        preference:
-          matchExpressions:
-          - key: another-node-label-key
-            operator: In
-            values:
-            - another-node-label-value
-    podTemplate:
-      metadata:
-        labels:
-          label1: mycustomlabel
-      spec:
-        affinity:
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - podAffinityTerm:
-                  topologyKey: "mykey"
-                weight: 50
   shardPodSpec:
     persistence:
       multiple:
-        # if the child of "multiple" is omitted then the default size will be used.
-        # 16GB for "data", 1GB for "journal", 3GB for "logs"
         data:
           storage: "20Gi"
         logs:
@@ -168,25 +223,32 @@ spec:
       storage:
         journal:
           commitIntervalMs: 50
-  security:
-    tls:
-      enabled: true
-      secretRef:
-        prefix: "prefix"
-    authentication:
-      enabled: true
-      modes: ["X509"]
-      internalCluster: "X509"
+---
+apiVersion: mongodb.com/v1
+kind: MongoDBUser
+metadata:
+  name: $( echo $OM_PROJECT_NAME )-scram-user-1
+spec:
+  passwordSecretKeyRef:
+    name: mms-user-1-password
+    key: password
+  username: "$( echo $OM_PROJECT_NAME )-scram-user-1"
+  db: "admin"
+  mongodbResourceRef:
+    name: $( echo $OM_PROJECT_NAME )
+    # Match to MongoDB resource using authenticaiton
+  roles:
+  - db: "admin"
+    name: "clusterAdmin"
+  - db: "admin"
+    name: "userAdminAnyDatabase"
+  - db: "admin"
+    name: "readWrite"
+  - db: "admin"
+    name: "userAdminAnyDatabase"
 EOF
 
-
+#kubectl wait --for=condition=Ready pod -l app=${OM_PROJECT_NAME}-service --timeout=15m -n ${NAMESPACE}
 
 ## https://quay.io/repository/mongodb/mongodb-enterprise-appdb-database?tab=tags
 ## additional workflow
-
-
-## additional workflow
-kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-db-svc --timeout=15m -n ${NAMESPACE}
-kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-svc --timeout=15m -n ${NAMESPACE}
-
-kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-backup-daemon-svc --timeout=10m -n ${NAMESPACE}

@@ -106,7 +106,7 @@ class HelmService(Service):
     def ConfigureService(name="Configuring "+helm_chart_name):
         CalmTask.Exec.ssh(
             name="Configuring MongoDB Instance",
-            filename="scripts/deploy_helm_chart/configure_mongdb_instance.sh",
+            filename="scripts/deploy_helm_chart/configure_opsmanager_instance.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )

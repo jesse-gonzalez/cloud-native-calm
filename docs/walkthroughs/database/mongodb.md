@@ -9,31 +9,33 @@ Manual - During or Before Demo...
 ## Provision MongoDB OpsManager Cluster on Karbon via Enterprise Operator
 
 - Deploy Karbon Production Cluster [DONE]
-  - Update MetalLB with Additional IP Addresses
+  - Update MetalLB with Additional IP Addresses [DONE]
 - Deploy MongoDB Enterprise Operator via Helm [DONE]
 - Create MongoDB OpsManager Admin Secret [DONE]
 - Create MongoDB OpsManager ReplicaSet Cluster (Custom Resource) [DONE]
+  - Configure with External Type LoadBalancer [DONE]
+  - Update Blueprint Metadata with OpsManager URL [DONE]
 - Login to MongoDB OpsManager UI [DONE]
 
 ## Provision MongoDB Cluster (ReplicaSet) on Karbon via Enterprise Operator
 
-- Deploy MongoDB Database Replica Set Instance as Day 2 Action **
-  - Configure Kubernetes Storage Limits and Quotas on MongoDB Namespace
+- Deploy MongoDB Database Replica Set Instance as Day 2 Action [FINALIZING]
+
 -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-replica-set/
 
-- Deploy Additional MongoDB Database on existing Replica Set as Day 2 Action
+- Deploy Additional MongoDB Database on existing Replica Set as Day 2 Action [FINALIZING]
 
-- Configure Custom Developer / Operations Roles as Day 2 Action
+- Configure Custom Developer / Operations Roles as Day 2 Action [FINALIZING]
 
 -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/manage-database-users-scram/
 
-- Register MongoDB Instance with OpsManager [enterprise operator]
+- Register MongoDB Instance with OpsManager [DONE]
 
 -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/create-project-using-configmap/
 
 ## Provision MongoDB Cluster (ShardedCluster) on Karbon via Enterprise Operator
 
-- Deploy MongoDB Database Sharded Cluster Instance as Day 2 Action  **
+- Deploy MongoDB Database Sharded Cluster Instance as Day 2 Action [FINALIZING]
 
 -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-sharded-cluster/
 

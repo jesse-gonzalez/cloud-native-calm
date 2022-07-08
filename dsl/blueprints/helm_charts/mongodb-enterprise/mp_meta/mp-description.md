@@ -1,26 +1,29 @@
 *MongoDB Enterprise Operator Helm Chart*
 
-The MongoDB Enterprise Kubernetes Operator supports the following features:
+The MongoDB Enterprise Kubernetes Operator translates the human knowledge of creating a MongoDB instance into a scalable, repeatable, and standardized method.
 
-- Create replica sets
-- Upgrade and downgrade MongoDB server version
-- Scale replica sets up and down
-- Read from and write to the replica set while scaling, upgrading, and downgrading. These operations are done in an "always up" manner.
-- Report MongoDB server state via the MongoDBCommunity resource status field
-- Use any of the available Docker MongoDB images
-- Connect to the replica set from inside the Kubernetes cluster (no external connectivity)
-- Secure client-to-server and server-to-server connections with TLS
-- Create users with SCRAM authentication
-- Create custom roles
-- Enable a metrics target that can be used with Prometheus
+The Operator enables easy deploy of the following applications into Kubernetes clusters:
+
+`MongoDB` - Replica Sets, Sharded Clusters and Standalones - with authentication, TLS and many more options.
+`Ops Manager` - our enterprise management, monitoring and backup platform for MongoDB. The Operator can install and manage Ops Manager in Kubernetes for you. Ops Manager can manage MongoDB instances both inside and outside Kubernetes.
 
 ### Chart Details
 
 This chart will do the following:
 
-- Deploy Certificate Manager  - [more info](https://cert-manager.io/docs/)
-- Configure Self-Signed Cluster Issuer
+- Deploy MongoDB Enterprise Operator
+- Deploy MongoDB OpsManager Cluster (+ Backend ApplicationDB ReplicaSet)
+- Expose MongoDB via MetalLB Service LoadBalancer
 
-#### Prerequisites:
+#### Prerequisites
 
 - Existing Karbon Cluster
+
+The following services have been pre-configured:
+
+- `MetalLB` - [more info](https://metallb.universe.tf/)
+- `Cert-Manager` - [more info](https://cert-manager.io/docs/installation/kubernetes/)
+
+#### Day 2 Actions
+
+- Deploy Additional MongoDB ApplicationDB ReplicaSet or ShardCluster
