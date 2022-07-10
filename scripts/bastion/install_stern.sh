@@ -6,6 +6,3 @@ ln -s /opt/stern /usr/local/bin/stern
 # quick validation
 stern --help
 
-echo '' | tee -a ~/.bashrc ~/.zshrc
-echo 'alias stern="stern --tail 10 --since 5m"' | tee -a ~/.bashrc ~/.zshrc
-echo '' | tee -a ~/.bashrc ~/.zshrc

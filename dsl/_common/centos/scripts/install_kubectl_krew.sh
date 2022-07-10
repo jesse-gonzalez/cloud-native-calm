@@ -71,3 +71,5 @@ kubectl krew install karbon # Connect to Nutanix Karbon cluster
 #kubectl krew install view-serviceaccount-kubeconfig # DShow a kubeconfig setting to access the apiserv...  no
 #kubectl krew install view-utilization  # DShows cluster cpu and memory utilization            no
 #kubectl krew install view-webhook  # Visualize your webhook configurations
+
+kubectl krew upgrade

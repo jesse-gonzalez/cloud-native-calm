@@ -1,4 +1,4 @@
-echo 'set showmatch
+set showmatch
 set showmode
 set ruler
 
@@ -7,4 +7,4 @@ set expandtab
 set shiftwidth=2
 set softtabstop=2
 set autoindent
-set smartindent' > ~/.vimrc
+set smartindent

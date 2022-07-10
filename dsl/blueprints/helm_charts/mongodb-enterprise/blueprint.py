@@ -57,6 +57,38 @@ class HelmService(Service):
     name = "Helm_"+helm_chart_name
 
     nipio_ingress_domain = CalmVariable.Simple.string("",)
+    om_org_id = CalmVariable.Simple.string("",)
+
+    mongodb_appdb_version = CalmVariable.Simple.string("",)
+    mongodb_appdb_container_image = CalmVariable.Simple.string("",)
+    mongodb_appdb_cpu_limits = CalmVariable.Simple.string("",)
+    mongodb_appdb_mem_limits = CalmVariable.Simple.string("",)
+    mongodb_appdb_data_size = CalmVariable.Simple.string("",)
+    mongodb_appdb_logs_size = CalmVariable.Simple.string("",)
+    mongodb_appdb_journal_size = CalmVariable.Simple.string("",)
+    mongodb_appdb_replicaset_count = CalmVariable.Simple.string("",)
+    mongodb_appdb_shard_count = CalmVariable.Simple.string("",)
+    mongodb_appdb_mongods_per_shard_count = CalmVariable.Simple.string("",)
+    mongodb_appdb_monogos_count = CalmVariable.Simple.string("",)
+    mongodb_appdb_shard_count = CalmVariable.Simple.string("",)
+    mongodb_appdb_configserver_count = CalmVariable.Simple.string("",)
+
+    # om_api_user = CalmVariable.Simple(
+    #     "",
+    #     label="OpsManager API Key User",
+    #     is_mandatory=False,
+    #     is_hidden=False,
+    #     runtime=True,
+    #     description="OpsManager API Key User. i.e., jgejkwud",
+    # )
+    # om_api_key = CalmVariable.Simple(
+    #     "",
+    #     label="OpsManager API Key",
+    #     is_mandatory=False,
+    #     is_hidden=False,
+    #     runtime=True,
+    #     description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
+    # )
 
     @action
     def InstallHelmChart(name="Install "+helm_chart_name):
@@ -71,13 +103,6 @@ class HelmService(Service):
             filename="scripts/deploy_helm_chart/validate_prereq.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
-        )
-        CalmTask.SetVariable.ssh(
-            name="Set Service Variables",
-            filename="scripts/deploy_helm_chart/set_service_variables.sh",
-            target=ref(HelmService),
-            cred=ref(NutanixCred),
-            variables=["nipio_ingress_domain"]
         )
         CalmTask.Exec.ssh(
             name="Install "+helm_chart_name+" Helm Chart",
@@ -103,16 +128,23 @@ class HelmService(Service):
         )
 
     @action
-    def ConfigureService(name="Configuring "+helm_chart_name):
+    def ConfigureOpsManager(name="Configure OpsManager Instance"):
         CalmTask.Exec.ssh(
             name="Configuring MongoDB Instance",
             filename="scripts/deploy_helm_chart/configure_opsmanager_instance.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
+        CalmTask.SetVariable.ssh(
+            name="Set Service Variables",
+            filename="scripts/deploy_helm_chart/set_service_variables.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred),
+            variables=["nipio_ingress_domain"]
+        )
 
     @action
-    def ConfigureMongoDBInstances(name="Configure MongoDB Application DB Instances"):
+    def ConfigureMongoDBStandalone(name="Configure MongoDB Standalone Instance"):
         CalmTask.Exec.ssh(
             name="Get Kubeconfig",
             filename="../../../_common/karbon/scripts/get_kubeconfig.sh",
@@ -120,11 +152,42 @@ class HelmService(Service):
             cred=ref(NutanixCred)
         )
         CalmTask.Exec.ssh(
-            name="Validate PreReqs",
-            filename="scripts/day_two_actions/configure_mongdb_instances.sh",
+            name="Configure MongoDB Clusters",
+            filename="scripts/day_two_actions/configure_mongdb_standalone.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
+
+    @action
+    def ConfigureMongoDBReplicaSet(name="Configure MongoDB ReplicaSet Cluster"):
+        CalmTask.Exec.ssh(
+            name="Get Kubeconfig",
+            filename="../../../_common/karbon/scripts/get_kubeconfig.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
+        CalmTask.Exec.ssh(
+            name="Configure MongoDB Clusters",
+            filename="scripts/day_two_actions/configure_mongdb_replicaset.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
+
+    @action
+    def ConfigureMongoDBSharded(name="Configure MongoDB Sharded Cluster"):
+        CalmTask.Exec.ssh(
+            name="Get Kubeconfig",
+            filename="../../../_common/karbon/scripts/get_kubeconfig.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
+        CalmTask.Exec.ssh(
+            name="Configure MongoDB Clusters",
+            filename="scripts/day_two_actions/configure_mongdb_sharded.sh",
+            target=ref(HelmService),
+            cred=ref(NutanixCred)
+        )
+
 
 class BastionHostWorkstation(Substrate):
 
@@ -152,7 +215,7 @@ class HelmPackage(Package):
     @action
     def __install__():
         HelmService.InstallHelmChart(name="Install "+helm_chart_name)
-        HelmService.ConfigureService(name="Configuring "+helm_chart_name)
+        HelmService.ConfigureOpsManager(name="Configuring OpsManager")
 
     @action
     def __uninstall__():
@@ -230,8 +293,51 @@ class Default(Profile):
         description="Kubernetes Namespace to deploy helm chart",
     )
 
+    enc_pc_creds = CalmVariable.Simple(
+        EncrypedPrismCreds.decode("utf-8"),
+        is_mandatory=True,
+        is_hidden=True,
+        runtime=False,
+    )
+
+    opsmanager_version = CalmVariable.Simple(
+        os.getenv("OPSMANAGER_VERSION"),
+        label="OpsManager Version",
+        is_mandatory=True,
+        is_hidden=False,
+        runtime=True,
+        description="OpsManager Version",
+    )
+
+    opsmanager_appdb_version = CalmVariable.Simple(
+        os.getenv("OPSMANAGER_APPDB_VERSION"),
+        label="OpsManager MongoDB AppDB Version",
+        is_mandatory=True,
+        is_hidden=False,
+        runtime=True,
+        description="OpsManager MongoDB AppDB Version",
+    )
+
+    opsmanager_replicaset_count = CalmVariable.Simple(
+        os.getenv("OPSMANAGER_REPLICASET_COUNT"),
+        label="OpsManager Replicaset Count",
+        is_mandatory=True,
+        is_hidden=False,
+        runtime=True,
+        description="OpsManager Replicaset Count",
+    )
+    
+    opsmanager_appdb_replicaset_count = CalmVariable.Simple(
+        os.getenv("OPSMANAGER_APPDB_REPLICASET_COUNT"),
+        label="OpsManager Backend AppDB Version",
+        is_mandatory=True,
+        is_hidden=False,
+        runtime=True,
+        description="OpsManager Backend AppDB Version",
+    )
+
     @action
-    def ConfigureMongoDBInstances(name="Configure MongoDB Application DB Instances"):
+    def ConfigureMongoDBStandalone(name="Configure MongoDB Standalone Instance"):
         """
     Configure Standalone Mongodb Instance
         """
@@ -243,24 +349,265 @@ class Default(Profile):
             runtime=True,
             description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
         )
-        om_api_user = CalmVariable.Simple(
-            "",
-            label="OpsManager API Key User",
+        # om_api_user = CalmVariable.Simple(
+        #     "",
+        #     label="OpsManager API Key User",
+        #     is_mandatory=True,
+        #     is_hidden=False,
+        #     runtime=True,
+        #     description="OpsManager API Key User. i.e., jgejkwud",
+        # )
+        # om_api_key = CalmVariable.Simple(
+        #     "",
+        #     label="OpsManager API Key",
+        #     is_mandatory=True,
+        #     is_hidden=False,
+        #     runtime=True,
+        #     description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
+        # )
+        mongodb_appdb_version = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_VERSION"),
+            label="MongoDB AppDB Version",
             is_mandatory=True,
             is_hidden=False,
             runtime=True,
-            description="OpsManager API Key User. i.e., jgejkwud",
+            description="MongoDB AppDB Version",
         )
-        om_api_key = CalmVariable.Simple(
-            "",
-            label="OpsManager API Key",
+        mongodb_appdb_container_image = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_CONTAINER_IMAGE"),
+            label="MongoDB AppDB Container Image Name",
             is_mandatory=True,
             is_hidden=False,
             runtime=True,
-            description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
+            description="MongoDB AppDB Container Image Name",
+        )
+        mongodb_appdb_cpu_limits = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_CPU_LIMITS"),
+            label="MongoDB AppDB CPU Limits",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB CPU Limits",
+        )
+        mongodb_appdb_mem_limits = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_MEM_LIMITS"),
+            label="MongoDB AppDB Memory Limits",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Memory Limits",
+        )
+        mongodb_appdb_data_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_DATA_SIZE"),
+            label="MongoDB AppDB Data Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Data Mount Size",
+        )
+        mongodb_appdb_logs_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_LOGS_SIZE"),
+            label="MongoDB AppDB Logs Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Logs Mount Size",
+        )
+        mongodb_appdb_journal_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_JOURNAL_SIZE"),
+            label="MongoDB AppDB Journal Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Journal Mount Size",
         )
 
-        HelmService.ConfigureMongoDBInstances(name="Configure MongoDB Application DB Instances")
+        HelmService.ConfigureMongoDBStandalone(name="Configure MongoDB Standalone Instance")
+
+    @action
+    def ConfigureMongoDBReplicaSet(name="Configure MongoDB ReplicaSet Cluster"):
+        """
+    Configure MongoDB ReplicaSet Cluster
+        """
+        om_org_id = CalmVariable.Simple(
+            "",
+            label="OpsManager Organization ID",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        )
+        mongodb_appdb_replicaset_count = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_REPLICASET_COUNT"),
+            label="MongoDB AppDB ReplicaSet Count",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB ReplicaSet Count",
+        )
+        mongodb_appdb_version = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_VERSION"),
+            label="MongoDB AppDB Version",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Version",
+        )
+        mongodb_appdb_container_image = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_CONTAINER_IMAGE"),
+            label="MongoDB AppDB Container Image Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Container Image Name",
+        )
+        mongodb_appdb_cpu_limits = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_CPU_LIMITS"),
+            label="MongoDB AppDB CPU Limits",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB CPU Limits",
+        )
+        mongodb_appdb_mem_limits = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_MEM_LIMITS"),
+            label="MongoDB AppDB Memory Limits",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Memory Limits",
+        )
+        mongodb_appdb_data_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_DATA_SIZE"),
+            label="MongoDB AppDB Data Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Data Mount Size",
+        )
+        mongodb_appdb_logs_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_LOGS_SIZE"),
+            label="MongoDB AppDB Logs Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Logs Mount Size",
+        )
+        mongodb_appdb_journal_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_JOURNAL_SIZE"),
+            label="MongoDB AppDB Journal Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Journal Mount Size",
+        )
+
+        HelmService.ConfigureMongoDBReplicaSet(name="Configure MongoDB ReplicaSet Cluster")
+
+    @action
+    def ConfigureMongoDBSharded(name="Configure MongoDB Sharded Cluster"):
+        """
+    Configure MongoDB Sharded Cluster
+        """
+        om_org_id = CalmVariable.Simple(
+            "",
+            label="OpsManager Organization ID",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        )
+        mongodb_appdb_shard_count = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_SHARD_COUNT"),
+            label="MongoDB AppDB Shard Count",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Shard Count",
+        )
+        mongodb_appdb_mongods_per_shard_count = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_MONGODS_PER_SHARD_COUNT"),
+            label="MongoDB AppDB Mongods per Shard Count",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Mongods per Shard Count",
+        )
+        mongodb_appdb_monogos_count = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_MONGOS_COUNT"),
+            label="MongoDB AppDB Mongos Count",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Mongos Count",
+        )
+        mongodb_appdb_configserver_count = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_CONFIGSERVER_COUNT"),
+            label="MongoDB AppDB ConfigServer Count",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB ConfigServer Count",
+        )
+        mongodb_appdb_version = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_VERSION"),
+            label="MongoDB AppDB Version",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Version",
+        )
+        mongodb_appdb_container_image = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_CONTAINER_IMAGE"),
+            label="MongoDB AppDB Container Image Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Container Image Name",
+        )
+        mongodb_appdb_cpu_limits = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_CPU_LIMITS"),
+            label="MongoDB AppDB CPU Limits",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB CPU Limits",
+        )
+        mongodb_appdb_mem_limits = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_MEM_LIMITS"),
+            label="MongoDB AppDB Memory Limits",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Memory Limits",
+        )
+        mongodb_appdb_data_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_DATA_SIZE"),
+            label="MongoDB AppDB Data Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Data Mount Size",
+        )
+        mongodb_appdb_logs_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_LOGS_SIZE"),
+            label="MongoDB AppDB Logs Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Logs Mount Size",
+        )
+        mongodb_appdb_journal_size = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_JOURNAL_SIZE"),
+            label="MongoDB AppDB Journal Mount Size",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB AppDB Journal Mount Size",
+        )
+
+
+        HelmService.ConfigureMongoDBSharded(name="Configure MongoDB Sharded Cluster")
 
 
 class HelmBlueprint(Blueprint):

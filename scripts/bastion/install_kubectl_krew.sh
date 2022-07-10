@@ -14,11 +14,6 @@
 
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
-echo '' | tee -a ~/.bashrc ~/.zshrc
-echo 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"' | tee -a ~/.bashrc ~/.zshrc
-echo 'alias krew="kubectl krew"' | tee -a ~/.bashrc ~/.zshrc
-echo '' | tee -a ~/.bashrc ~/.zshrc
-
 # install ideal krew plugins
 kubectl krew update
 kubectl krew search

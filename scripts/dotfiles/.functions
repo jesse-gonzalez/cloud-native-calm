@@ -1,5 +1,3 @@
-cat <<EOF | tee ~/.functions
-
 ## function to download kubeconfig yaml from rancher control plane and configure local context
 function download_rancher_cfg() {
   RANCHER_MASTER_IP=$1
@@ -26,4 +24,8 @@ function download_rancher_cfg() {
   KUBECONFIG=~/.kube/$CLUSTER_NAME.cfg
   kubectl get nodes
 }
-EOF
+
+## function to set terminal title for bash or zsh
+function set_terminal_title() {                                                                                                                                
+  echo -en "\e]2;$@\a"                                                                                                                                         
+}

@@ -1,5 +1,4 @@
 WILDCARD_INGRESS_DNS_FQDN=@@{wildcard_ingress_dns_fqdn}@@
-NIPIO_INGRESS_DOMAIN=@@{nipio_ingress_domain}@@
 NAMESPACE=@@{namespace}@@
 INSTANCE_NAME=@@{instance_name}@@
 K8S_CLUSTER_NAME=@@{k8s_cluster_name}@@

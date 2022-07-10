@@ -11,5 +11,8 @@ variable_list = [
     { "value": { "value": os.getenv("KARBON_CLUSTER") }, "context": "Default", "name": "k8s_cluster_name"},
     { "value": { "value": helm_chart_instance_name }, "context": "Default", "name": "instance_name"},
     { "value": { "value": os.getenv("WILDCARD_INGRESS_DNS_FQDN") }, "context": "Default", "name": "wildcard_ingress_dns_fqdn"},
+    { "value": { "value": os.getenv("OPSMANAGER_VERSION") }, "context": "Default", "name": "opsmanager_version"},
+    { "value": { "value": os.getenv("OPSMANAGER_APPDB_VERSION") }, "context": "Default", "name": "opsmanager_appdb_version"},
+    { "value": { "value": os.getenv("OPSMANAGER_REPLICASET_COUNT") }, "context": "Default", "name": "opsmanager_replicaset_count"},
+    { "value": { "value": os.getenv("OPSMANAGER_APPDB_REPLICASET_COUNT") }, "context": "Default", "name": "opsmanager_appdb_replicaset_count"},
 ]
-

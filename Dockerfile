@@ -52,9 +52,6 @@ RUN chmod +x *.sh \
     && ./install_kubectx_kubens.sh \
     && ./install_kube-ps1.sh \
     && ./install_kubectl_krew.sh \
-    && ./configure_bashrc.sh \
-    && ./configure_vimrc.sh \
-    && ./configure_kubectl_aliases.sh \
     && ./install_stern.sh \
     && ./install_argocd_cli.sh \
     && ./install_istio_cli.sh \

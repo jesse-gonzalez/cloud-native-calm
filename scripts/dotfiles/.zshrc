@@ -113,7 +113,11 @@ source $ZSH/oh-my-zsh.sh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-## stuff from bashrc
+# loop through dotfiles and source as needed
+# dotfiles=(.aliases .functions .kubectl_aliases .vimrc)
+# for files in "${dotfiles[@]}"; do
+#   [[ ! -f ~/$files ]] || source ~/$files
+# done
 
 export EDITOR=vim
 export HISTIGNORE="pwd:ls:cd"
@@ -174,5 +178,56 @@ PROMPT='$(kube_ps1)'$PROMPT
 export PATH=/usr/local/bin:/usr/local/sbin:${PATH}
 
 alias reload="source ~/.zshrc"
+alias ke="kubectl explain"
+alias ker="kubectl explain --recursive"
+alias kns='kubens'
+alias kctx='kubectx'
 
-source <(kubectl completion zsh) 
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+alias krew="kubectl krew"
+
+if [ -f $HOME/.kube/config ]; then
+  export KUBECONFIG_HOME=$HOME/.kube
+  export KUBECONFIG=$( ls $HOME/.kube/*.cfg | cut -d/ -f4 | xargs -I {} echo $KUBECONFIG_HOME/{} | tr '\n' ':' )
+  kubectl config view --flatten >| $HOME/.kube/config
+  export KUBECONFIG=$HOME/.kube/config
+  chmod 600 $HOME/.kube/config
+  kubectl config-cleanup --clusters --users --print-removed -o=jsonpath='{ range.contexts[*] }{ .context.cluster }{"\n"}' -t 2 | xargs -I {} rm -f ~/.kube/{}.cfg
+fi
+
+alias ke="kubectl explain"
+alias ker="kubectl explain --recursive"
+alias stern="stern --tail 10 --since 5m"
+alias argocd='argocd --grpc-web'
+alias crossplane='kubectl crossplane'
+
+source <(kubectl completion zsh)
+
+for files in ~/.{kubectl_aliases,aliases,vimrc,functions}; do
+  if [[ -r "$files" ]] && [[ -f "$files" ]]; then
+    # shellcheck disable=SC1090
+    source "$files"
+  fi
+done
+
+# enable color support of ls and also add handy aliases
+if [[ -r ~/.dircolors ]]; then
+  eval `dircolors ~/.dircolors`
+  # eval "$(dircolors ~/.dircolors)"
+  alias ls='ls -F --color=auto'
+  alias grep='grep --color=auto'
+  alias fgrep='fgrep --color=auto'
+  alias egrep='egrep --color=auto'
+fi
+
+# oh-my-zsh seems to enable this by default, not desired for                                                                                                   
+# workflow of controlling tierminal title.                                                                                                                      
+DISABLE_AUTO_TITLE="true"              
+
+set_terminal_title $ENVIRONMENT
+
+########
+## Below added by scripts
+

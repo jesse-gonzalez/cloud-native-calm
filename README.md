@@ -202,3 +202,7 @@ Generally speaking, this `Production-like` cluster can be used to serve multiple
 
 1. Download kubeconfig from karbon cluster via krew plugin.  
   `make download-karbon-creds ENVIRONMENT=kalm-main-{hpoc_id}`
+
+### Setting VSCODE Terminal Title
+
+1. set vscode settings for `terminal.integrated.tabs.title` to `${process}${separator}${sequence}` if you want to see environment name in terminal title
