@@ -269,6 +269,12 @@ Leverage Operator to Create custom roles and users with SCRAM authentication
 
 Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Limits / Affinity and Storage Persistence Configurations
 
+`The Default PodSpec will Create a MongoDB Replicaset with following Defaults:`
+
+- StatefulSet with 3 Replicas
+- CPU and Memory Limits of 2 CPU and 2GB of RAM
+- Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
+
 - Demo:
   - [Manual] Show Resource Constraints for CPU and Memory via PodSpec YAML
   - [Manual] Show High Request Workflow as Day 2 Action via Calm
@@ -427,29 +433,12 @@ kubectl edit mongodb
                 weight: 50
 ```
 
-- Discussion Notes:
-
-The Default PodSpec will Create a MongoDB Replicaset with following Defaults:
-
-- StatefulSet with 3 Replicas
-- CPU and Memory Limits of 2 CPU and 2GB of RAM
-- Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
-
 ### Requirement: DR Option
 
 Leverage MongoDB Operator and Obects to Configure OpsManager Backup via S3
 Leverage Kasten and Obects to Configure OpsManager & MongoDB Backup Policy based on Label to Objects S3
 Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary AHV Cluster [OPT]
 Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / AHV Cluster [OPT]
-
-- Best Practices:
-  
-  - Replicated block storage across multiple nodes and data centers to increase availability
-  - Secondary data backup storage (for example, NFS or S3)
-  - Cross-cluster disaster recovery volumes
-  - Recurring volume snapshots
-  - Recurring backups to secondary storage
-  - Non-disruptive upgrades
 
 - Demo:
   - [Manual] Show Configuration of Objects S3 Backup via Operator and/or Opsmanager UI
@@ -540,6 +529,12 @@ backup:
   - Configure NodeAffinity if there are specialized workload / placement contstraints
   - Configure Multiple Mount Points. Mount Point == PVC. Each PVC can be expanded on Demand
   - Setup NodeAffinity and PodAffinity Accordingly based on Node Selector Labels
+  - Replicated block storage across multiple nodes and data centers to increase availability
+  - Secondary data backup storage (for example, NFS or S3)
+  - Cross-cluster disaster recovery volumes
+  - Recurring volume snapshots
+  - Recurring backups to secondary storage
+  - Non-disruptive upgrades
 
 ## References
 
