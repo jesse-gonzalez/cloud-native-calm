@@ -1,4 +1,4 @@
-## Other use cases??
+## Other use cases
 
 Docker on VMs as Multi-Tiered on Blueprints
 
