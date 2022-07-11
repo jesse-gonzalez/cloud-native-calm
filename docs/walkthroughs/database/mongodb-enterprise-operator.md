@@ -41,7 +41,7 @@ https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Era-User-Guid
 
 ___
 
-Nutanix Calm could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
+`Nutanix Calm` could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
 
 - `Deploy MongoDB Standalone and/or ReplicaSets` by integrating directly with `Nutanix Era API`
 - `Deploy MongoDB Standalone, ReplicaSets and/or ShardedClusters` by integrating with preferred IaaS endpoint (e.g., Nutanix AHV, vCenter, AWS, Google, Azure VMs, Terraform, etc.) to provision VM(s) and subsequently configure MongoDB using preferred `package management` (e.g. apt, yum, etc.), `configuration management` tools (e.g., ansible, chef, puppet, salt, etc.) and/or combination of linux / windows scripting technologies.
@@ -66,7 +66,7 @@ By Leveraging `NCM/Calm`, you'll have the ability to provide end users the `Self
 
 ___
 
-`Nutanix Calm` would be leveraged to deploy a dedicated Karbon Production Cluster with the Nutanix CSI Driver, and subsequently deploy the MongoDB Enterprise Operator as a means to configure MongoDB custom resources - such as MongoDB, OpsManager and Users overall.
+`Nutanix Calm` would be leveraged to deploy a dedicated `Nutanix Karbon Production Cluster` with the `Nutanix CSI Driver`, and subsequently deploy the MongoDB Enterprise Operator as a means to configure MongoDB custom resources - such as MongoDB, OpsManager and Users overall.
 
 The `MongoDB Enterprise Operator` enables easy deploy of the following applications into Kubernetes clusters:
 
