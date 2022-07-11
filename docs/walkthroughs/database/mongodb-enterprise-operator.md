@@ -37,15 +37,15 @@ https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Era-User-Guid
 
 ### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB (All Scenarios) on VMs
 
-Calm could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale In/Out, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
+Calm could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
 
-- Deploy MongoDB ReplicaSets by integrating directly with Mongo Era API
-- Deploy MongoDB [ReplicaSets|ShardedClusters] by integrating with preferred IAAS endpoint (e.g., Nutanix AHV, vCenter, AWS, Google, Azure VM, Terraform, etc.) to Provision VM(s) and subsequently Configure MongoDB using preferred package manager (e.g. apt, yum, etc.) and/or config-management tool (e.g., ansible, chef, puppet, salt, etc.)
-- ^^ Same as above, but leveraging Docker to Deploy specific versions of mongodb
+- Deploy MongoDB Standalone and/or ReplicaSets by integrating directly with Nutanix Era API
+- Deploy MongoDB Standalone, ReplicaSets and/or ShardedClusters by integrating with preferred IaaS endpoint (e.g., Nutanix AHV, vCenter, AWS, Google, Azure VMs, Terraform, etc.) to provision VM(s) and subsequently configure MongoDB using preferred package manager (e.g. apt, yum, etc.), config-management tool (e.g., ansible, chef, puppet, salt, etc.) and/or combination of linux / windows scripting technologies.
+  - As an alternative, MongoDB docker container (or custom) images can be leveraged to deploy and isolate specific versions of mongodb directly on VMs. Would not recommend for multitude of reasons, but it's been done before.
 
 Concerns/Limitations:
 
-- While many of the ERA limitations can be mitigated via highly customized automation & orchestration managed by customer - the effort to handle all Day 1 and Day 2 use cases END to END - will be relatively significant.
+- While many of the ERA limitations can be mitigated via highly customized automation & orchestration available directly via Calm blueprints - the effort to handle all Day 1 and Day 2 use cases END to END - will be relatively significant in comparison to leveraging either ERA or the MongoDB Enterprise Operator on Kubernetes.
   - i.e., Persistent Storage, Data Protection, Provisioning, Upgrading, Scaling, Quiescing, Registration/De-Registration with Opsmanager, Backup/Restore, User Management, would need to be continuously managed for varying use cases and backward compatability, effectively slowing down adoption of newer mongodb releases that would need to be fully certified for backward compatibility.
 
 ### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB on NKE
@@ -205,7 +205,6 @@ You can upgrade the major, minor, and/or feature compatibility versions of your 
 
 -- https://quay.io/repository/mongodb/mongodb-enterprise-appdb-database?tab=tags
 
-
 > Upgrade MongoDB Cluster
 
 ```bash
@@ -214,7 +213,7 @@ You can upgrade the major, minor, and/or feature compatibility versions of your 
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
 watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE}"
 
-## Upgrade Version
+## patch mongodb app enterprise version
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
 kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"version":"5.0.1-ent"}}'
 kubectl get mongodb $MONGO_INSTANCE -o yaml
