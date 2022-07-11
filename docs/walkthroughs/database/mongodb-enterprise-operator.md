@@ -50,27 +50,16 @@ Concerns/Limitations:
 
 ### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB on NKE
 
-Calm would be leveraged to deploy a dedicated Karbon Production Cluster, the MongoDB Enterprise Operator and subsequent configuration of MongoDB custom resources.
+Calm would be leveraged to deploy a dedicated Karbon Production Cluster with the Nutanix CSI Driver, and subsequently deploy the MongoDB Enterprise Operator as a means to configure MongoDB custom resources - such as MongoDB, OpsManager and Users overall.
 
-The `MongoDB Enterprise Operator` enables easy deploy of the following applications into Kubernetes clusters:
-
-`MongoDB` - Replica Sets, Sharded Clusters and Standalones - with authentication, TLS and many more options.
-`Ops Manager` - our enterprise management, monitoring and backup platform for MongoDB. The Operator can install and manage Ops Manager in Kubernetes for you. Ops Manager can manage MongoDB instances both inside and outside Kubernetes.
-
-Pros:
-
-- MongoDB Enterprise Operator is managed/supported by MongoDB
-- NKE/Karbon is fully managed kubernetes distribution supported by Nutanix
-- Nutanix CSI Driver could be leveraged on just about any Kubernetes Distribution (e.g., Red Hat Openshift, Rancher RKE/RKE2/K3s, Vanilla K8s, etc.) and Supported OS (e.g., CentOS,RHEL,Ubuntu, etc.) if other options are preferred.
-
-By Leveraging the Karbon, you'll have the ability to easily:
+By Leveraging NKE/Karbon, you'll have the ability to easily:
 
 - Provision Highly Availabile Production Clusters with Nutanix CSI Driver Auto-Provisioned
 - Upgrade Kubernetes Clusters and underlying Node OS
 - Scale Existing Worker Node Pools to add more Compute Resources
 - Add Worker Node Pools for Specialized Workload Requirements (e.g., CPU/GPU/Memory Optimized, etc.)
 
-By Leveraging the Nutanix CSI Driver, you'll have the ability to easily: 
+By Leveraging the Nutanix CSI Driver, you'll have the ability to easily:
 
 - Dynamically Provision Nutanix Volumes (RWO/BLOCK) or Nutanix Files (RWX/NFS)
 - Leverage metrics to determine overall disk utilization from K8s or Nutanix Prism
@@ -78,6 +67,11 @@ By Leveraging the Nutanix CSI Driver, you'll have the ability to easily:
 - Create Additional Storage Classes to handle advance use cases, such as:
   - Configuring Additional LVM Virtual Disks to Distribute IO
   - Workloads that require High Throughput/IO capabilities via ALL Flash Enabled Storage Pools.
+
+The `MongoDB Enterprise Operator` enables easy deploy of the following applications into Kubernetes clusters:
+
+`MongoDB` - Replica Sets, Sharded Clusters and Standalones - with authentication, TLS and many more options.
+`Ops Manager` - our enterprise management, monitoring and backup platform for MongoDB. The Operator can install and manage Ops Manager in Kubernetes for you. Ops Manager can manage MongoDB instances both inside and outside Kubernetes.
 
 By Leveraging the MongoDB Operator, you'll have the ability to:
 
@@ -92,6 +86,12 @@ By Leveraging the MongoDB Operator, you'll have the ability to:
 - Create users with SCRAM authentication
 - Create custom roles
 - Enable metrics targets that can be used with Prometheus and Grafana Dashboards for Enhanced Observability
+
+Pros:
+
+- MongoDB Enterprise Operator is managed/supported by MongoDB
+- NKE/Karbon is fully managed kubernetes distribution supported by Nutanix
+- Nutanix CSI Driver could be leveraged on just about any Kubernetes Distribution (e.g., Red Hat Openshift, Rancher RKE/RKE2/K3s, Vanilla K8s, etc.) and Supported OS (e.g., CentOS,RHEL,Ubuntu, etc.) if other options are preferred.
 
 Concerns/Limitations:
 
