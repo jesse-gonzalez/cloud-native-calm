@@ -115,12 +115,12 @@ TODO:
 
 ## Requirement: Ability to Deploy Different Mongo images/verions
 
-Leverage MongoDB Enterprise Operator & Calm to upgrade OR downgrade existing MongoDB Environment
+Leverage MongoDB Enterprise Operator & Calm to upgrade existing MongoDB Environment
 
 - Demo:
-  - Leverage Operator to upgrade OR downgrade existing MongoDB instance as Day 2 Action
+  - Leverage Operator to upgrade existing MongoDB instance as Day 2 Action
   - [Manual] Initiate MongoDB Load Test to ensure Continuous Connectivity
-  - [Manual] Show StatefulSet Upgrade / Downgrade occuring via kubectl images
+  - [Manual] Show StatefulSet Upgrade occuring via kubectl images
   - [Manual] Show OpsManager Output
 
 - CHEATSHEET:
