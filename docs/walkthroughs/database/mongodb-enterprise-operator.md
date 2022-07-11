@@ -514,25 +514,24 @@ backup:
 
 ## Production Best Practice Notes
 
-- Best Practice Notes:
-  - Single Instance of Ops Manager for all MongoDBs
-  - One Operator PER Kubernetes Namespace
-  - One Kubernetes Namespace per OpsManager Organization
-  - One ConfigMap per MongoDB Instance
-  - Map Internal to External DNS names with TLS [OPT]
-  - Enable TLS with Cert-Manager [OPT]
-  - Enable Authentication using MongoDBUsers CRD and K8s Secrets (or Vault Alternative) [OPT]
-  - Enable LDAP AuthN/Z [OPT]
-  - Set Resource Contraints for all
-  - Configure NodeAffinity if there are specialized workload / placement contstraints
-  - Configure Multiple Mount Points. Mount Point == PVC. Each PVC can be expanded on Demand
-  - Setup NodeAffinity and PodAffinity Accordingly based on Node Selector Labels
-  - Replicated block storage across multiple nodes and data centers to increase availability
-  - Secondary data backup storage (for example, NFS or S3)
-  - Cross-cluster disaster recovery volumes
-  - Recurring volume snapshots
-  - Recurring backups to secondary storage
-  - Non-disruptive upgrades
+- Single Instance of Ops Manager for all MongoDBs
+- One Operator PER Kubernetes Namespace
+- One Kubernetes Namespace per OpsManager Organization
+- One ConfigMap per MongoDB Instance
+- Map Internal to External DNS names with TLS [OPT]
+- Enable TLS with Cert-Manager [OPT]
+- Enable Authentication using MongoDBUsers CRD and K8s Secrets (or Vault Alternative) [OPT]
+- Enable LDAP AuthN/Z [OPT]
+- Set Resource Contraints for all
+- Configure NodeAffinity if there are specialized workload / placement contstraints
+- Configure Multiple Mount Points. Mount Point == PVC. Each PVC can be expanded on Demand
+- Setup NodeAffinity and PodAffinity Accordingly based on Node Selector Labels
+- Replicated block storage across multiple nodes and data centers to increase availability
+- Secondary data backup storage (for example, NFS or S3)
+- Cross-cluster disaster recovery volumes
+- Recurring volume snapshots
+- Recurring backups to secondary storage
+- Non-disruptive upgrades
 
 ## References
 
