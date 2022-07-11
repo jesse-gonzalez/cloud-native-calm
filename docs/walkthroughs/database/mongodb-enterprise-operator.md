@@ -391,14 +391,14 @@ kubectl uncordon ${NODE}
 
 > Update Existing Worker Node Pool with Karbon Labels and Configure Node Affinity
 
-
-
-
+- via Karbon UI, update node pool with label metadata (kubernetes.io/e2e-az-name:e2e-az1)
 
 ```bash
-kubectl edit mongodb 
+MONGO_INSTANCE=mongodb-demo-replicaset
+kubectl edit mongodb ${MONGO_INSTANCE}
 ```
 
+- add snippet from below and modify accordingly
 
 ```bash
     podAntiAffinityTopologyKey: nodeId
@@ -447,8 +447,6 @@ Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / 
   - [Manual] Show Karbon Pre-Deploy to Alternative Clusters [OPT]
 
 - Cheatsheet:
-
-https://www.mongodb.com/blog/post/tutorial-part-2-ops-manager-in-kubernetes
 
 ```bash
 kubectl create secret generic s3-credentials  \
@@ -554,4 +552,5 @@ backup:
 - https://www.mongodb.com/docs/kubernetes-operator/v1.16/reference/k8s-op-exclusive-settings/
 - https://www.mongodb.com/docs/kubernetes-operator/stable/multi-cluster-quick-start/
 - https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/samples/ops-manager/ops-manager-backup.yaml
+- https://www.mongodb.com/blog/post/tutorial-part-2-ops-manager-in-kubernetes
 
