@@ -1,6 +1,14 @@
 ## Other use cases
 
-Docker on VMs as Multi-Tiered on Blueprints
+- Calm with Mongo Era API
+- Calm with Mongo VMs Replicaset Service
+- Calm with Mongo Operator on Helm Chart
+- Era Operator (NDB) on Karbon
+
+- Stretch Goals
+  - Datadog Monitoring / Grafana / Prometheus
+  - Sizing Considerations
+  - Leverage X-Play to send alerts?
 
 ## Requirement: DBA Only Accessible Feature - Deploy New Dedicated MongoDB VM
 
@@ -402,29 +410,20 @@ TODO:
 
 ## OVERALL ERA NOTES
 
-Calm with Mongo Era API
-Calm with Mongo VMs Replicaset Service
-Calm with Mongo Operator on Helm Chart
-Era Operator (NDB) on Karbon
 
-Scale
 
-Era Gaps
+### Era Gaps
 
 - No Sharding
 - No In-Memory
 - Only 1 Database per Instance can be managed by Era
   i.e., additional Databases CAN be configured externally
 
-Licensing
+Licensing Considerations
 
 Differentiators
+
 - Import VM and Register MongoDB as an Option
 - TimeMachine - Snaphshot Shipping to Remote Cluster
 - OS Profiles / Software Profiles
 - Data Protection - Database Centric Protection Domains
-
-- Stretch Goals
-  - Datadog Monitoring / Grafana / Prometheus
-  - Sizing Considerations
-  - Leverage X-Play to send alerts?
