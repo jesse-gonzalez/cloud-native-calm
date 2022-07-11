@@ -52,7 +52,7 @@ Concerns/Limitations:
 
 Calm would be leveraged to deploy a dedicated Karbon Production Cluster with the Nutanix CSI Driver, and subsequently deploy the MongoDB Enterprise Operator as a means to configure MongoDB custom resources - such as MongoDB, OpsManager and Users overall.
 
-![](high-level-overview.png)
+![high-level-overview](../../images/high-level-overview.png)
 
 By Leveraging NKE/Karbon, you'll have the ability to easily:
 
