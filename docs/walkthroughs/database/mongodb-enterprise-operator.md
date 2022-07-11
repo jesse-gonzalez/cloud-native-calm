@@ -58,6 +58,7 @@ By Leveraging NKE/Karbon, you'll have the ability to easily:
 - Upgrade Kubernetes Clusters and underlying Node OS
 - Scale Existing Worker Node Pools to add more Compute Resources
 - Add Worker Node Pools for Specialized Workload Requirements (e.g., CPU/GPU/Memory Optimized, etc.)
+- Easily connect to Kubernetes API Server via Kubectl via Karbon API or Plugins (i.e., `krew install karbon`)
 
 By Leveraging the Nutanix CSI Driver, you'll have the ability to easily:
 
@@ -95,9 +96,9 @@ Pros:
 
 Concerns/Limitations:
 
-- Karbon only supports CENTOS
-- Karbon doesn't include integrated dashboard to easily manage K8s objects
-- Slim version of Kubernetes, so highly dependent on third-party solutions to manage Ingress, External Service LoadBalancing, Multi-Cluster Governance (i.e., Global Security Policies and Multi-Team)
+- Karbon manages entire stack - including Node OS - which is currently CENTOS
+- Karbon doesn't include integrated dashboard to easily manage K8s objects from Prism Central
+- Karbon is ultra-slim version of Kubernetes, so highly dependent on third-party solutions to manage Ingress, External Service LoadBalancing, Multi-Cluster Governance (i.e., Global Security Policies and Multi-Team)
 
 ## Overall Example Requirements
 
