@@ -21,8 +21,8 @@ kubectl get om -o yaml -w
 ```
 
 TODO:
- [] Isolate OpsManager Instance Config to Day 2 [OPT]
- [] Configure Separate Projects for Admin vs. Developer
+- [] Isolate OpsManager Instance Config to Day 2 [OPT]
+- [] Configure Separate Projects for Admin vs. Developer
 
 ## Requirement: Deploy Container on existing VMS
 
@@ -58,7 +58,7 @@ kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -o jsonpath=
 kubectl get mdb -n mongodb
 ```
 
-connecting to mongodb via mongosh externally via docker
+> connecting to mongodb via mongosh externally via docker
 
 ```bash
 kubectl get svc mongodb-demo-standalone-svc-external ## get nodeport
@@ -67,28 +67,19 @@ kubectl get nodes -o wide ## get internal-ip of one of the nodes
 docker run -it mongo:5.0 mongosh "mongodb://10.38.20.31:31148/?connectTimeoutMS=20000&serverSelectionTimeoutMS=20000"
 ```
 
-connecting to mongodb via kubectl
+> connecting to mongodb srv via kubectl
 
 ```bash
-MONGO_INSTANCE=mongodb-demo-standalone
-MONGO_CONNECTION_STD=$(kubectl get secrets $MONGO_INSTANCE-$MONGO_INSTANCE-scram-user-1-admin -o jsonpath='{.data.connectionString\.standard}' | base64 -d)
-echo $MONGO_CONNECTION_STD
-kubectl run -i -t --rm --image=mongo:5.0 mongosh-$RANDOM -- mongosh "$MONGO_CONNECTION_STD"
-```
-
-connecting to mongodb srv via kubectl
-
-```bash
-#MONGO_INSTANCE=mongodb-demo-standalone
-MONGO_INSTANCE=mongodb-demo-replicaset
+MONGO_INSTANCE=mongodb-demo-replicaset-29978
 MONGO_CONNECTION_SRV=$(kubectl get secrets $MONGO_INSTANCE-$MONGO_INSTANCE-scram-user-1-admin -o jsonpath='{.data.connectionString\.standardSrv}' | base64 -d)
 echo $MONGO_CONNECTION_STD
+
 kubectl run -i -t --rm --image=mongo:5.0 mongosh-$RANDOM -- mongosh "$MONGO_CONNECTION_STD"
 
-alias mongosh="kubectl run -i -t --rm --image=mongo:5.0 mongosh-$RANDOM -- mongosh"
+kubectl exec -it mongodb-demo-replicaset-29978-0 /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-5.0.5/bin/mongo
 ```
 
-insert basic data
+> insert basic data
 
 ```bash
 db.ships.insert({name:'USS Enterprise-D',operator:'Starfleet',type:'Explorer',class:'Galaxy',crew:750,codes:[10,11,12]})
@@ -100,7 +91,7 @@ db.ships.insert({name:'Scimitar',operator:'Romulan Star Empire',type:'Warbird',c
 db.ships.insert({name:'Narada',operator:'Romulan Star Empire',type:'Warbird',class:'Warbird',crew:65,codes:[251,251,220]})
 ```
 
-quick queries
+> quick queries
 
 ```bash
 db.ships.findOne()
@@ -108,6 +99,99 @@ db.ships.find().pretty()
 db.ships.find({}, {name:true, _id:false})
 ```
 
+TODO:
+- [] Add OpsManager URL to ensure Registration is successful across clusters
+- [] Deployment of Helm Operator Should Configure Organization based on Kubernetes Namespace Name [OPT]
+- [] Run DNS ADD Runbook for each MongoDB Replica [OPT]
+- [] Enable TLS with Cert-Manager - security.tls.enabled [OPT]
+
+## Requirement: Ability to Deploy Different Mongo images/verions
+
+Leverage MongoDB Enterprise Operator & Calm to upgrade OR downgrade existing MongoDB Environment
+
+- Demo:
+  - Leverage Operator to upgrade OR downgrade existing MongoDB instance as Day 2 Action
+  - [Manual] Initiate MongoDB Load Test to ensure Continuous Connectivity
+  - [Manual] Show StatefulSet Upgrade / Downgrade occuring via kubectl images
+  - [Manual] Show OpsManager Output
+
+- CHEATSHEET:
+
+> Find Container Image Version, i.e., 4.2.11-ent,4.4.11-ent,5.0.5-ent
+
+-- https://quay.io/repository/mongodb/mongodb-enterprise-appdb-database?tab=tags
+
+> Upgrade MongoDB Operator [OPT]
+
+-- https://www.mongodb.com/docs/kubernetes-operator/stable/tutorial/upgrade-k8s-operator/
+
+> Upgrade MongoDB Production Cluster as Day 2 Action [OPT]
+
+-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/upgrade-mdb-version/
+
+## Requirement: Grant permissions to requested user/svc accounts to enable access to container
+
+Leverage Operator to Create custom roles and users with SCRAM authentication
+
+- Best Practice Notes:
+  - Multiple Secrets & User Creds for AuthN & AuthZ
+
+- Demo:
+  - Configure Custom Developer / Operations Roles as Day 2 Action
+  - [Manual] Login to OpsManager and Show Access Manager in UI
+
+TODO:
+- [] Configure Custom Developer / Operations Roles as Day 2 Action [OPT]
+
+## Requirement: Ability to prevent creation should specific server metrics drop below critical thresholds (i.e., drive space,container # limits)
+
+Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Limits / Affinity and Storage Persistence Configurations
+
+- Best Practice Notes:
+  - Set Resource Contraints for all
+  - Configure NodeAffinity if there are specialized workload / placement contstraints
+  - Configure Multiple Mount Points. Mount Point == PVC. Each PVC can be expanded on Demand
+  - Setup NodeAffinity and PodAffinity Accordingly based on Node Selector Labels
+
+- Demo:
+  - [Manual] Show Resource Constraints for CPU and Memory via PodSpec YAML
+  - [Manual] Show High Request Workflow as Day 2 Action via Calm
+  - [Manual] Show Scaling of Worker Nodes via Calm Day 2 Action
+  - [Manual] Show Scaling of StatefulSet Replicas via kubectl
+  - [Manual] Show Expanding of Volumes (PVC) via kubectl
+  - [Manual] Show Pod Location per Node
+
+- CHEATSHEET:
+
+> Deploy 2nd ReplicaSet with more resources than what's available
+
+- Deploy via Calm with 4 vCPU and 4 GB of RAM
+- Show Pending Status on Calm, and Kubectl
+- Add Worker Node via Calm and Show in Karbon UI / Kubectl
+- Modify CPU / RAM on MongoDB Custom Resource as alternative
+
+TODO:
+- [] Configure Pod/Node Affinity
+- [] Setup Additional Worker Node Pool and Configure NodeAffinity with Karbon Node Labels
+- [] Review Namespace Quotas
+- [] Day 2 Action to Expand Mount Points [OPT]
+- [] Day 2 Action to Scale Replicas - Option with 3 or 5 [OPT]
+
+ > Resize PV Storage for Mount Points
+
+scale database storage - https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/resize-pv-storage/
+
+```bash
+MONGO_INSTANCE=mongodb-demo-replicaset-31402
+watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb && echo && kubectl top nodes"
+
+
+MONGO_INSTANCE=mongodb-demo-replicaset-31402
+kubectl get pvc -l app=${MONGO_INSTANCE}-service -o name | grep data | xargs -I {} kubectl patch {} -p='{"spec": {"resources": {"requests": {"storage": "200Gi"}}}}'
+
+kubectl delete sts --cascade=orphan ${MONGO_INSTANCE}
+kubectl rollout restart sts ${MONGO_INSTANCE}
+```
 
 > Simulating Node Failure & Restoration
 
@@ -129,170 +213,9 @@ kubectl uncordon ${NODE}
 
 ```
 
-TODO:
- [] Parameterize Day 2 Actions so that multiple Mongo Instances can be deployed.
- [] Add OpsManager URL to ensure Registration is successful across clusters
- [] Deployment of Helm Operator Should Configure Organization based on Kubernetes Namespace Name [OPT]
- [] Run DNS ADD Runbook for each MongoDB Replica [OPT]
- [] Enable TLS with Cert-Manager - security.tls.enabled [OPT]
-
-## Requirement: Ability to Deploy Different Mongo images/verions
-
-Leverage MongoDB Enterprise Operator & Calm to upgrade OR downgrade existing MongoDB Environment
-
-- Demo:
-  - Leverage Operator to upgrade OR downgrade existing MongoDB instance as Day 2 Action
-  - [Manual] Initiate MongoDB Load Test to ensure Continuous Connectivity
-  - [Manual] Show StatefulSet Upgrade / Downgrade occuring via kubectl images
-  - [Manual] Show OpsManager Output
-
-TODO:
- [] Determine method for doing continuous R/W to MongoDB
- [] Handle Version of AppDB and OpsManager
- [] Handle Custom MongoDB Image
-
-- CHEATSHEET:
-
-> Upgrade MongoDB Operator
-  -- https://www.mongodb.com/docs/kubernetes-operator/stable/tutorial/upgrade-k8s-operator/
-
-> Upgrade MongoDB Production Cluster as Day 2 Action
-  -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/upgrade-mdb-version/
-
-## Requirement: Grant permissions to requested user/svc accounts to enable access to container
-
-Leverage Operator to Create custom roles and users with SCRAM authentication
-
-- Best Practice Notes:
-  - Multiple Secrets & User Creds for AuthN & AuthZ
-
-- Demo:
-  - Configure Custom Developer / Operations Roles as Day 2 Action
-  - [Manual] Login to OpsManager and Show Access Manager in UI
-
-TODO:
- [] Configure Custom Developer / Operations Roles as Day 2 Action ** Optional
-
-## Requirement: Ability to prevent creation should specific server metrics drop below critical thresholds (i.e., drive space,container # limits)
-
-Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Limits / Affinity and Storage Persistence Configurations
-
-- Best Practice Notes:
-  - Set Resource Contraints for all
-  - Configure NodeAffinity if there are specialized workload / placement contstraints
-  - Configure Multiple Mount Points. Mount Point == PVC. Each PVC can be expanded on Demand
-  - Setup NodeAffinity and PodAffinity Accordingly based on Node Selector Labels
-
-- Demo:
-  - [Manual] Show Resource Constraints for CPU and Memory via PodSpec YAML
-  - [Manual] Show High Request Workflow as Day 2 Action via Calm
-  - [Manual] Show Scaling of Worker Nodes via Calm Day 2 Action
-  - [Manual] Show Scaling of StatefulSet Replicas via kubectl
-  - [Manual] Show Expanding of Volumes (PVC) via kubectl
-  - [Manual] Show Pod Location per Node
-
-TODO:
- [] Become more familiar with Resource Limit Testing Workflow (k8s.io)
- [] Configure Pod/Node Affinity
- [] Provide Options for Number of Shards/Mongod/Mongos and ConfigServer Replicas
- [] Setup Additional Worker Node Pool and Configure NodeAffinity with Karbon Node Labels
- [] Review Namespace Quotas
- [] Day 2 Action to Expand Mount Points
- [] Day 2 Action to Scale Replicas - Option with 3 or 5
-
-- Discussion Notes:
-
-The Default PodSpec will Create a MongoDB Replicaset with following Defaults:
-
-- StatefulSet with 3 Replicas
-- CPU and Memory Limits of 2 CPU and 2GB of RAM
-- Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
-
-> Configure Additional ReplicaSet Spec
-
-```bash
-OM_PROJECT_NAME="mongodb-demo-replicaset-${RANDOM}"
-
-cat <<EOF | kubectl apply -f -
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: $( echo $OM_PROJECT_NAME )-config
-data:
-  baseUrl: $( echo $OM_BASE_URL )
-  projectName: $( echo $OM_PROJECT_NAME )-project
-  orgId: $( echo $OM_ORG_ID )
----
-apiVersion: mongodb.com/v1
-kind: MongoDB
-metadata:
-  name: $( echo $OM_PROJECT_NAME )
-spec:
-  members: 3
-  version: "4.2.6-ent"
-  service: $( echo $OM_PROJECT_NAME )-service
-  opsManager:
-    configMapRef:
-      name: $( echo $OM_PROJECT_NAME )-config
-  credentials: organization-secret
-  persistent: true
-  type: ReplicaSet
-  podSpec:
-    podTemplate:
-      spec:
-       containers:
-        - name: mongodb-enterprise-database
-          resources:
-            limits:
-              cpu: 2
-              memory: 2G
-            requests:
-              cpu: 1
-              memory: 1G
-    persistence:
-      multiple:
-        data:
-          storage: "10Gi"
-        journal:
-          storage: "1Gi"
-        logs:
-          storage: "500M"
----
-apiVersion: mongodb.com/v1
-kind: MongoDBUser
-metadata:
-  name: $( echo $OM_PROJECT_NAME )-scram-user-1
-spec:
-  passwordSecretKeyRef:
-    name: mms-user-1-password
-    key: password
-  username: "$( echo $OM_PROJECT_NAME )-scram-user-1"
-  db: "admin"
-  mongodbResourceRef:
-    name: $( echo $OM_PROJECT_NAME )
-    # Match to MongoDB resource using authenticaiton
-  roles:
-  - db: "admin"
-    name: "clusterAdmin"
-  - db: "admin"
-    name: "userAdminAnyDatabase"
-  - db: "admin"
-    name: "readWrite"
-  - db: "admin"
-    name: "userAdminAnyDatabase"
-EOF
-
-while [[ -z $(kubectl get pod -l app=${OM_PROJECT_NAME}-service -n ${NAMESPACE} 2>/dev/null) ]]; do
-  echo "still waiting for pods with a label of ${OM_PROJECT_NAME}-service to be created"
-  sleep 1
-done
-
-kubectl wait --for=condition=Ready pod -l app=${OM_PROJECT_NAME}-service --timeout=15m -n ${NAMESPACE}
-```
-
 > Configure Affinity by adding this snippet
 
+- Add Worker Node Pool with Karbon Labels and Configure Node Affinity
 
 ```bash
     podAntiAffinityTopologyKey: nodeId
@@ -327,11 +250,18 @@ kubectl wait --for=condition=Ready pod -l app=${OM_PROJECT_NAME}-service --timeo
                 weight: 50
 ```
 
-- Add 2 Nodes to Karbon Cluster as Day 2 Action  [DONE]
-- Scale MongoDB Database Replica Set to 5 Instances as Day 2 Action
-    -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/scale-resources/
-- Expand Disk on Volume Group / PVC as Day 2 Action
-    -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/resize-pv-storage/
+- Discussion Notes:
+
+The Default PodSpec will Create a MongoDB Replicaset with following Defaults:
+
+- StatefulSet with 3 Replicas
+- CPU and Memory Limits of 2 CPU and 2GB of RAM
+- Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
+
+
+
+
+
 - Expand LVM Disks on Volume Group / PV as Day 2 Action
 
 ## Requirement: DR Option
@@ -357,11 +287,11 @@ Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / 
   - [Manual] Show Karbon Pre-Deploy to Alternative Clusters [OPT]
 
 TODO:
- [] Configure Objects Access Keys and Buckets
- [] Deploy Kasten to Kalm-Main and Kalm-Develop Clusters and configure Policies
- [] Validate OpsManager Backups with S3
- [] Configure Secondary Region/Availabilty Zone for other Karbon Clusters [OPT]
- [] Configure Secondary Account as Prism Central / Calm Cluster [OPT]
+- [] Configure Objects Access Keys and Buckets
+- [] Deploy Kasten to Kalm-Main and Kalm-Develop Clusters and configure Policies
+- [] Validate OpsManager Backups with S3
+- [] Configure Secondary Region/Availabilty Zone for other Karbon Clusters [OPT]
+- [] Configure Secondary Account as Prism Central / Calm Cluster [OPT]
 
 - Cheatsheet:
 
@@ -416,8 +346,8 @@ backup:
   - [Manual] Show MongoDB OpsManager UI to Connect to Deployment and see Realtime Usage
 
 TODO:
- [] Determine Observability Options (i.e., Prometheus/Grafana)
- [] Alternatively Import all clusters to Rancher UI
+- [] Determine Observability Options (i.e., Prometheus/Grafana)
+- [] Alternatively Import all clusters to Rancher UI
 
 ## Requirement: Create Incidents
 
@@ -426,7 +356,7 @@ TODO:
   - [Manual] Show MongoDB OpsManager Integrations for Custom Webhooks and possible X-Play Scenarios [OPT]
 
 TODO:
- [] See if Chris Nelson can handle, also review alternatives
+- [] See if Chris Nelson can handle, also review alternatives
 
 - CHEATSHEET:
 
@@ -438,7 +368,7 @@ TODO:
   - [Manual] Show Pre,Post Output for Each Action (email not include)
 
 TODO:
- [] See if Chris Nelson can handle, also review alternatives - like x-play/webhook notifs?
+- [] See if Chris Nelson can handle, also review alternatives - like x-play/webhook notifs?
 
 ## Requirement: Tracking against containers for users and teams
 
@@ -447,8 +377,8 @@ TODO:
   - [Manual] Show Scenarios with Rancher, Kubecost, Kubernetes Dashboard
 
 TODO:
- [] Review alternatives with Chris Nelson
- [] Review Options to track container usage overall - Rancher, Kubecost, Kubernetes Dashboard????
+- [] Review alternatives with Chris Nelson
+- [] Review Options to track container usage overall - Rancher, Kubecost, Kubernetes Dashboard????
 
 
 ## References
