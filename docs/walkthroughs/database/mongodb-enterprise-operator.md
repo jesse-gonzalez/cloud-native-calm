@@ -8,18 +8,20 @@ The walkthrough scenarios in this document focuses on Deploying MongoDB Clusters
 
 ### Leverage Nutanix DBaaS (NDB aka ERA) UI to Deploy MongoDB Standalone or ReplicaSets on VMs
 
+___
+
 Era enables you to easily register, provision, clone, and administer all of your MongoDB databases on one or more Nutanix clusters with a single click.
 
 Era supports single node and multiple node configurations. A single node configuration in MongoDB consists of a single mongod daemon running on a single database server VM.
 
-In addition, Era supports several database engines and offers the following key services:
+`Pros:`
 
 - `One-Click Provisioning`: Era enables you to easily provision database environments (either production or otherwise) on your Nutanix clusters.
 - `Copy Data Management`: Era enables you to clone your databases and refresh the database clones by using snapshots or transaction logs.
 - `Database Protection`: Era protects your database with full database consistent backups within a matter of minutes.
 - `One-Click Patching`: Ensure data security with one-click patching to efficiently validate critical database updates. Era provides out-of-band patching of databases to eliminate database configuration sprawl.
 
-Concerns/Limitations (As of ERA 2.4):
+`Concerns/Limitations (As of ERA 2.4):`
 
 https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Era-User-Guide-v2_4:top-era-limitations-mongodb-c.html
 
@@ -37,7 +39,9 @@ https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Era-User-Guid
 
 ### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB (All Scenarios) on VMs
 
-Calm could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
+___
+
+Nutanix Calm could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
 
 - Deploy MongoDB Standalone and/or ReplicaSets by integrating directly with Nutanix Era API
 - Deploy MongoDB Standalone, ReplicaSets and/or ShardedClusters by integrating with preferred IaaS endpoint (e.g., Nutanix AHV, vCenter, AWS, Google, Azure VMs, Terraform, etc.) to provision VM(s) and subsequently configure MongoDB using preferred package manager (e.g. apt, yum, etc.), config-management tool (e.g., ansible, chef, puppet, salt, etc.) and/or combination of linux / windows scripting technologies.
@@ -50,11 +54,25 @@ Concerns/Limitations:
 
 ### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB on NKE
 
-Calm would be leveraged to deploy a dedicated Karbon Production Cluster with the Nutanix CSI Driver, and subsequently deploy the MongoDB Enterprise Operator as a means to configure MongoDB custom resources - such as MongoDB, OpsManager and Users overall.
+___
+
+`Nutanix Calm` would be leveraged to deploy a dedicated Karbon Production Cluster with the Nutanix CSI Driver, and subsequently deploy the MongoDB Enterprise Operator as a means to configure MongoDB custom resources - such as MongoDB, OpsManager and Users overall.
+
+The `MongoDB Enterprise Operator` enables easy deploy of the following applications into Kubernetes clusters:
+
+`MongoDB` - Replica Sets, Sharded Clusters and Standalones - with authentication, TLS and many more options.
+`Ops Manager` - our enterprise management, monitoring and backup platform for MongoDB. The Operator can install and manage Ops Manager in Kubernetes for you. Ops Manager can manage MongoDB instances both inside and outside Kubernetes.
 
 ![high-level-overview](../../images/high-level-overview.png)
 
-By Leveraging NKE/Karbon, you'll have the ability to easily:
+By Leveraging `NCM/Calm`, you'll have the ability to provide end users the `Self-Service` ability to easily:
+
+- Provision Karbon Cluster in highly customized scenario to ensure production readiness and full compliance with customer standards (i.e., security policies, ingress, image registries, limits/quotas, etc.).
+- Curate Kubernetes Applications (along with MongoDB Operator) to fully include all customer specific requirements (i.e., naming standards, persistent storage layout, etc.).
+- Incorporate all internal runbook procedures required to properly manage the Full Lifecycle of Provisioning, Managing, Operating and Decommission any environment.
+- Integration with Service Management Portals such as `ServiceNow` for improved asset / incident management workflows.
+
+By Leveraging `NKE/Karbon`, you'll have the ability to easily:
 
 - Provision Highly Availabile Production Clusters with Nutanix CSI Driver Auto-Provisioned
 - Upgrade Kubernetes Clusters and underlying Node OS
@@ -62,7 +80,7 @@ By Leveraging NKE/Karbon, you'll have the ability to easily:
 - Add Worker Node Pools for Specialized Workload Requirements (e.g., CPU/GPU/Memory Optimized, etc.)
 - Easily connect to Kubernetes API Server via Kubectl via Karbon API or Plugins (i.e., `krew install karbon`)
 
-By Leveraging the Nutanix CSI Driver, you'll have the ability to easily:
+By Leveraging the `Nutanix CSI Driver`, you'll have the ability to easily:
 
 - Dynamically Provision Nutanix Volumes (RWO/BLOCK) or Nutanix Files (RWX/NFS)
 - Leverage metrics to determine overall disk utilization from K8s or Nutanix Prism
@@ -71,12 +89,7 @@ By Leveraging the Nutanix CSI Driver, you'll have the ability to easily:
   - Configuring Additional LVM Virtual Disks to Distribute IO
   - Workloads that require High Throughput/IO capabilities via ALL Flash Enabled Storage Pools.
 
-The `MongoDB Enterprise Operator` enables easy deploy of the following applications into Kubernetes clusters:
-
-`MongoDB` - Replica Sets, Sharded Clusters and Standalones - with authentication, TLS and many more options.
-`Ops Manager` - our enterprise management, monitoring and backup platform for MongoDB. The Operator can install and manage Ops Manager in Kubernetes for you. Ops Manager can manage MongoDB instances both inside and outside Kubernetes.
-
-By Leveraging the MongoDB Operator, you'll have the ability to:
+By Leveraging the `MongoDB Enterprise Operator`, you'll have the ability to:
 
 - Auto-Register and De-Register Clusters from OpsManager
 - Configure S3 Backup within OpsManager and Continuously Backup all Registered Databases
