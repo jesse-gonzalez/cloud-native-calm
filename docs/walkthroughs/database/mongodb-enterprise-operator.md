@@ -56,6 +56,7 @@ By Leveraging `NCM/Calm`, you'll have the ability to provide end users the `Self
 - Incorporate all internal runbook procedures required to properly manage the Full Lifecycle of Provisioning, Managing, Operating and Decommission any environment (e.g., DNS, IPAM, LoadBalancers, etc.)
 - Integration with Service Management Portals such as `ServiceNow` for improved asset / incident management workflows.
 - Team Level visibility around showback and quota utilization to determine whether there are opporunities to free up resources or need to expand resources on-demand.
+- Enhanced RBAC to control access to what, who and where folks can provision resources across internal and public cloud environments.
 
 `Concerns/Limitations:`
 
@@ -130,8 +131,6 @@ By Leveraging the `MongoDB Enterprise Operator`, you'll have the ability to:
 - Team Level visibility and governance capabilities are limiting.
 
 ## Overall Example Requirements
-
-___
 
 ### Requirement: DBA Only Accessible Feature - Deploy New Dedicated MongoDB VM
 
@@ -282,15 +281,16 @@ Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Li
 
 > Deploy 2nd ReplicaSet with more resources than what's available
 
-- Deploy via Calm with 4 vCPU and 4 GB of RAM
-- Show Pending Status on Calm, and Kubectl
-- Add Worker Node via Calm and Show in Karbon UI / Kubectl
-- Modify CPU / RAM on MongoDB Custom Resource as alternative
+- Deploy via Calm Day 2 Action a ReplicaSet 3 Member ReplicaSet with 4 vCPU and 8 GB of RAM
+  - Show Pending Status on Calm, and Kubectl
+  - Add Worker Node Pool of 3 Worker Nodes with 8 vCPU/ 16 GB of RAM via Karbon UI and monitor via Kubectl
+  - Observe Completion in OpsManager UI, Kubectl, Calm UI
 
 > Scale ReplicaSet Members from 3 to 5
 
-```bash
+- Follow commands below to scale replicaset.  Add worker nodes to pool via Karbon as needed.
 
+```bash
 ## setup monitoring
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
 watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE}"
@@ -298,12 +298,9 @@ watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo 
 ## scale replicas by patching mongo instance
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
 kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"members":3}}'
-
 ```
 
  > Resize PV Storage for Mount Points
-
-https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/resize-pv-storage/
 
 ```bash
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
@@ -362,30 +359,40 @@ EOF
 - Cordon Node where MongoDB is running
 
 ```bash
-MONGO_INSTANCE_SVC=mongodb-demo-replicaset-service
-NODE=`kubectl get pods -l app=$MONGO_INSTANCE_SVC -o wide | grep -v NAME | awk '{print $7}' | head -n 1`
+## Setup Monitoring
+MONGO_INSTANCE=mongodb-demo-replicaset
+watch -n 1 "kubectl get po -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE} && kubectl get nodes"
+
+## Find Node with Replicaset Member and CORDON.
+MONGO_INSTANCE=mongodb-demo-replicaset
+NODE=`kubectl get pods -l app=${MONGO_INSTANCE}-service -o wide | grep -v NAME | awk '{print $7}' | head -n 1`
 echo $NODE
 kubectl cordon ${NODE}
 kubectl get nodes
-```
 
-- Delete the Mongodb Pod
-
-```bash
-MONGO_INSTANCE_SVC=mongodb-demo-replicaset-service
-POD=`kubectl get pods -l app=$MONGO_INSTANCE_SVC -o wide | grep -v NAME | awk '{print $1}' | head -n 1`
+## Delete POD that lives on Node that has been CORDONED.
+MONGO_INSTANCE=mongodb-demo-replicaset
+POD=`kubectl get pods -l app=${MONGO_INSTANCE}-service -o wide | grep -v NAME | awk '{print $1}' | head -n 1`
 echo $POD
 kubectl delete pod ${POD}
-watch -n 1 kubectl get pods -l app=$MONGO_INSTANCE_SVC -o wide
+
+## UNCORDON NODE
+MONGO_INSTANCE=mongodb-demo-replicaset
+NODE=`kubectl get pods -l app=${MONGO_INSTANCE}-service -o wide | grep -v NAME | awk '{print $7}' | head -n 1`
+echo $NODE
+kubectl uncordon ${NODE}
 ```
 
-- Uncordon Node
+> Update Existing Worker Node Pool with Karbon Labels and Configure Node Affinity
 
-`kubectl uncordon ${NODE}`
 
-> Configure Pod and Node Affinity by adding this snippet
 
-- Add Worker Node Pool with Karbon Labels and Configure Node Affinity
+
+
+```bash
+kubectl edit mongodb 
+```
+
 
 ```bash
     podAntiAffinityTopologyKey: nodeId
