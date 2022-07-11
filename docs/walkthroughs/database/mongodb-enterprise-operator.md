@@ -10,7 +10,7 @@ The walkthrough scenarios in this document focuses on Deploying MongoDB Clusters
 
 ___
 
-Era enables you to easily register, provision, clone, and administer all of your MongoDB databases on one or more Nutanix clusters with a single click.
+`Nutanix Era` enables you to easily register, provision, clone, and administer all of your MongoDB databases on one or more Nutanix clusters with a single click.
 
 Era supports single node and multiple node configurations. A single node configuration in MongoDB consists of a single mongod daemon running on a single database server VM.
 
@@ -43,14 +43,24 @@ ___
 
 Nutanix Calm could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
 
-- Deploy MongoDB Standalone and/or ReplicaSets by integrating directly with Nutanix Era API
-- Deploy MongoDB Standalone, ReplicaSets and/or ShardedClusters by integrating with preferred IaaS endpoint (e.g., Nutanix AHV, vCenter, AWS, Google, Azure VMs, Terraform, etc.) to provision VM(s) and subsequently configure MongoDB using preferred package manager (e.g. apt, yum, etc.), config-management tool (e.g., ansible, chef, puppet, salt, etc.) and/or combination of linux / windows scripting technologies.
-  - As an alternative, MongoDB docker container (or custom) images can be leveraged to deploy and isolate specific versions of mongodb directly on VMs. Would not recommend for multitude of reasons, but it's been done before.
+- `Deploy MongoDB Standalone and/or ReplicaSets` by integrating directly with `Nutanix Era API`
+- `Deploy MongoDB Standalone, ReplicaSets and/or ShardedClusters` by integrating with preferred IaaS endpoint (e.g., Nutanix AHV, vCenter, AWS, Google, Azure VMs, Terraform, etc.) to provision VM(s) and subsequently configure MongoDB using preferred `package management` (e.g. apt, yum, etc.), `configuration management` tools (e.g., ansible, chef, puppet, salt, etc.) and/or combination of linux / windows scripting technologies.
+  - As an alternative, `available or custom MongoDB Docker container images` can be leveraged to deploy and isolate specific versions of mongodb directly on VMs. Probably would not recommend for multitude of reasons, but it's been done before.
 
-Concerns/Limitations:
+`Pros:`
 
-- While many of the ERA limitations can be mitigated via highly customized automation & orchestration available directly via Calm blueprints - the effort to handle all Day 1 and Day 2 use cases END to END - will be relatively significant in comparison to leveraging either ERA or the MongoDB Enterprise Operator on Kubernetes.
-  - i.e., Persistent Storage, Data Protection, Provisioning, Upgrading, Scaling, Quiescing, Registration/De-Registration with Opsmanager, Backup/Restore, User Management, would need to be continuously managed for varying use cases and backward compatability, effectively slowing down adoption of newer mongodb releases that would need to be fully certified for backward compatibility.
+By Leveraging `NCM/Calm`, you'll have the ability to provide end users the `Self-Service` ability to easily:
+
+- Provision MongoDB Cluster in highly customized scenario to ensure production readiness and full compliance with customer standards (i.e., security policies, etc.).
+- Provision MongoDB Clusters of any type to meet minimum requirements around compute and security, while providing day 2 actions to include advanced lifecycle scenarios that are very specific to MongoDB Operator (i.e., upgrade, scaling, etc.).
+- Incorporate all internal runbook procedures required to properly manage the Full Lifecycle of Provisioning, Managing, Operating and Decommission any environment (e.g., DNS, IPAM, LoadBalancers, etc.)
+- Integration with Service Management Portals such as `ServiceNow` for improved asset / incident management workflows.
+- Team Level visibility around showback and quota utilization to determine whether there are opporunities to free up resources or need to expand resources on-demand.
+
+`Concerns/Limitations:`
+
+- While many of the ERA limitations (documented above) can be mitigated via highly customized automation & orchestration available directly via Calm blueprints - the effort to handle all the full lifecycle of all use cases "end to end" - would be a relatively significant effort in comparison to leveraging either ERA or the MongoDB Enterprise Operator on Kubernetes.
+  - i.e., Automation that is leveraged to incorporate needs for Persistent Storage, Data Protection, Provisioning, Upgrading, Scaling, Quiescing, Self-Healing, Registration/De-Registration with Opsmanager, Snapshot/Restore, User/Secrets Management, would need to be continuously managed/tested/validated for a myriad of use cases and backward compatability - effectively slowing down adoption of newer mongodb releases that provide feature enhancements that could improve overall customer satisfaction.
 
 ### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB on NKE
 
@@ -69,8 +79,10 @@ By Leveraging `NCM/Calm`, you'll have the ability to provide end users the `Self
 
 - Provision Karbon Cluster in highly customized scenario to ensure production readiness and full compliance with customer standards (i.e., security policies, ingress, image registries, limits/quotas, etc.).
 - Curate Kubernetes Applications (along with MongoDB Operator) to fully include all customer specific requirements (i.e., naming standards, persistent storage layout, etc.).
-- Incorporate all internal runbook procedures required to properly manage the Full Lifecycle of Provisioning, Managing, Operating and Decommission any environment.
+- Provision MongoDB Clusters of any type to meet minimum requirements around compute and security, while providing day 2 actions to include advanced lifecycle scenarios that are very specific to MongoDB Operator (i.e., upgrade, scaling, etc.).
+- Incorporate all internal runbook procedures required to properly manage the Full Lifecycle of Provisioning, Managing, Operating and Decommission any environment. (e.g., DNS, IPAM, LoadBalancers, etc.)
 - Integration with Service Management Portals such as `ServiceNow` for improved asset / incident management workflows.
+
 
 By Leveraging `NKE/Karbon`, you'll have the ability to easily:
 
@@ -103,19 +115,23 @@ By Leveraging the `MongoDB Enterprise Operator`, you'll have the ability to:
 - Create custom roles
 - Enable metrics targets that can be used with Prometheus and Grafana Dashboards for Enhanced Observability
 
-Pros:
+`Pros:`
 
 - MongoDB Enterprise Operator is managed/supported by MongoDB
 - NKE/Karbon is fully managed kubernetes distribution supported by Nutanix
 - Nutanix CSI Driver could be leveraged on just about any Kubernetes Distribution (e.g., Red Hat Openshift, Rancher RKE/RKE2/K3s, Vanilla K8s, etc.) and Supported OS (e.g., CentOS,RHEL,Ubuntu, etc.) if other options are preferred.
 
-Concerns/Limitations:
+`Concerns/Limitations:`
 
+- Karbon can only be deployed on Nutanix AHV
 - Karbon manages entire stack - including Node OS - which is currently CENTOS
 - Karbon doesn't include integrated dashboard to easily manage K8s objects from Prism Central
 - Karbon is ultra-slim version of Kubernetes, so highly dependent on third-party solutions to manage Ingress, External Service LoadBalancing, Multi-Cluster Governance (i.e., Global Security Policies and Multi-Team)
+- Team Level visibility and governance capabilities are limiting.
 
 ## Overall Example Requirements
+
+___
 
 ### Requirement: DBA Only Accessible Feature - Deploy New Dedicated MongoDB VM
 
