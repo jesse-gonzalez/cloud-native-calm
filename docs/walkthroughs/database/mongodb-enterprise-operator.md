@@ -168,9 +168,15 @@ Leverage MongoDB Enterprise Operator & Calm to Deploy MongoDB Instance and Auto-
 - Cheatsheet:
 
 ```bash
-kubectl get om mongodb-opsmanager -o jsonpath='{.status.opsManager.url}'
-kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -o jsonpath='{.data.privateKey}' | base64 -d && echo
-kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -o jsonpath='{.data.publicKey}' | base64 -d && echo
+# MAKING API CALLS IF NEEDED
+
+OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
+OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
+OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+
+## Get Organization ID if needed
+curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id'
+
 kubectl get mdb -n mongodb
 ```
 

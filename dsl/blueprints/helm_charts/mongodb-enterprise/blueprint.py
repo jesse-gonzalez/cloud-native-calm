@@ -57,7 +57,9 @@ class HelmService(Service):
     name = "Helm_"+helm_chart_name
 
     nipio_ingress_domain = CalmVariable.Simple.string("",)
-    om_org_id = CalmVariable.Simple.string("",)
+    #om_org_id = CalmVariable.Simple.string("",)
+    #om_api_user = CalmVariable.Simple.string("",)
+    #om_api_key = CalmVariable.Simple.string("",)
 
     mongodb_appdb_version = CalmVariable.Simple.string("",)
     mongodb_appdb_container_image = CalmVariable.Simple.string("",)
@@ -72,23 +74,6 @@ class HelmService(Service):
     mongodb_appdb_monogos_count = CalmVariable.Simple.string("",)
     mongodb_appdb_shard_count = CalmVariable.Simple.string("",)
     mongodb_appdb_configserver_count = CalmVariable.Simple.string("",)
-
-    # om_api_user = CalmVariable.Simple(
-    #     "",
-    #     label="OpsManager API Key User",
-    #     is_mandatory=False,
-    #     is_hidden=False,
-    #     runtime=True,
-    #     description="OpsManager API Key User. i.e., jgejkwud",
-    # )
-    # om_api_key = CalmVariable.Simple(
-    #     "",
-    #     label="OpsManager API Key",
-    #     is_mandatory=False,
-    #     is_hidden=False,
-    #     runtime=True,
-    #     description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
-    # )
 
     @action
     def InstallHelmChart(name="Install "+helm_chart_name):
@@ -326,7 +311,7 @@ class Default(Profile):
         runtime=True,
         description="OpsManager Replicaset Count",
     )
-    
+
     opsmanager_appdb_replicaset_count = CalmVariable.Simple(
         os.getenv("OPSMANAGER_APPDB_REPLICASET_COUNT"),
         label="OpsManager Backend AppDB Version",
@@ -341,14 +326,14 @@ class Default(Profile):
         """
     Configure Standalone Mongodb Instance
         """
-        om_org_id = CalmVariable.Simple(
-            "",
-            label="OpsManager Organization ID",
-            is_mandatory=True,
-            is_hidden=False,
-            runtime=True,
-            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
-        )
+        # om_org_id = CalmVariable.Simple(
+        #     "",
+        #     label="OpsManager Organization ID",
+        #     is_mandatory=True,
+        #     is_hidden=False,
+        #     runtime=True,
+        #     description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        # )
         # om_api_user = CalmVariable.Simple(
         #     "",
         #     label="OpsManager API Key User",
@@ -429,14 +414,14 @@ class Default(Profile):
         """
     Configure MongoDB ReplicaSet Cluster
         """
-        om_org_id = CalmVariable.Simple(
-            "",
-            label="OpsManager Organization ID",
-            is_mandatory=True,
-            is_hidden=False,
-            runtime=True,
-            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
-        )
+        # om_org_id = CalmVariable.Simple(
+        #     "",
+        #     label="OpsManager Organization ID",
+        #     is_mandatory=True,
+        #     is_hidden=False,
+        #     runtime=True,
+        #     description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        # )
         mongodb_appdb_replicaset_count = CalmVariable.Simple(
             os.getenv("MONGODB_APPDB_REPLICASET_COUNT"),
             label="MongoDB AppDB ReplicaSet Count",
@@ -509,14 +494,14 @@ class Default(Profile):
         """
     Configure MongoDB Sharded Cluster
         """
-        om_org_id = CalmVariable.Simple(
-            "",
-            label="OpsManager Organization ID",
-            is_mandatory=True,
-            is_hidden=False,
-            runtime=True,
-            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
-        )
+        # om_org_id = CalmVariable.Simple(
+        #     "",
+        #     label="OpsManager Organization ID",
+        #     is_mandatory=True,
+        #     is_hidden=False,
+        #     runtime=True,
+        #     description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        # )
         mongodb_appdb_shard_count = CalmVariable.Simple(
             os.getenv("MONGODB_APPDB_SHARD_COUNT"),
             label="MongoDB AppDB Shard Count",

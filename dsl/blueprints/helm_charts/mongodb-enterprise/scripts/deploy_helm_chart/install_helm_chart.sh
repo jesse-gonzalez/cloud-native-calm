@@ -13,6 +13,7 @@ helm repo add mongodb https://mongodb.github.io/helm-charts
 helm repo update
 helm search repo mongodb/enterprise-operator
 helm upgrade --install ${INSTANCE_NAME} mongodb/enterprise-operator \
+  --set operator.watchNamespace='*' \
 	--namespace ${NAMESPACE} \
 	--wait-for-jobs \
 	--wait

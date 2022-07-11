@@ -26,7 +26,7 @@ on:
   workflow_dispatch:
     inputs:
       deploy_environment:
-        description: 'What is target environment? i.e., kalm-main-16-4'
+        description: 'What is target environment? i.e., kalm-main-12-1'
         type: string
         required: true
       github_environment:
@@ -42,7 +42,7 @@ on:
 
 env:
   ### Default environment to deploy and configure calm and karbon.
-  ENVIRONMENT_NAME: ${{ github.event.inputs.deploy_environment || 'kalm-main-16-4' }}
+  ENVIRONMENT_NAME: ${{ github.event.inputs.deploy_environment || 'kalm-main-12-4' }}
 
 concurrency: ${{ github.event.inputs.github_environment || 'kalm-main-cicd' }}
 

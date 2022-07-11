@@ -77,11 +77,11 @@ done
 
 kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-svc --timeout=15m -n ${NAMESPACE}
 
-# while [[ -z $(kubectl get pod -l app=mongodb-opsmanager-backup-daemon-svc -n ${NAMESPACE} 2>/dev/null) ]]; do
-#   echo "still waiting for pods with a label of mongodb-opsmanager-backup-daemon-svc to be created"
-#   sleep 1
-# done
+while [[ -z $(kubectl get pod -l app=mongodb-opsmanager-backup-daemon-svc -n ${NAMESPACE} 2>/dev/null) ]]; do
+  echo "still waiting for pods with a label of mongodb-opsmanager-backup-daemon-svc to be created"
+  sleep 1
+done
 
-# # additional workflow
+# additional workflow
 
-# kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-backup-daemon-svc --timeout=10m -n ${NAMESPACE}
+kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-backup-daemon-svc --timeout=10m -n ${NAMESPACE}
