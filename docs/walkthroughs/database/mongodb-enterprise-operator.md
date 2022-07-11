@@ -1,16 +1,118 @@
-## Other use cases
+# MongoDB Clusters on Karbon
 
-- Calm with Mongo Era API
-- Calm with Mongo VMs Replicaset Service
-- Calm with Mongo Operator on Helm Chart
-- Era Operator (NDB) on Karbon
+MongoDB is an open source document-oriented NoSQL database that stores data in flexible, JSON-like documents. MongoDB provides High Availability and redundancy through Replica sets and horizontal scalability through sharding.
 
-- Stretch Goals
-  - Datadog Monitoring / Grafana / Prometheus
-  - Sizing Considerations
-  - Leverage X-Play to send alerts?
+## Methods for Deploying MongoDB Clusters via Automation
 
-## Requirement: DBA Only Accessible Feature - Deploy New Dedicated MongoDB VM
+The walkthrough scenarios in this document focuses on Deploying MongoDB Clusters of various Types within the Nutanix Kubernetes Engine (NKE aka Karbon) using a combination of Nutanix Cloud Management (NCM aka Calm) and the MongoDB Operator.
+
+### Leverage Nutanix DBaaS (NDB aka ERA) UI to Deploy MongoDB Standalone or ReplicaSets on VMs
+
+Era enables you to easily register, provision, clone, and administer all of your MongoDB databases on one or more Nutanix clusters with a single click.
+
+Era supports single node and multiple node configurations. A single node configuration in MongoDB consists of a single mongod daemon running on a single database server VM.
+
+In addition, Era supports several database engines and offers the following key services:
+
+- `One-Click Provisioning`: Era enables you to easily provision database environments (either production or otherwise) on your Nutanix clusters.
+- `Copy Data Management`: Era enables you to clone your databases and refresh the database clones by using snapshots or transaction logs.
+- `Database Protection`: Era protects your database with full database consistent backups within a matter of minutes.
+- `One-Click Patching`: Ensure data security with one-click patching to efficiently validate critical database updates. Era provides out-of-band patching of databases to eliminate database configuration sprawl.
+
+Concerns/Limitations (As of ERA 2.4):
+
+https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Era-User-Guide-v2_4:top-era-limitations-mongodb-c.html
+
+- Era supports MongoDB version 4.0.x.
+- Era does not support MongoDB sharded systems.
+- Era does not support MongoDB in-memory engine.
+- Era does not support database restore for MongoDB replica set.
+- Ubuntu and SUSE Linux operating systems are not supported.
+- Era does not support provisioning and registration of multiple MongoDB user databases in the same database server VM or replica set.
+- Era does not support multiple installations of MongoDB on the same database server VM.
+- Era does not support MongoDB installations by any OS user other than 'mongod'.
+- Era supports both XFS and ext4 file systems for registered databases but only supports XFS file system for provisioned databases.
+
+> IMPORTANT: Although all features required may not be immediately available - The KEY advantage to leveraging ERA over all solutions listed below is that it provides the above capabilities for MULTIPLE DB Platforms - e.g., MS SQL Server, Oracle (RAC), PostgreSQL, MySQL, MariaDB, SAP HANA AND MongoDB!!!
+
+### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB (All Scenarios) on VMs
+
+Calm could be leveraged to deploy MongoDB via the Self-Service Portal to provision VMs and leverage Day 2 Actions to Scale In/Out, Upgrade and/or Backup/Restore underlying clusters using any of the following scenarios:
+
+- Deploy MongoDB ReplicaSets by integrating directly with Mongo Era API
+- Deploy MongoDB [ReplicaSets|ShardedClusters] by integrating with preferred IAAS endpoint (e.g., Nutanix AHV,vCenter,AWS,Google,Azure VM, Terraform, etc.) to Provision VM(s) and subsequently Configure MongoDB using preferred package manager (e.g. apt,yum, etc.) and/or config-management tool (e.g., ansible, chef, puppet, salt, etc.)
+- ^^ Same as above, but leveraging Docker to Deploy specific versions of mongodb
+
+Concerns/Limitations:
+
+- While many of the ERA limitations can be mitigated via highly customized automation & orchestration managed by customer - the effort to handle all Day 1 and Day 2 use cases END to END - will be relatively significant.
+  - i.e., Persistent Storage, Data Protection, Provisioning, Upgrading, Scaling, Quiescing, Registration/De-Registration with Opsmanager, Backup/Restore, User Management, would need to be continuously managed for varying use cases and backward compatability, effectively slowing down adoption of newer mongodb releases that would need to be fully certified for backward compatibility.
+
+### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB on NKE
+
+Calm would be leveraged to deploy a dedicated Karbon Production Cluster, the MongoDB Enterprise Operator and subsequent configuration of MongoDB custom resources.
+
+The `MongoDB Enterprise Operator` enables easy deploy of the following applications into Kubernetes clusters:
+
+`MongoDB` - Replica Sets, Sharded Clusters and Standalones - with authentication, TLS and many more options.
+`Ops Manager` - our enterprise management, monitoring and backup platform for MongoDB. The Operator can install and manage Ops Manager in Kubernetes for you. Ops Manager can manage MongoDB instances both inside and outside Kubernetes.
+
+Pros:
+
+- MongoDB Enterprise Operator is managed/supported by MongoDB
+- NKE/Karbon is fully managed kubernetes distribution supported by Nutanix
+- Nutanix CSI Driver could be leveraged on just about any Kubernetes Distribution (e.g., Red Hat Openshift, Rancher RKE/RKE2/K3s, Vanilla K8s, etc.) and Supported OS (e.g., CentOS,RHEL,Ubuntu, etc.) if other options are preferred.
+
+By Leveraging the Karbon, you'll have the ability to easily:
+
+- Provision Highly Availabile Production Clusters with Nutanix CSI Driver Auto-Provisioned
+- Upgrade Kubernetes Clusters and underlying Node OS
+- Scale Existing Worker Node Pools to add more Compute Resources
+- Add Worker Node Pools for Specialized Workload Requirements (e.g., CPU/GPU/Memory Optimized, etc.)
+
+By Leveraging the Nutanix CSI Driver, you'll have the ability to easily: 
+
+- Dynamically Provision Nutanix Volumes (RWO/BLOCK) or Nutanix Files (RWX/NFS)
+- Leverage metrics to determine overall disk utilization from K8s or Nutanix Prism
+- Expand, Clone and/or Snapshot Volumes
+- Create Additional Storage Classes to handle advance use cases, such as:
+  - Configuring Additional LVM Virtual Disks to Distribute IO
+  - Workloads that require High Throughput/IO capabilities via ALL Flash Enabled Storage Pools.
+
+By Leveraging the MongoDB Operator, you'll have the ability to:
+
+- Auto-Register and De-Register Clusters from OpsManager
+- Configure S3 Backup within OpsManager and Continuously Backup all Registered Databases
+- Create MongoDB Standalone, Replica sets and Sharded Clusters
+- Upgrade and downgrade MongoDB server version
+- Scale Replicas of All types up and down
+- Use any of the Custom or Available Docker MongoDB images
+- Connect to the replica set from inside the Kubernetes cluster without exposing Externally
+- Secure client-to-server and server-to-server connections with mTLS/TLS
+- Create users with SCRAM authentication
+- Create custom roles
+- Enable metrics targets that can be used with Prometheus and Grafana Dashboards for Enhanced Observability
+
+Concerns/Limitations:
+
+- Karbon only supports CENTOS
+- Karbon doesn't include dashboard to easily manage K8s objects, so dependent on third-party solutions (i.e., Global Security Policies, Project / Team RBAC)
+
+As it Relates to MongoDB Operator
+
+- Era supports MongoDB version 4.0.x.
+- Era does not support MongoDB sharded systems.
+- Era does not support MongoDB in-memory engine.
+- Era does not support database restore for MongoDB replica set.
+- Ubuntu and SUSE Linux operating systems are not supported.
+- Era does not support provisioning and registration of multiple MongoDB user databases in the same database server VM or replica set.
+- Era does not support multiple installations of MongoDB on the same database server VM.
+- Era does not support MongoDB installations by any OS user other than 'mongod'.
+- Era supports both XFS and ext4 file systems for registered databases but only supports XFS file system for provisioned databases.
+
+## Example Requirements
+
+### Requirement: DBA Only Accessible Feature - Deploy New Dedicated MongoDB VM
 
 Leverage Calm and Karbon to Deploy MongoDB OpsManager Cluster
 
@@ -28,23 +130,9 @@ Leverage Calm and Karbon to Deploy MongoDB OpsManager Cluster
 kubectl get om -o yaml -w
 ```
 
-TODO:
-- [] Isolate OpsManager Instance Config to Day 2 [OPT]
-- [] Configure Separate Projects for Admin vs. Developer
-
-## Requirement: Deploy Container on existing VMS
+### Requirement: Deploy Container on existing VMS
 
 Leverage MongoDB Enterprise Operator & Calm to Deploy MongoDB Instance and Auto-Register Into OpsManager
-
-- Best Practice Notes:
-  - Single Instance of Ops Manager for all MongoDBs
-  - One Operator PER Kubernetes Namespace
-  - One Kubernetes Namespace per OpsManager Organization
-  - One ConfigMap per MongoDB Instance
-  - Map Internal to External DNS names with TLS [OPT]
-  - Enable TLS with Cert-Manager [OPT]
-  - Enable Authentication using MongoDBUsers CRD and K8s Secrets (or Vault Alternative) [OPT]
-  - Enable LDAP AuthN/Z [OPT]
 
 - Demo:
   - [Manual] Get Organization ID, API Keys via UI and kubectl
@@ -107,13 +195,7 @@ db.ships.find().pretty()
 db.ships.find({}, {name:true, _id:false})
 ```
 
-TODO:
-- [] Add OpsManager URL to ensure Registration is successful across clusters
-- [] Deployment of Helm Operator Should Configure Organization based on Kubernetes Namespace Name [OPT]
-- [] Run DNS ADD Runbook for each MongoDB Replica [OPT]
-- [] Enable TLS with Cert-Manager - security.tls.enabled [OPT]
-
-## Requirement: Ability to Deploy Different Mongo images/verions
+### Requirement: Ability to Deploy Different Mongo images/verions
 
 Leverage MongoDB Enterprise Operator & Calm to upgrade existing MongoDB Environment
 
@@ -123,7 +205,7 @@ Leverage MongoDB Enterprise Operator & Calm to upgrade existing MongoDB Environm
   - [Manual] Show StatefulSet Upgrade occuring via kubectl images
   - [Manual] Show OpsManager Output
 
-- CHEATSHEET:
+- Cheatsheet:
 
 > Find Container Image Version, i.e., 4.2.11-ent,4.4.11-ent,5.0.5-ent
 
@@ -137,29 +219,19 @@ Leverage MongoDB Enterprise Operator & Calm to upgrade existing MongoDB Environm
 
 -- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/upgrade-mdb-version/
 
-## Requirement: Grant permissions to requested user/svc accounts to enable access to container
+### Requirement: Grant permissions to requested user/svc accounts to enable access to container
 
 Leverage Operator to Create custom roles and users with SCRAM authentication
-
-- Best Practice Notes:
-  - Multiple Secrets & User Creds for AuthN & AuthZ
 
 - Demo:
   - Configure Custom Developer / Operations Roles as Day 2 Action
   - [Manual] Login to OpsManager and Show Access Manager in UI
 
-TODO:
-- [] Configure Custom Developer / Operations Roles as Day 2 Action [OPT]
+- Cheatsheet:
 
-## Requirement: Ability to prevent creation should specific server metrics drop below critical thresholds (i.e., drive space,container # limits)
+### Requirement: Ability to prevent creation should specific server metrics drop below critical thresholds (i.e., drive space,container # limits)
 
 Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Limits / Affinity and Storage Persistence Configurations
-
-- Best Practice Notes:
-  - Set Resource Contraints for all
-  - Configure NodeAffinity if there are specialized workload / placement contstraints
-  - Configure Multiple Mount Points. Mount Point == PVC. Each PVC can be expanded on Demand
-  - Setup NodeAffinity and PodAffinity Accordingly based on Node Selector Labels
 
 - Demo:
   - [Manual] Show Resource Constraints for CPU and Memory via PodSpec YAML
@@ -169,7 +241,7 @@ Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Li
   - [Manual] Show Expanding of Volumes (PVC) via kubectl
   - [Manual] Show Pod Location per Node
 
-- CHEATSHEET:
+- Cheatsheet:
 
 > Deploy 2nd ReplicaSet with more resources than what's available
 
@@ -178,16 +250,9 @@ Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Li
 - Add Worker Node via Calm and Show in Karbon UI / Kubectl
 - Modify CPU / RAM on MongoDB Custom Resource as alternative
 
-TODO:
-- [] Configure Pod/Node Affinity
-- [] Setup Additional Worker Node Pool and Configure NodeAffinity with Karbon Node Labels
-- [] Review Namespace Quotas
-- [] Day 2 Action to Expand Mount Points [OPT]
-- [] Day 2 Action to Scale Replicas - Option with 3 or 5 [OPT]
-
  > Resize PV Storage for Mount Points
 
-scale database storage - https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/resize-pv-storage/
+https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/resize-pv-storage/
 
 ```bash
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
@@ -201,27 +266,73 @@ kubectl delete sts --cascade=orphan ${MONGO_INSTANCE}
 kubectl rollout restart sts ${MONGO_INSTANCE}
 ```
 
-> Simulating Node Failure & Restoration
+> Configure LVM Volume Storage Class
+
+- Create LVM Enabled Storage Class in Karbon Cluster
 
 ```bash
 
+NTNX_DYNAMIC_SECRET=$(kubectl get secrets -n kube-system -o name | grep ntnx-secret | cut -d/ -f2)
+
+cat <<EOF | kubectl apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+    annotations:
+        storageclass.kubernetes.io/is-default-class: "false"
+    name: lvm-enabled-storageclass
+parameters:   
+   csi.storage.k8s.io/controller-expand-secret-name: $( echo $NTNX_DYNAMIC_SECRET )
+   csi.storage.k8s.io/controller-expand-secret-namespace: kube-system
+   csi.storage.k8s.io/fstype: ext4
+   csi.storage.k8s.io/node-publish-secret-name: $( echo $NTNX_DYNAMIC_SECRET )
+   csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+   csi.storage.k8s.io/provisioner-secret-name: $( echo $NTNX_DYNAMIC_SECRET )
+   csi.storage.k8s.io/provisioner-secret-namespace: kube-system
+   flashMode: DISABLED
+   storageContainer: Default
+   chapAuth: ENABLED
+   storageType: NutanixVolumes
+   isLVMVolume: "true"
+   numLVMDisks: "4"
+   lvmVolumeType: striped
+   stripeSize: "integer"
+   extentSize: "4"
+provisioner: csi.nutanix.com
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+EOF
+```
+
+`kubectl get lvm-enabled-storageclass -o yaml`
+
+> Simulating Node Failure & Restoration
+
+- Cordon Node where MongoDB is running
+
+```bash
 MONGO_INSTANCE_SVC=mongodb-demo-replicaset-service
 NODE=`kubectl get pods -l app=$MONGO_INSTANCE_SVC -o wide | grep -v NAME | awk '{print $7}' | head -n 1`
 echo $NODE
 kubectl cordon ${NODE}
 kubectl get nodes
+```
 
+- Delete the Mongodb Pod
+
+```bash
 MONGO_INSTANCE_SVC=mongodb-demo-replicaset-service
 POD=`kubectl get pods -l app=$MONGO_INSTANCE_SVC -o wide | grep -v NAME | awk '{print $1}' | head -n 1`
 echo $POD
 kubectl delete pod ${POD}
 watch -n 1 kubectl get pods -l app=$MONGO_INSTANCE_SVC -o wide
-
-kubectl uncordon ${NODE}
-
 ```
 
-> Configure Affinity by adding this snippet
+- Uncordon Node
+
+`kubectl uncordon ${NODE}`
+
+> Configure Pod and Node Affinity by adding this snippet
 
 - Add Worker Node Pool with Karbon Labels and Configure Node Affinity
 
@@ -266,13 +377,7 @@ The Default PodSpec will Create a MongoDB Replicaset with following Defaults:
 - CPU and Memory Limits of 2 CPU and 2GB of RAM
 - Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
 
-
-
-
-
-- Expand LVM Disks on Volume Group / PV as Day 2 Action
-
-## Requirement: DR Option
+### Requirement: DR Option
 
 Leverage MongoDB Operator and Obects to Configure OpsManager Backup via S3
 Leverage Kasten and Obects to Configure OpsManager & MongoDB Backup Policy based on Label to Objects S3
@@ -294,17 +399,9 @@ Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / 
   - [Manual] Show Nutanix Objects UI Explorer for MongoDB Bucket and Kasten Bucket
   - [Manual] Show Karbon Pre-Deploy to Alternative Clusters [OPT]
 
-TODO:
-- [] Configure Objects Access Keys and Buckets
-- [] Deploy Kasten to Kalm-Main and Kalm-Develop Clusters and configure Policies
-- [] Validate OpsManager Backups with S3
-- [] Configure Secondary Region/Availabilty Zone for other Karbon Clusters [OPT]
-- [] Configure Secondary Account as Prism Central / Calm Cluster [OPT]
-
 - Cheatsheet:
 
 https://www.mongodb.com/blog/post/tutorial-part-2-ops-manager-in-kubernetes
-
 
 ```bash
 kubectl create secret generic s3-credentials  \
@@ -348,46 +445,43 @@ backup:
       s3BucketName: test-bucket
 ```
 
-## Requirement: Reporting of service usage
+### Requirement: Reporting of service usage
 
 - Demo:
   - [Manual] Show MongoDB OpsManager UI to Connect to Deployment and see Realtime Usage
 
-TODO:
-- [] Determine Observability Options (i.e., Prometheus/Grafana)
-- [] Alternatively Import all clusters to Rancher UI
-
-## Requirement: Create Incidents
+### Requirement: Create Incidents
 
 - Demo:
   - [Manual] Show ServiceNow Plug-In and Calm Blueprint Integration
   - [Manual] Show MongoDB OpsManager Integrations for Custom Webhooks and possible X-Play Scenarios [OPT]
 
-TODO:
-- [] See if Chris Nelson can handle, also review alternatives
-
-- CHEATSHEET:
-
-
-
-## Requirement: Messaging to users to communicate submitted / completed requests
+### Requirement: Messaging to users to communicate submitted / completed requests
 
 - Demo:
   - [Manual] Show Pre,Post Output for Each Action (email not include)
 
-TODO:
-- [] See if Chris Nelson can handle, also review alternatives - like x-play/webhook notifs?
-
-## Requirement: Tracking against containers for users and teams
+### Requirement: Tracking against containers for users and teams
 
 - Demo:
   - [Manual] Show Mongo Team/User usage for Mongo
   - [Manual] Show Scenarios with Rancher, Kubecost, Kubernetes Dashboard
 
-TODO:
-- [] Review alternatives with Chris Nelson
-- [] Review Options to track container usage overall - Rancher, Kubecost, Kubernetes Dashboard????
+## Production Best Practice Notes
 
+- Best Practice Notes:
+  - Single Instance of Ops Manager for all MongoDBs
+  - One Operator PER Kubernetes Namespace
+  - One Kubernetes Namespace per OpsManager Organization
+  - One ConfigMap per MongoDB Instance
+  - Map Internal to External DNS names with TLS [OPT]
+  - Enable TLS with Cert-Manager [OPT]
+  - Enable Authentication using MongoDBUsers CRD and K8s Secrets (or Vault Alternative) [OPT]
+  - Enable LDAP AuthN/Z [OPT]
+  - Set Resource Contraints for all
+  - Configure NodeAffinity if there are specialized workload / placement contstraints
+  - Configure Multiple Mount Points. Mount Point == PVC. Each PVC can be expanded on Demand
+  - Setup NodeAffinity and PodAffinity Accordingly based on Node Selector Labels
 
 ## References
 

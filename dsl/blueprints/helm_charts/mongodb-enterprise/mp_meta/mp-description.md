@@ -1,6 +1,6 @@
 *MongoDB Enterprise Operator Helm Chart*
 
-The MongoDB Enterprise Kubernetes Operator provides a container image for the MongoDB Agent in Ops Manager. 
+The MongoDB Enterprise Kubernetes Operator provides a container image for the MongoDB Agent in Ops Manager.
 
 This allows you to manage and deploy MongoDB database clusters with full monitoring, backups, and automation provided by Ops Manager.
 
