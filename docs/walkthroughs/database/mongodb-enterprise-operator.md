@@ -52,6 +52,8 @@ Concerns/Limitations:
 
 Calm would be leveraged to deploy a dedicated Karbon Production Cluster with the Nutanix CSI Driver, and subsequently deploy the MongoDB Enterprise Operator as a means to configure MongoDB custom resources - such as MongoDB, OpsManager and Users overall.
 
+![](high-level-overview.png)
+
 By Leveraging NKE/Karbon, you'll have the ability to easily:
 
 - Provision Highly Availabile Production Clusters with Nutanix CSI Driver Auto-Provisioned
@@ -197,7 +199,7 @@ Leverage MongoDB Enterprise Operator & Calm to upgrade existing MongoDB Environm
 
 - Cheatsheet:
 
-> Find Container Image Version, i.e., 4.2.11-ent,4.4.11-ent,5.0.5-ent
+> Find Container Image Version, examples = 4.4.4-ent,4.4.11-ent,5.0.1-ent,5.0.5-ent
 
 -- https://quay.io/repository/mongodb/mongodb-enterprise-appdb-database?tab=tags
 
@@ -240,6 +242,21 @@ Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Li
 - Add Worker Node via Calm and Show in Karbon UI / Kubectl
 - Modify CPU / RAM on MongoDB Custom Resource as alternative
 
+> Scale ReplicaSet Members from 3 to 5
+
+```bash
+## setup monitoring
+MONGO_INSTANCE=mongodb-demo-replicaset-31402
+watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE}"
+
+## scale replicas by patching mongo instance
+MONGO_INSTANCE=mongodb-demo-replicaset-31402
+kubectl patch $MONGO_INSTANCE -p='{"spec": {"members": "3"}}'
+```
+
+> Scale ReplicaSet Members from 5 to 3
+
+
  > Resize PV Storage for Mount Points
 
 https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/resize-pv-storage/
@@ -247,7 +264,6 @@ https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/resize-pv-stora
 ```bash
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
 watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb && echo && kubectl top nodes"
-
 
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
 kubectl get pvc -l app=${MONGO_INSTANCE}-service -o name | grep data | xargs -I {} kubectl patch {} -p='{"spec": {"resources": {"requests": {"storage": "200Gi"}}}}'
