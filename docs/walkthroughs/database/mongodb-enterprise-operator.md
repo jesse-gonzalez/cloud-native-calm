@@ -83,7 +83,7 @@ By Leveraging the MongoDB Operator, you'll have the ability to:
 
 - Auto-Register and De-Register Clusters from OpsManager
 - Configure S3 Backup within OpsManager and Continuously Backup all Registered Databases
-- Create MongoDB Standalone, Replica sets and Sharded Clusters
+- Create Multiple MongoDB Standalone, Replica sets and Sharded Clusters
 - Upgrade and downgrade MongoDB server version
 - Scale Replicas of All types up and down
 - Use any of the Custom or Available Docker MongoDB images
@@ -96,21 +96,10 @@ By Leveraging the MongoDB Operator, you'll have the ability to:
 Concerns/Limitations:
 
 - Karbon only supports CENTOS
-- Karbon doesn't include dashboard to easily manage K8s objects, so dependent on third-party solutions (i.e., Global Security Policies, Project / Team RBAC)
+- Karbon doesn't include integrated dashboard to easily manage K8s objects
+- Slim version of Kubernetes, so highly dependent on third-party solutions to manage Ingress, External Service LoadBalancing, Multi-Cluster Governance (i.e., Global Security Policies and Multi-Team)
 
-As it Relates to MongoDB Operator
-
-- Era supports MongoDB version 4.0.x.
-- Era does not support MongoDB sharded systems.
-- Era does not support MongoDB in-memory engine.
-- Era does not support database restore for MongoDB replica set.
-- Ubuntu and SUSE Linux operating systems are not supported.
-- Era does not support provisioning and registration of multiple MongoDB user databases in the same database server VM or replica set.
-- Era does not support multiple installations of MongoDB on the same database server VM.
-- Era does not support MongoDB installations by any OS user other than 'mongod'.
-- Era supports both XFS and ext4 file systems for registered databases but only supports XFS file system for provisioned databases.
-
-## Example Requirements
+## Overall Example Requirements
 
 ### Requirement: DBA Only Accessible Feature - Deploy New Dedicated MongoDB VM
 
