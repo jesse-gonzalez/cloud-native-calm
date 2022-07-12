@@ -93,7 +93,6 @@ jobs:
       - name: Initialize DSL Config
         run: make init-dsl-config ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Cleanup Existing Artifacts
-        continue-on-error: true
         run: make bootstrap-reset-all ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Provision Linux Bastion Host Endpoint
         run: make init-bastion-host-svm ENVIRONMENT=$ENVIRONMENT_NAME
