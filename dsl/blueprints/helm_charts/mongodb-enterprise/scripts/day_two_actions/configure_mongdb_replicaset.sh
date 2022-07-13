@@ -36,6 +36,8 @@ MONGODB_APPDB_DATA_SIZE="@@{mongodb_appdb_data_size}@@"
 MONGODB_APPDB_JOURNAL_SIZE="@@{mongodb_appdb_logs_size}@@"
 MONGODB_APPDB_LOGS_SIZE="@@{mongodb_appdb_journal_size}@@"
 
+MONGODB_APPDB_STORAGE_CLASS="@@{mongodb_appdb_storage_class}@@"
+
 MONGODB_APPDB_REPLICASET_COUNT=@@{mongodb_appdb_replicaset_count}@@
 
 ## Setting MongoDB Namespace to OpsManager Project Manager

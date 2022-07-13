@@ -116,3 +116,11 @@ secrets.yaml
 secrets-**.yaml
 .env
 .sandbox
+
+
+## Packer Stuff
+terraform/cert/*.key
+terraform/cert/*.crt
+secrets.linux.auto.pkrvars.hcl
+packer/manifest.json
+packer/manifest.json

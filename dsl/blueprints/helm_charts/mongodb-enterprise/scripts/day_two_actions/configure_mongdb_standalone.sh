@@ -20,6 +20,16 @@ OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "
 #MONGODB_APPDB_VERSION="4.2.6-ent"
 
 MONGODB_APPDB_VERSION="@@{mongodb_appdb_version}@@"
+MONGODB_APPDB_CONTAINER_IMAGE="@@{mongodb_appdb_container_image}@@"
+
+MONGODB_APPDB_CPU_LIMITS="@@{mongodb_appdb_cpu_limits}@@"
+MONGODB_APPDB_MEM_LIMITS="@@{mongodb_appdb_mem_limits}@@"
+
+MONGODB_APPDB_DATA_SIZE="@@{mongodb_appdb_data_size}@@"
+MONGODB_APPDB_JOURNAL_SIZE="@@{mongodb_appdb_logs_size}@@"
+MONGODB_APPDB_LOGS_SIZE="@@{mongodb_appdb_journal_size}@@"
+
+MONGODB_APPDB_STORAGE_CLASS="@@{mongodb_appdb_storage_class}@@"
 
 ## Setting MongoDB Namespace to OpsManager Project Manager
 
@@ -72,6 +82,26 @@ spec:
   credentials: organization-secret
   persistent: true
   exposedExternally: true
+  podSpec:
+    podTemplate:
+      spec:
+       containers:
+        - name: $( echo $MONGODB_APPDB_CONTAINER_IMAGE )
+          resources:
+            limits:
+              cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
+              memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
+            requests:
+              cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
+              memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
+    persistence:
+      multiple:
+        data:
+          storage: $( echo $MONGODB_APPDB_DATA_SIZE )
+        journal:
+          storage: $( echo $MONGODB_APPDB_JOURNAL_SIZE )
+        logs:
+          storage: $( echo $MONGODB_APPDB_LOGS_SIZE )
 EOF
 
 ##############
