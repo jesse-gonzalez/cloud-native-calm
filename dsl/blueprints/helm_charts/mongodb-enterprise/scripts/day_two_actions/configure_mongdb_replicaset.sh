@@ -95,12 +95,12 @@ spec:
   podSpec:
     podTemplate:
       spec:
-       containers:
-        - name: $( echo $MONGODB_APPDB_CONTAINER_IMAGE )
-          resources:
-            limits:
-              cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
-              memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
+        containers:
+          - name: $( echo $MONGODB_APPDB_CONTAINER_IMAGE )
+            resources:
+              limits:
+                cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
+                memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
             requests:
               cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
               memory: $( echo $MONGODB_APPDB_MEM_LIMITS )

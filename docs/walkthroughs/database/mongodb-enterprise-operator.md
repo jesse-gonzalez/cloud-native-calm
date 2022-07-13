@@ -570,45 +570,108 @@ Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / 
 - Cheatsheet:
 
 ```bash
-kubectl create secret generic s3-credentials  \
-    --from-literal=accessKey="<AKIAIOSFODNN7EXAMPLE>"  \
-    --from-literal=secretKey="<wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY>"  \
-    -n mongodb
-```
+## Get OpsManager vars
+OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
+OM_BASE_URL="http://${OPSMANAGER_HOST}:8080"
+OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
+OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
 
-```bash
+echo $OPSMANAGER_HOST
+echo $OM_BASE_URL
+echo $OM_API_USER
+echo $OM_API_KEY
+echo $OM_ORG_ID
+
+OM_PROJECT_NAME="mongodb-oplog-replicaset"
+
+## Create the Oplog Store ReplicaSet
+kubectl -n mongodb-enterprise create secret generic organization-secret \
+  --from-literal="user=$OM_API_USER" \
+  --from-literal="publicApiKey=$OM_API_KEY" \
+  --dry-run=client -o yaml | kubectl apply -n mongodb-enterprise -f -
+
+## Create the s3 creds 
+kubectl create secret generic s3-credentials  \
+    --from-literal=accessKey="rkzQ1im7aiaqnDdPFxK6A-2tv35xIBEf"  \
+    --from-literal=secretKey="jhVXGTpsNK8Bwe0cghPzOf0niqd1rPIz"  \
+    -n mongodb-enterprise
+
+## Create OplogStore Project ConfigMap and Replicaset and wait until complete
+cat <<EOF | kubectl apply -n mongodb-enterprise -f -
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: $( echo $OM_PROJECT_NAME )-config
+data:
+  baseUrl: $( echo $OM_BASE_URL )
+  projectName: $( echo $OM_PROJECT_NAME )-project
+  orgId: $( echo $OM_ORG_ID )
+---
 apiVersion: mongodb.com/v1
 kind: MongoDB
 metadata:
-  name: my-mongodb-oplog
-  namespace: mongodb
+  name: $( echo $OM_PROJECT_NAME )
 spec:
   members: 3
   version: 4.2.2
   type: ReplicaSet
-
   opsManager:
     configMapRef:
-      name: ops-manager-connection
-  credentials: om-jane-doe-credentials
-```
+      name: $( echo $OM_PROJECT_NAME )-config
+  credentials: organization-secret
+  persistent: true
+  type: ReplicaSet
+EOF
 
-```bash
-backup:
-  enabled: true
-  oplogStores:
-    - name: oplog1
-      # the MongoDB resource that will act as an Oplog Store
-      mongodbResourceRef:
-        name: my-mongodb-oplog
-  s3Stores:
-    - name: s3store1
-      s3SecretRef:
-        name: s3-credentials
-      pathStyleAccessEnabled: true
-      # change this to a s3 url you are using
-      s3BucketEndpoint: s3.us-east-1.amazonaws.com
-      s3BucketName: test-bucket
+OM_PROJECT_NAME="mongodb-oplog-replicaset"
+
+## Reconfigure OpsManager with Oplog Store and S3 Backup Configs
+cat <<EOF | kubectl apply -n mongodb-enterprise -f -
+---
+apiVersion: mongodb.com/v1
+kind: MongoDBOpsManager
+metadata:
+  name: mongodb-opsmanager
+  namespace: mongodb-enterprise
+spec:
+  adminCredentials: om-admin-secret
+  applicationDatabase:
+    members: 3
+    version: 4.4.4-ent
+  configuration:
+    automation.versions.source: remote
+    mms.adminEmailAddr: cloud-admin@no-reply.com
+    mms.fromEmailAddr: cloud-support@no-reply.com
+    mms.ignoreInitialUiSetup: "true"
+    mms.mail.hostname: email-smtp.nutanix.demo
+    mms.mail.port: "465"
+    mms.mail.ssl: "false"
+    mms.mail.transport: smtp
+    mms.minimumTLSVersion: TLSv1.2
+    mms.replyToEmailAddr: cloud-support@no-reply.com
+  externalConnectivity:
+    type: LoadBalancer
+  replicas: 3
+  version: 5.0.10
+  backup:
+    enabled: true
+    opLogStores:
+      - name: oplog1
+        # the MongoDB resource that will act as an Oplog Store
+        mongodbResourceRef:
+          name: mongodb-oplog-replicaset
+    s3Stores:
+      - name: s3store1
+        s3SecretRef:
+          name: s3-credentials
+        pathStyleAccessEnabled: true
+        # change this to a s3 url you are using
+        s3BucketEndpoint: ntnx-objects.ntnxlab.local
+        s3BucketName: mongodb
+EOF
+
 ```
 
 ### Requirement: Reporting of service usage
