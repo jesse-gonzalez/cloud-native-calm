@@ -275,28 +275,22 @@ Leverage Operator to Create custom roles and users with SCRAM authentication
 
 Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Limits / Affinity and Storage Persistence Configurations
 
-`The Default PodSpec will Create a MongoDB Replicaset with following Defaults:`
-
-- StatefulSet with 3 Replicas
-- CPU and Memory Limits of 2 CPU and 2GB of RAM
-- Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
+> The Default PodSpec will Create a MongoDB Replicaset with following Defaults:
+    - StatefulSet with 3 Replicas
+    - CPU and Memory Limits of 2 CPU and 2GB of RAM
+    - Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
 
 - Demo:
   - [Manual] Show Resource Constraints for CPU and Memory via PodSpec YAML
-  - [Manual] Show High Request Workflow as Day 2 Action via Calm
-  - [Manual] Show Scaling of Worker Nodes via Calm Day 2 Action
   - [Manual] Show Scaling of StatefulSet Replicas via kubectl
+  - [Manual] Show Scaling of Worker Nodes via Calm Day 2 Action
   - [Manual] Show Expanding of Volumes (PVC) via kubectl
+  - [Manual] Show New ReplicaSet with High Compute Request Workflow
+  - [Manual] Show Adding of Worker Node Pool to Karbon and Set Node Labels
+  - [Manual] Re-Configure Node Affinity to Pins Pods to New Worker Node Pool
   - [Manual] Show Pod Location per Node
 
 - Cheatsheet:
-
-> Deploy 2nd ReplicaSet with more resources than what's available
-
-- Deploy via Calm Day 2 Action a ReplicaSet 3 Member ReplicaSet with 4 vCPU and 8 GB of RAM
-  - Show Pending Status on Calm, and Kubectl
-  - Add Worker Node Pool of 3 Worker Nodes with 8 vCPU/ 16 GB of RAM via Karbon UI and monitor via Kubectl
-  - Observe Completion in OpsManager UI, Kubectl, Calm UI
 
 > Scale ReplicaSet Members from 3 to 5
 
@@ -310,6 +304,118 @@ watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo 
 ## scale replicas by patching mongo instance
 MONGO_INSTANCE=mongodb-demo-replicaset-31402
 kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"members":3}}'
+```
+
+> Deploy 2nd ReplicaSet with more resources than what's available
+
+- Deploy via Calm Day 2 Action a ReplicaSet 3 Member ReplicaSet with 4 vCPU and 8 GB of RAM
+  - Show Pending Status on Calm, and Kubectl
+  - Add Node Pool of 3 Worker Nodes with 8 vCPU/ 16 GB of RAM via Karbon UI and monitor via Kubectl (i.e., mongodb-node-pool)
+    - Creating a Node Pool: https://portal.nutanix.com/page/documents/details?targetId=Karbon-v2_4:kar-karbon-nodepool-create-t.html
+  - Observe Completion in OpsManager UI, Kubectl, Calm UI
+
+> Update Existing Worker Pool with Node Labels and Configure, Taints, Tolerations and Node Affinity
+
+- Option 1: via Karbon UI, update node pool with label metadata (karbon-node-pool=mongodb): https://portal.nutanix.com/page/documents/details?targetId=Karbon-v2_4:kar-karbon-nodepool-meta-update-t.html
+
+- Option 2: via Kubectl, label nodes with metadata (karbon-node-pool=mongodb)
+
+```bash
+## setup monitoring
+watch -n 1 "kubectl get mongodb,svc,ep,po,node -o wide"
+
+## Label New Node Pool
+kubectl get nodes -o name | grep mongodb-pool | xargs -I {node} kubectl label {node} karbon-node-pool=mongodb --overwrite
+```
+
+```bash
+## Taint nodes of newly created pool
+kubectl taint nodes -l karbon-node-pool=mongodb karbon-node-pool=mongodb:NoSchedule
+
+## validate that taints have been applied
+kubectl describe nodes | grep -i taint
+kubectl describe nodes -l karbon-node-pool=mongodb | grep -i taint
+```
+
+```bash
+MONGO_INSTANCE=mongodb-demo-replicaset-24833
+
+cat <<EOF | kubectl apply -f -
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: $( echo $MONGO_INSTANCE )
+  namespace: $( echo $MONGO_INSTANCE )
+spec:
+  credentials: organization-secret
+  members: 3
+  service: $( echo $MONGO_INSTANCE )-service
+  type: ReplicaSet
+  version: 4.4.4-ent
+  opsManager:
+    configMapRef:
+      name: $( echo $MONGO_INSTANCE )-config
+  persistent: true
+  podSpec:
+    persistence:
+      multiple:
+        data:
+          storage: 10Gi
+        journal:
+          storage: 500M
+        logs:
+          storage: 1Gi
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: karbon-node-pool
+            operator: In
+            values:
+            - mongodb
+    podTemplate:
+      spec:
+        containers:
+        - name: mongodb-enterprise-database
+          resources:
+            limits:
+              cpu: 2
+              memory: 2G
+            requests:
+              cpu: 2
+              memory: 2G
+        tolerations:
+        - key: "karbon-node-pool"
+          operator: "Exists"
+          effect: "NoSchedule"
+EOF
+
+```
+
+- add snippet from below and modify accordingly
+
+```bash
+
+MONGO_APP_LABEL=mongodb-demo-replicaset-31402-service
+
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - $( echo $MONGO_APP_LABEL )
+        topologyKey: "kubernetes.io/hostname"
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: karbon-node-pool
+            operator: In
+            values:
+            - mongodb
 ```
 
  > Resize PV Storage for Mount Points
@@ -448,52 +554,6 @@ echo $NODE
 kubectl uncordon ${NODE}
 ```
 
-> Update Existing Worker Node Pool with Karbon Labels and Configure Node Affinity
-
-- via Karbon UI, update node pool with label metadata (kubernetes.io/e2e-az-name:e2e-az1)
-
-```bash
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
-kubectl edit mongodb ${MONGO_INSTANCE}
-```
-
-- add snippet from below and modify accordingly
-
-```bash
-
-MONGO_APP_LABEL=mongodb-demo-replicaset-31402-service
-
-  affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchExpressions:
-          - key: app
-            operator: In
-            values:
-            - $( echo $MONGO_APP_LABEL )
-        topologyKey: "kubernetes.io/hostname"
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nutanix.io/karbon-worker-pool
-            operator: In
-            values:
-            - default
-    podTemplate:
-      metadata:
-        labels:
-          label1: mycustomlabel
-      spec:
-        affinity:
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - podAffinityTerm:
-                  topologyKey: "mykey"
-                weight: 50
-```
-
 ### Requirement: DR Option
 
 Leverage MongoDB Operator and Obects to Configure OpsManager Backup via S3
@@ -554,18 +614,158 @@ backup:
 ### Requirement: Reporting of service usage
 
 - Demo:
-  - [Manual] Show MongoDB OpsManager UI to Connect to Deployment and see Realtime Usage
+  - [Manual] Show MongoDB OpsManager UI to Connect to see Realtime Usage of Mongo Clusters
+  - [Manual] Show Prism Central Dashboard Widgets UI
+  - [Manual] Show Prism Central Analysis Chart UI
+
+- CheatSheet:
+
+- Analysis Dashboard: https://portal.nutanix.com/page/documents/details?targetId=Prism-Central-Guide-Prism-v5_20:mul-performance-management-pc-c.html
+
+> Deploy Resource to Use Prometheus - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-prometheus/#deploy-prometheus
+
+```bash
+
+## Install the MongoDB ReplicaSet with Prometheus Service Monitor
+
+cat <<EOF | kubectl apply -f
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: metrics-endpoint-creds
+  namespace: mongodb
+type: Opaque
+stringData:
+  password: 'Not-So-Secure!'
+  username: prometheus-username
+
+---
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: my-replica-set
+spec:
+  members: 3
+  version: 5.0.6-ent
+
+  cloudManager:
+    configMapRef:
+      name: <project-configmap>
+
+  credentials: <credentials-secret>
+  type: ReplicaSet
+
+  persistent: true
+
+  prometheus:
+    passwordSecretRef:
+      # SecretRef to a Secret with a 'password' entry on it.
+      name: metrics-endpoint-password
+
+    # change this value to your Prometheus username
+    username: prometheus-username
+
+    # Enables HTTPS on the prometheus scrapping endpoint
+    # This should be a reference to a Secret type kuberentes.io/tls
+    # tlsSecretKeyRef:
+    #   name: <prometheus-tls-cert-secret>
+
+    # Port for Prometheus, default is 9216
+    # port: 9216
+    #
+    # Metrics path for Prometheus, default is /metrics
+    # metricsPath: '/metrics'
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+
+  # This needs to match `spec.ServiceMonitorSelector.matchLabels` from your
+  # `prometheuses.monitoring.coreos.com` resouce.
+  labels:
+    release: prometheus
+
+  name: mongodb-sm
+
+  # Make sure this namespace is the same as in `spec.namespaceSelector`.
+  namespace: mongodb
+spec:
+  endpoints:
+
+  # Configuring a Prometheus Endpoint with basic Auth.
+  # `prom-secret` is a Secret containing a `username` and `password` entries.
+  - basicAuth:
+      password:
+        key: password
+        name: metrics-endpoint-creds
+      username:
+        key: username
+        name: metrics-endpoint-creds
+
+    # This port matches what we created in our MongoDB Service.
+    port: prometheus
+
+    # If using HTTPS enabled endpoint, change scheme to https
+    scheme: http
+
+    # Configure different TLS related settings. For more information, see:
+    # https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/apis/monitoring/v1/types.go#L909
+    # tlsConfig:
+    #    insecureSkipVerify: true
+
+  # What namespace to watch
+  namespaceSelector:
+    matchNames:
+    # Change this to the namespace the MongoDB resource was deployed.
+    - mongodb
+
+  # Service labels to match
+  selector:
+    matchLabels:
+      app: my-replica-set-svc
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: metrics-endpoint-creds
+  namespace: mongodb
+type: Opaque
+stringData:
+  password: 'Not-So-Secure!'
+  username: prometheus-username
+EOF
+...
+
+```
 
 ### Requirement: Create Incidents
 
 - Demo:
-  - [Manual] Show ServiceNow Plug-In and Calm Blueprint Integration
-  - [Manual] Show MongoDB OpsManager Integrations for Custom Webhooks and possible X-Play Scenarios [OPT]
+  - [Manual] Show Prism Central Alert Policies - High CPU/Memory Usage based on VM Categories (i.e., AppFamily:KubernetesDistro)
+  - [Manual] Show Prism Central Playbooks - Alert Policy Event triggering E-mail (i.e., "Create Incident on CPU or Memory Constrained Karbon Worker Nodes -AppFamily:KubernetesDistro" Playbook)
+
+- CheatSheet:
+
+> Importing Prism Central Playbooks
+
+- Configure PC Alert Policies: https://portal.nutanix.com/page/documents/details?targetId=Prism-Central-Guide-Prism-v5_20:mul-alert-policies-configure-pc-t.html
+- Auto Categorize New VMs (Ideal for Setting Up Nutanix Policies (e.g., Data Protection, Network Security, Envents, Alerts, etc.) on demand): https://www.nutanix.dev/playbooks/auto-categorize-new-vms/
+- Send Incident Alerts to Email, Slack or MSTeams: https://www.nutanix.dev/playbooks/send-alert-details-to-slack-email-msteams/
+- Send Incident Alerts to PagerDuty: https://www.nutanix.dev/playbooks/send-alerts-to-pagerduty/
+- ServiceNow Integration with Prism Central (X-Play Support): https://portal.nutanix.com/page/documents/details?targetId=Prism-Central-Guide-Prism-v5_20:mul-service-now-integration-pc.html
 
 ### Requirement: Messaging to users to communicate submitted / completed requests
 
 - Demo:
-  - [Manual] Show Pre,Post Output for Each Action (email not include)
+  - [Manual] Show Playbook with New VM Create Event Notification
+
+- CheatSheet:
+
+> This playbook sends a Slack message when a VM is created, with the user and VM details. It uses the Lookup VM Details, REST API, and Slack actions. It could easily be modified to support Microsoft Teams and/or e-mails as well - https://github.com/nutanixdev/playbooks/tree/master/vm_created_alert
 
 ### Requirement: Tracking against containers for users and teams
 
@@ -596,21 +796,16 @@ backup:
 
 ## References
 
-- https://www.youtube.com/watch?v=JqpQPrJSgS8
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-prometheus/#deploy-prometheus
-- https://www.mongodb.com/docs/kubernetes-operator/stable/tutorial/mdb-resources-arch/
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/secret-storage/#k8s-set-secret-storage-tool
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-sharded-cluster/
-- https://www.mongodb.com/blog/post/running-mongodb-ops-manager-in-kubernetes
-- https://nutanixinc.sharepoint.com/sites/solutions/SitePages/Databases.aspx
-- https://documentation.suse.com/sbp/all/html/TRD-rancher-mongodb-getting-started/index.html
-- https://medium.com/locust-io-experiments/locust-io-experiments-running-in-docker-cae3c7f9386e
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-replica-set/
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/manage-database-users-scram/
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/create-project-using-configmap/
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/reference/helm-operator-settings/#initopsmanager-name
-- https://www.mongodb.com/docs/kubernetes-operator/v1.16/reference/k8s-op-exclusive-settings/
-- https://www.mongodb.com/docs/kubernetes-operator/stable/multi-cluster-quick-start/
-- https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/samples/ops-manager/ops-manager-backup.yaml
-- https://www.mongodb.com/blog/post/tutorial-part-2-ops-manager-in-kubernetes
+- Mongodb on Nutanix - https://portal.nutanix.com/page/documents/solutions/details?targetId=BP-2023-MongoDB-on-Nutanix:BP-2023-MongoDB-on-Nutanix
+- Nutanix Playbooks Library - https://www.nutanix.dev/playbooks/
+- OpsManager Architecture in K8s - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/om-arch/
+- MongoDB Architecture in K8s - https://www.mongodb.com/docs/kubernetes-operator/stable/tutorial/mdb-resources-arch/
+- Running MongoDB OpsManager in Kubernetes - https://www.mongodb.com/blog/post/running-mongodb-ops-manager-in-kubernetes
+- Deploy a MongoDB ReplicaSet - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-replica-set/
+- Manage MongoDB Database Users - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/manage-database-users-scram/
+- Deploy a MongoDB Sharded Cluster - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-sharded-cluster/ 
+- Observability of the MongoDB Kubernetes Operator in Production https://www.youtube.com/watch?v=JqpQPrJSgS8
+- Deploy a Resource to Use with Prometheus - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-prometheus/#deploy-prometheus
 
+
+- https://medium.com/locust-io-experiments/locust-io-experiments-running-in-docker-cae3c7f9386e

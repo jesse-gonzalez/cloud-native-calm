@@ -94,6 +94,18 @@ spec:
             requests:
               cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
               memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
+        tolerations:
+        - key: karbon-node-pool
+          operator: Exists
+          effect: NoSchedule
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: karbon-node-pool
+            operator: In
+            values:
+            - mongodb-standalone
     persistence:
       multiple:
         data:

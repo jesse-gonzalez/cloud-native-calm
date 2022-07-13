@@ -105,7 +105,10 @@ jobs:
       - name: Launch All Helm Charts
         run: make launch-all-helm-charts ENVIRONMENT=$ENVIRONMENT_NAME
       - name: Publish All Blueprints & Helm Charts
-        run: make publish-all-blueprints ENVIRONMENT=$ENVIRONMENT_NAME
+        run: |
+          ## unpublish blueprints again - just in case
+          make unpublish-all-blueprints ENVIRONMENT=$ENVIRONMENT_NAME
+          make publish-all-blueprints ENVIRONMENT=$ENVIRONMENT_NAME
       # - name: Cleanup & Reset Cluster
       #   if: success() || failure()
       #   run: make bootstrap-reset-all ENVIRONMENT=$ENVIRONMENT_NAME

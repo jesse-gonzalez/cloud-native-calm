@@ -105,6 +105,20 @@ spec:
   credentials: organization-secret
   persistent: true
   shardPodSpec:
+    podTemplate:
+      spec:
+        tolerations:
+        - key: karbon-node-pool
+          operator: Exists
+          effect: NoSchedule
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: karbon-node-pool
+            operator: In
+            values:
+            - mongodb-sharded
     persistence:
       multiple:
         data:
@@ -113,7 +127,6 @@ spec:
           storage: $( echo $MONGODB_APPDB_JOURNAL_SIZE )
         logs:
           storage: $( echo $MONGODB_APPDB_LOGS_SIZE )
-    podAntiAffinityTopologyKey: kubernetes.io/hostname
   mongos:
     additionalMongodConfig:
       systemLog:
