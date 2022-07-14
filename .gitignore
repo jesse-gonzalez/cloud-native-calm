@@ -108,6 +108,7 @@ bin/**
 
 # Visual Studio Code
 **/.vscode
+**/*.code-workspace
 
 # Various
 **/*.pptx
