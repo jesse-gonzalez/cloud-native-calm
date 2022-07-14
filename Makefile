@@ -1,9 +1,9 @@
 .ONESHELL:
 
-ENVIRONMENT ?= kalm-main-16-4
+ENVIRONMENT ?= kalm-main-12-4
 DEFAULT_SHELL ?= /bin/zsh
 
-IMAGE_REGISTRY_ORG = ntnxdemo
+IMAGE_REGISTRY_ORG = ghcr.io/jesse-gonzalez
 
 ## load common variables and anything environment specific that overrides
 export ENV_GLOBAL_PATH 	 := $(CURDIR)/config/_common/.env
@@ -277,8 +277,8 @@ print-secrets: ### Print variables including secrets. i.e., make print-secrets E
 help: ### Show this help
 	@egrep -h '\s###\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?### "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-docker-login: ## Login to Container Private Registry
-	@echo "$(DOCKER_HUB_PASS)" | docker login --username $(DOCKER_HUB_USER) --password-stdin
+docker-login: ## Login to Github Private Registry
+	@echo "$(GITHUB_PASS)" | docker login ghcr.io --username $(GITHUB_USER) --password-stdin
 
 github-login: ## Login to GitHub Repo to support local commits and tag promotion
 	@echo -e "$(GITHUB_PASS)" | gh auth login --with-token
