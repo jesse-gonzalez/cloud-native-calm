@@ -3,7 +3,7 @@
 ENVIRONMENT ?= kalm-main-16-4
 DEFAULT_SHELL ?= /bin/zsh
 
-IMAGE_REGISTRY_ORG = ntnxdemo
+IMAGE_REGISTRY_ORG = ghcr.io/jesse-gonzalez
 
 ## load common variables and anything environment specific that overrides
 export ENV_GLOBAL_PATH 	 := $(CURDIR)/config/_common/.env
