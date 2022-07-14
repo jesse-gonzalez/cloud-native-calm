@@ -19,7 +19,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'terraform/**'
-      - '.github/workflows/container-cicd.yml'
+      - '.github/workflows/devcontainer-cicd-build.yml'
       - 'scripts/**/*'
       - '.devcontainer/**/*'
       - 'Dockerfile'
