@@ -1,4 +1,4 @@
-name: Generate Dev Container Image
+name: devcontainer-cicd-build
 on:
   push:
     branches:
@@ -8,9 +8,9 @@ on:
       - '.devcontainer/**/*'
       - 'scripts/**/*'
       - 'Dockerfile'
-permissions:
-  contents: read
-  packages: write
+# permissions:
+#   contents: read
+#   packages: write
 jobs:
   devcontainer:
     runs-on: ubuntu-latest
@@ -24,8 +24,8 @@ jobs:
           # Update this based on your image name and the path of the .devcontainer folder in your repository
           IMAGE_NAME="calm-dsl-utils"
           IMAGE_REPOSITORY="$(echo "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
-          #GIT_COMMIT_ID="$(git rev-parse --short HEAD)"
-          #GIT_TAG="$(git rev-list --tags --max-count=1 | xargs -I {} git describe --tags {})"
+          # GIT_COMMIT_ID="$(git rev-parse --short HEAD)"
+          # GIT_TAG="$(git rev-list --tags --max-count=1 | xargs -I {} git describe --tags {})"
 
           # [Optional] Enable buildkit, set output to plain text for logging
           export DOCKER_BUILDKIT=1
@@ -38,7 +38,7 @@ jobs:
           # Push latest, sha-id and tagged-id image to GitHub Container Registry
           echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           docker push "${IMAGE_REPOSITORY}"
-          #docker tag ${IMAGE_REPOSITORY} ${IMAGE_REPOSITORY}:$(GIT_COMMIT_ID)
-          #docker push "${IMAGE_REPOSITORY}:$(GIT_COMMIT_ID)"
-          #docker tag ${IMAGE_REPOSITORY} ${IMAGE_REPOSITORY}:$(GIT_TAG)
-          #docker push "${IMAGE_REPOSITORY}:$(GIT_TAG)"
+          # docker tag ${IMAGE_REPOSITORY} ${IMAGE_REPOSITORY}:$(GIT_COMMIT_ID)
+          # docker push "${IMAGE_REPOSITORY}:$(GIT_COMMIT_ID)"
+          # docker tag ${IMAGE_REPOSITORY} ${IMAGE_REPOSITORY}:$(GIT_TAG)
+          # docker push "${IMAGE_REPOSITORY}:$(GIT_TAG)"

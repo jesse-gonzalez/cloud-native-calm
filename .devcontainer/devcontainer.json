@@ -16,7 +16,14 @@
   ],
 
   // Set *default* container specific settings.json values on container create.
-
-  "postCreateCommand": "${localEnv:DEFAULT_SHELL}"
+  "settings": {
+    "terminal.integrated.shell.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+      "zsh (container default)": {
+        "path": "/usr/bin/zsh",
+        "overrideName": true
+      }
+    }
+  }
 
 }

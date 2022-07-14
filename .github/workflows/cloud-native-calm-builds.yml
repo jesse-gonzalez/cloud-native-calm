@@ -18,8 +18,11 @@ on:
       - task**
     paths-ignore:
       - 'docs/**'
-      - 'scripts/**'
       - 'terraform/**'
+      - '.github/workflows/container-cicd.yml'
+      - 'scripts/**/*'
+      - '.devcontainer/**/*'
+      - 'Dockerfile'
     tags:
       - v*
   # Allows you to run this workflow manually from the Actions tab

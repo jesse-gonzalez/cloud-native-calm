@@ -74,7 +74,7 @@ _tmp/
 
 # Configuration stuff
 config/**/.cache/**
-.local
+.local/**
 
 # ignore secrets / sops yaml file
 config/**/secrets.yaml.dec
