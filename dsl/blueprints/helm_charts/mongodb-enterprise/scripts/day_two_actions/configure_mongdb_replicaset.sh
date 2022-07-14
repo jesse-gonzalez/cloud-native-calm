@@ -36,6 +36,8 @@ MONGODB_APPDB_DATA_SIZE="@@{mongodb_appdb_data_size}@@"
 MONGODB_APPDB_JOURNAL_SIZE="@@{mongodb_appdb_logs_size}@@"
 MONGODB_APPDB_LOGS_SIZE="@@{mongodb_appdb_journal_size}@@"
 
+MONGODB_APPDB_STORAGE_CLASS="@@{mongodb_appdb_storage_class}@@"
+
 MONGODB_APPDB_REPLICASET_COUNT=@@{mongodb_appdb_replicaset_count}@@
 
 ## Setting MongoDB Namespace to OpsManager Project Manager
@@ -93,15 +95,27 @@ spec:
   podSpec:
     podTemplate:
       spec:
-       containers:
-        - name: $( echo $MONGODB_APPDB_CONTAINER_IMAGE )
-          resources:
-            limits:
-              cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
-              memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
+        containers:
+          - name: $( echo $MONGODB_APPDB_CONTAINER_IMAGE )
+            resources:
+              limits:
+                cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
+                memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
             requests:
               cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
               memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
+        tolerations:
+        - key: karbon-node-pool
+          operator: Exists
+          effect: NoSchedule
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: karbon-node-pool
+            operator: In
+            values:
+            - mongodb-replicaset
     persistence:
       multiple:
         data:

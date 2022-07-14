@@ -41,4 +41,4 @@ echo "kubectl config view --flatten >| /$HOME/.kube/config" | tee -a ~/.bashrc ~
 echo "export KUBECONFIG=\$HOME/.kube/config" | tee -a ~/.bashrc ~/.zshrc ## reset kubeconfig path
 
 # update bashrc to auto cleanup stale kubectl configs. Depends on Krew kubectl plugin manager.
-echo "kubectl config-cleanup --clusters --users --print-removed -o=jsonpath='{ range.contexts[*] }{ .context.cluster }{\"\\n\"}' -t 2 | xargs -I {} rm -f ~/.kube/{}.cfg"  | tee -a ~/.bashrc ~/.zshrc # cleanup any configs that are no longer accessible
+#echo "kubectl config-cleanup --clusters --users --print-removed -o=jsonpath='{ range.contexts[*] }{ .context.cluster }{\"\\n\"}' -t 2 | xargs -I {} rm -f ~/.kube/{}.cfg"  | tee -a ~/.bashrc ~/.zshrc # cleanup any configs that are no longer accessible

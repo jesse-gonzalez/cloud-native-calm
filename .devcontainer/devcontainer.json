@@ -1,0 +1,22 @@
+{
+  "build": {
+    "context": "..",
+    "dockerfile": "../Dockerfile"
+  },
+
+  "image": "ghcr.io/jesse-gonzalez/calm-dsl-utils",
+
+  "runArgs": ["--env-file",".devcontainer/devcontainer.env"],
+
+  "mounts": [
+    // use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
+    "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock",
+    // Mounts the local dir to root calm dir
+    "type=bind,source=${localWorkspaceFolder}/.local,target=/root/.calm"
+  ],
+
+  // Set *default* container specific settings.json values on container create.
+
+  "postCreateCommand": "${localEnv:DEFAULT_SHELL}"
+
+}

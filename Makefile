@@ -3,7 +3,7 @@
 ENVIRONMENT ?= kalm-main-16-4
 DEFAULT_SHELL ?= /bin/zsh
 
-IMAGE_REGISTRY_ORG = ntnxdemo
+IMAGE_REGISTRY_ORG = ghcr.io/jesse-gonzalez
 
 ## load common variables and anything environment specific that overrides
 export ENV_GLOBAL_PATH 	 := $(CURDIR)/config/_common/.env
@@ -207,15 +207,18 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==deleting | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
 	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
-	@calm get apps --limit 50 -q --filter=_state==deleting | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} 2>/dev/null";
+	@calm get apps --limit 50 -q | egrep -v "karbon|bastion" | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app --soft {}";
 	@calm get apps -q -n karbon | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
 	@calm get apps -q -n bastion | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
-	@calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app --soft";
 	@calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
 	@calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
 	@calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
+
+launch-gitops-stack:
+	@calm launch-helm-chart 
 
 ## RELEASE MANAGEMENT
 
