@@ -59,7 +59,7 @@ jobs:
     environment:
       name: ${{ github.event.inputs.github_environment || 'kalm-main-cicd' }}
     container:
-      image: ntnxdemo/calm-dsl-utils:latest
+      image: ntnxdemo/cloud-native-calm-utils:latest
       credentials:
         username: ${{ secrets.DOCKER_HUB_USER }}
         password: ${{ secrets.DOCKER_HUB_PASSWORD }}

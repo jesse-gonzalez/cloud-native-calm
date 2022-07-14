@@ -7,7 +7,7 @@
   // create .local/_common dir if it doesn't exist
   "initializeCommand": "mkdir -p .local/_common",
 
-  "image": "ghcr.io/jesse-gonzalez/calm-dsl-utils",
+  "image": "ghcr.io/jesse-gonzalez/cloud-native-calm-utils",
 
   "runArgs": ["--env-file",".devcontainer/devcontainer.env"],
 

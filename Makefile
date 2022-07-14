@@ -27,24 +27,24 @@ CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)
 ####
 
 docker-build: ### Build Calm DSL Util Image locally with necessary tools to develop and manage Cloud-Native Apps (e.g., kubectl, argocd, git, helm, helmfile, etc.)
-	@docker image ls --filter "reference=${IMAGE_REGISTRY_ORG}/calm-dsl-utils" --format "{{.Repository}}:{{.ID}}" | xargs -I {} docker rmi -f {}
-	@docker build -t ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest .
+	@docker image ls --filter "reference=${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils" --format "{{.Repository}}:{{.ID}}" | xargs -I {} docker rmi -f {}
+	@docker build -t ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:latest .
 
 docker-push: docker-login ### Tag and Push latest image and short sha version to desired image repo.
-	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/calm-dsl-utils -q)" ] || make docker-build
-	@docker push ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest
-	@docker tag ${IMAGE_REGISTRY_ORG}/calm-dsl-utils ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:$(GIT_COMMIT_ID)
-	@docker push ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:$(GIT_COMMIT_ID)
+	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils -q)" ] || make docker-build
+	@docker push ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:latest
+	@docker tag ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:$(GIT_COMMIT_ID)
+	@docker push ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:$(GIT_COMMIT_ID)
 
 docker-run: ### Launch into Calm DSL development container. If image isn't available, build will auto-run
-	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/calm-dsl-utils -q)" ] || docker pull ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest
+	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils -q)" ] || docker pull ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:latest
 	# this will exec you into the interactive container
 	@docker run --rm -it \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/dsl-workspace \
 		-w '/dsl-workspace' \
 		-e ENVIRONMENT='${ENVIRONMENT}' \
-		${IMAGE_REGISTRY_ORG}/calm-dsl-utils /bin/sh -c "${DEFAULT_SHELL}"
+		${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils /bin/sh -c "${DEFAULT_SHELL}"
 
 check-dsl-init: ### Validate whether calm init dsl needs to be executed with target environment.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command

@@ -8,9 +8,9 @@ on:
       - '.devcontainer/**/*'
       - 'scripts/**/*'
       - 'Dockerfile'
-# permissions:
-#   contents: read
-#   packages: write
+permissions:
+  contents: read
+  packages: write
 jobs:
   devcontainer:
     runs-on: ubuntu-latest
@@ -22,7 +22,7 @@ jobs:
           set -e
 
           # Update this based on your image name and the path of the .devcontainer folder in your repository
-          IMAGE_NAME="calm-dsl-utils"
+          IMAGE_NAME="cloud-native-calm-utils"
           IMAGE_REPOSITORY="$(echo "ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
           #GIT_COMMIT_ID="$(git rev-parse --short HEAD)"
           #GIT_TAG="$(git rev-list --tags --max-count=1 | xargs -I {} git describe --tags {})"
