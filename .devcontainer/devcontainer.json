@@ -4,7 +4,7 @@
     "dockerfile": "../Dockerfile"
   },
 
-  "image": "ghcr.io/jesse-gonzalez/calm-dsl-utils",
+  "image": "ntnxdemo/calm-dsl-utils",
 
   "runArgs": ["--env-file",".devcontainer/devcontainer.env"],
 
