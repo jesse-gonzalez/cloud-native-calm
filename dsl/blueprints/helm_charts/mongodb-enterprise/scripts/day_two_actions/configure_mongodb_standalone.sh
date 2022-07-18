@@ -9,13 +9,33 @@ export KUBECONFIG=~/${K8S_CLUSTER_NAME}_${INSTANCE_NAME}.cfg
 MONGODB_USER=@@{MongoDB User.username}@@
 MONGODB_PASS=@@{MongoDB User.secret}@@
 
-## Create Organization
-## Move to Day 2 Action
+## if user provided a value for OM Base URL, then use that - otherise query k8s secrets / configs
+OM_BASE_URL="@@{opsmanager_base_url}@@"
+if [ "${OM_BASE_URL}" == "" ]
+then
+  OM_BASE_URL="http://${NIPIO_INGRESS_DOMAIN}:8080"
+fi
 
-OM_BASE_URL="http://${NIPIO_INGRESS_DOMAIN}:8080"
-OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.publicKey}' | base64 -d)
-OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.privateKey}' | base64 -d)
-OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${NIPIO_INGRESS_DOMAIN}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
+## if user provided a value for API User, then use that - otherise query k8s secrets / configs
+OM_API_USER="@@{opsmanager_api_user}@@"
+if [ "${OM_API_USER}" == "" ]
+then
+  OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.publicKey}' | base64 -d)
+fi
+
+## if user provided a value for API Key, then use that - otherise query k8s secrets / configs
+OM_API_KEY="@@{opsmanager_api_key}@@"
+if [ "${OM_API_KEY}" == "" ]
+then
+  OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.privateKey}' | base64 -d)
+fi
+
+## if user provided a value for Organization, then use that - otherise query k8s secrets / configs
+OM_ORG_ID="@@{opsmanager_org_id}@@"
+if [ "${OM_ORG_ID}" == "" ]
+then
+  OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${NIPIO_INGRESS_DOMAIN}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
+fi
 
 #MONGODB_APPDB_VERSION="4.2.6-ent"
 
@@ -33,7 +53,9 @@ MONGODB_APPDB_STORAGE_CLASS="@@{mongodb_appdb_storage_class}@@"
 
 ## Setting MongoDB Namespace to OpsManager Project Manager
 
-OM_PROJECT_NAME="mongodb-demo-standalone-${RANDOM}"
+MONGODB_STANDALONE_INSTANCE_NAME="@@{mongodb_standalone_instance_name}@@"
+
+OM_PROJECT_NAME="${MONGODB_STANDALONE_INSTANCE_NAME}"
 MONGODB_DEFAULT_SCRAM_USER="mongodb-user-${RANDOM}"
 MONGODB_NAMESPACE="${OM_PROJECT_NAME}"
 

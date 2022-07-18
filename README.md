@@ -174,6 +174,8 @@ Generally speaking, this `Production-like` cluster can be used to serve multiple
 
 1. Provision Primary Calm and Karbon "Main" Environment using the following command:
 
+> WARNING: The `make bootstrap-kalm-all` target / scripts `WILL` attempt to `DELETE ALL EXISTING` apps, blueprints, endpoints, runbooks and marketplace items `ON EACH RUN`, so `RUN WITH CAUTION!!!`.
+
   `make bootstrap-kalm-all ENVIRONMENT=kalm-main-{hpoc_id}`
   > For Example: `make bootstrap-kalm-all ENVIRONMENT=kalm-main-11-2`
 
@@ -197,6 +199,15 @@ Generally speaking, this `Production-like` cluster can be used to serve multiple
 ### INTERNAL ONLY: [Bootstrapping a Single-Node HPOC - Kalm Environment](docs/single-node-hpoc-bootstrap.md)
 
 ## Troubleshooting
+
+### Resetting Entire Environment
+
+If you need to re-run the procedures due to failure or just wish to cleanup environment in entirety run the following command:
+
+> WARNING: The `make bootstrap-reset-all` target / scripts `WILL` attempt to `DELETE ALL EXISTING` apps, blueprints, endpoints, runbooks and marketplace items `ON EACH RUN`, so `RUN WITH CAUTION!!!`.
+
+  `make bootstrap-reset-all ENVIRONMENT=kalm-main-{hpoc_id}`
+  > For Example: `make bootstrap-reset-all ENVIRONMENT=kalm-main-11-2`
 
 ### Access Karbon Cluster
 

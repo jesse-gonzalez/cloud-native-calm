@@ -1,8 +1,22 @@
+
+- [Bootstrapping a SingleNode HPOC - Kalm Environment](#bootstrapping-a-singlenode-hpoc---kalm-environment)
+  - [Overall Workflow](#overall-workflow)
+  - [Reserving Single Node HPOC Cluster](#reserving-single-node-hpoc-cluster)
+  - [Bootstrap Calm Blueprints and Karbon Clusters - Single Node HPOC Cluster ONLY](#bootstrap-calm-blueprints-and-karbon-clusters---single-node-hpoc-cluster-only)
+  - [Launch all available helm chart blueprints into Production Cluster](#launch-all-available-helm-chart-blueprints-into-production-cluster)
+  - [Additional Manual Procedures](#additional-manual-procedures)
+  - [Manual Staging of Additional Nutanix Services](#manual-staging-of-additional-nutanix-services)
+    - [Configure Nutanix Files NFS (RWX Scenarios)](#configure-nutanix-files-nfs-rwx-scenarios)
+  - [Alternative Scenarios](#alternative-scenarios)
+    - [Adding Secondary AHV Cluster to existing Cluster](#adding-secondary-ahv-cluster-to-existing-cluster)
+
 # Bootstrapping a SingleNode HPOC - Kalm Environment
 
-The HPOC bootstrapping process assumes that the server was built using the following networking scheme
+The following procedures will bootstrap a newly provisioned SingleNode HPOC cluster.  
 
-## Workflow
+> WARNING: The `make bootstrap-kalm-all` target / scripts `WILL` attempt to `DELETE ALL EXISTING` apps, blueprints, endpoints, runbooks and marketplace items `ON EACH RUN`, so `RUN WITH CAUTION!!!`.
+
+## Overall Workflow
 
 1. [Reserving Single Node HPOC Cluster](#reserving-single-node-hpoc-cluster)
 1. [Setup Local Development Environment](../README.md#setup-local-development-environment)
@@ -38,7 +52,7 @@ The HPOC bootstrapping process assumes that the server was built using the follo
     `make launch-all-helm-charts ENVIRONMENT=kalm-main-{hpoc_id}`
     > EXAMPLE: `make launch-all-helm-charts ENVIRONMENT=kalm-main-11-2`
 
-## Outstanding Manual Procedures
+## Additional Manual Procedures
 
 1. [Optional] - Configure Project `Environment` tab (e.g., credentials, vcpu, memory, image, etc.) to ensure that Launching of Marketplace Items are successful.
 
@@ -48,11 +62,24 @@ The HPOC bootstrapping process assumes that the server was built using the follo
 
 ### Configure Nutanix Files NFS (RWX Scenarios)
 
-1. Enable Files Service via Prism Central for easier navigation between demo environments
 1. Configure NFS Protocol / Export to be leveraged by Karbon
     ![enable-nfs-protocol](images/enable-nfs-protocol.png)
-1. Configure NFS Export with Whitelist for Subnet
+1. Configure NFS Export with Whitelist for Subnet to be leveraged by Karbon Static NFS Use Case
 
+## Alternative Scenarios
 
-## Troubleshooting
+### Adding Secondary AHV Cluster to existing Cluster
+
+If you need additional capacity to deploy more clusters (i.e., DR scenario), you can deploy a secondary Single-Node HPOC and Select the "Classic" Option
+
+1. Reserve Additional Single Node HPOC Cluster and Select the `Classic` Option, Set the Password to be the same as existing PC cluster, and Enable the `Foundation Only` Checkbox
+  ![rx-reserve-secondary-cluster-options](images/rx-reserve-secondary-cluster-options.png)
+1. Identify DHCP Range for target cluster, which can be found on `RX Dashboard`
+  ![secondary-cluster-dhcp-range](images/secondary-cluster-dhcp-range.png)
+1. Identify existing cluster's DNS Server IP to re-use, typically labeled as `autoad` VM in existing instance.
+1. Create `Secondary` subnet with appropriate range - and leverage DNS server from Existing Cluster. (HINT: If stuck, use `Primary` Network DNS Settings as example)
+  ![secondary-subnet](secondary-subnet.png)
+1. On completion, `Register PE Cluster` to Existing Prism Central Instance (standard workflow)
+1. Create environment specific `configs/.local` directories as you've done previously, and update `.env` file with configs to override. See `docs/examples/secondary-ahv-cluster.env` as example
+   1. Run `make print-vars` and `make print-secrets` to make sure configs looks correct.
 

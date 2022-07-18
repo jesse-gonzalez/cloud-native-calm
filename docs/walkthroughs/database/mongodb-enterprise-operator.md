@@ -171,11 +171,11 @@ Leverage MongoDB Enterprise Operator & Calm to Deploy MongoDB Instance and Auto-
 # MAKING API CALLS IF NEEDED
 
 OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
-OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
-OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+opsmanager_api_user=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
+opsmanager_api_key=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
 
 ## Get Organization ID if needed
-curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id'
+curl --user ${opsmanager_api_user}:${opsmanager_api_key} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id'
 
 kubectl get mdb -n mongodb
 ```
@@ -573,22 +573,22 @@ Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / 
 ## Get OpsManager vars
 OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
 OM_BASE_URL="http://${OPSMANAGER_HOST}:8080"
-OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
-OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
-OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
+opsmanager_api_user=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
+opsmanager_api_key=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+opsmanager_org_id=$(curl --user ${opsmanager_api_user}:${opsmanager_api_key} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
 
 echo $OPSMANAGER_HOST
 echo $OM_BASE_URL
-echo $OM_API_USER
-echo $OM_API_KEY
-echo $OM_ORG_ID
+echo $opsmanager_api_user
+echo $opsmanager_api_key
+echo $opsmanager_org_id
 
 OM_PROJECT_NAME="mongodb-oplog-replicaset"
 
 ## Create the Oplog Store ReplicaSet
 kubectl -n mongodb-enterprise create secret generic organization-secret \
-  --from-literal="user=$OM_API_USER" \
-  --from-literal="publicApiKey=$OM_API_KEY" \
+  --from-literal="user=$opsmanager_api_user" \
+  --from-literal="publicApiKey=$opsmanager_api_key" \
   --dry-run=client -o yaml | kubectl apply -n mongodb-enterprise -f -
 
 ## Create the s3 creds 
@@ -607,7 +607,7 @@ metadata:
 data:
   baseUrl: $( echo $OM_BASE_URL )
   projectName: $( echo $OM_PROJECT_NAME )-project
-  orgId: $( echo $OM_ORG_ID )
+  orgId: $( echo $opsmanager_org_id )
 ---
 apiVersion: mongodb.com/v1
 kind: MongoDB

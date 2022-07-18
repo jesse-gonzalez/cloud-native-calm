@@ -57,9 +57,14 @@ class HelmService(Service):
     name = "Helm_"+helm_chart_name
 
     nipio_ingress_domain = CalmVariable.Simple.string("",)
-    #om_org_id = CalmVariable.Simple.string("",)
-    #om_api_user = CalmVariable.Simple.string("",)
-    #om_api_key = CalmVariable.Simple.string("",)
+    opsmanager_base_url = CalmVariable.Simple.string("",)
+    opsmanager_org_id = CalmVariable.Simple.string("",)
+    opsmanager_api_user = CalmVariable.Simple.string("",)
+    opsmanager_api_key = CalmVariable.Simple.string("",)
+    opsmanager_version = CalmVariable.Simple.string("",)
+    opsmanager_appdb_version = CalmVariable.Simple.string("",)
+    opsmanager_replicaset_count = CalmVariable.Simple.string("",)
+    opsmanager_appdb_replicaset_count = CalmVariable.Simple.string("",)
 
     mongodb_appdb_version = CalmVariable.Simple.string("",)
     mongodb_appdb_container_image = CalmVariable.Simple.string("",)
@@ -75,6 +80,9 @@ class HelmService(Service):
     mongodb_appdb_shard_count = CalmVariable.Simple.string("",)
     mongodb_appdb_configserver_count = CalmVariable.Simple.string("",)
     mongodb_appdb_storage_class = CalmVariable.Simple.string("",)
+    mongodb_standalone_instance_name = CalmVariable.Simple.string("",)
+    mongodb_sharded_instance_name = CalmVariable.Simple.string("",)
+    mongodb_replicaset_instance_name = CalmVariable.Simple.string("",)
 
     @action
     def InstallHelmChart(name="Install "+helm_chart_name):
@@ -139,7 +147,7 @@ class HelmService(Service):
         )
         CalmTask.Exec.ssh(
             name="Configure MongoDB Clusters",
-            filename="scripts/day_two_actions/configure_mongdb_standalone.sh",
+            filename="scripts/day_two_actions/configure_mongodb_standalone.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
@@ -154,7 +162,7 @@ class HelmService(Service):
         )
         CalmTask.Exec.ssh(
             name="Configure MongoDB Clusters",
-            filename="scripts/day_two_actions/configure_mongdb_replicaset.sh",
+            filename="scripts/day_two_actions/configure_mongodb_replicaset.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
@@ -169,7 +177,7 @@ class HelmService(Service):
         )
         CalmTask.Exec.ssh(
             name="Configure MongoDB Clusters",
-            filename="scripts/day_two_actions/configure_mongdb_sharded.sh",
+            filename="scripts/day_two_actions/configure_mongodb_sharded.sh",
             target=ref(HelmService),
             cred=ref(NutanixCred)
         )
@@ -201,7 +209,7 @@ class HelmPackage(Package):
     @action
     def __install__():
         HelmService.InstallHelmChart(name="Install "+helm_chart_name)
-        HelmService.ConfigureOpsManager(name="Configuring OpsManager")
+        #HelmService.ConfigureOpsManager(name="Configuring OpsManager")
 
     @action
     def __uninstall__():
@@ -285,72 +293,86 @@ class Default(Profile):
         is_hidden=True,
         runtime=False,
     )
+    @action
+    def ConfigureOpsManager(name="Configure OpsManager Instance"):
+        """
+    Configure MongoDB OpsManager Instance
+        """
+        opsmanager_version = CalmVariable.Simple(
+            os.getenv("OPSMANAGER_VERSION"),
+            label="OpsManager Version",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Version",
+        )
 
-    opsmanager_version = CalmVariable.Simple(
-        os.getenv("OPSMANAGER_VERSION"),
-        label="OpsManager Version",
-        is_mandatory=True,
-        is_hidden=False,
-        runtime=True,
-        description="OpsManager Version",
-    )
+        opsmanager_appdb_version = CalmVariable.Simple(
+            os.getenv("OPSMANAGER_APPDB_VERSION"),
+            label="OpsManager MongoDB AppDB Version",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager MongoDB AppDB Version",
+        )
 
-    opsmanager_appdb_version = CalmVariable.Simple(
-        os.getenv("OPSMANAGER_APPDB_VERSION"),
-        label="OpsManager MongoDB AppDB Version",
-        is_mandatory=True,
-        is_hidden=False,
-        runtime=True,
-        description="OpsManager MongoDB AppDB Version",
-    )
+        opsmanager_replicaset_count = CalmVariable.Simple(
+            os.getenv("OPSMANAGER_REPLICASET_COUNT"),
+            label="OpsManager Replicaset Count",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Replicaset Count",
+        )
 
-    opsmanager_replicaset_count = CalmVariable.Simple(
-        os.getenv("OPSMANAGER_REPLICASET_COUNT"),
-        label="OpsManager Replicaset Count",
-        is_mandatory=True,
-        is_hidden=False,
-        runtime=True,
-        description="OpsManager Replicaset Count",
-    )
+        opsmanager_appdb_replicaset_count = CalmVariable.Simple(
+            os.getenv("OPSMANAGER_APPDB_REPLICASET_COUNT"),
+            label="OpsManager Backend AppDB Replicaset Count",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Backend AppDB Replicaset Count",
+        )
 
-    opsmanager_appdb_replicaset_count = CalmVariable.Simple(
-        os.getenv("OPSMANAGER_APPDB_REPLICASET_COUNT"),
-        label="OpsManager Backend AppDB Version",
-        is_mandatory=True,
-        is_hidden=False,
-        runtime=True,
-        description="OpsManager Backend AppDB Version",
-    )
+        HelmService.ConfigureOpsManager(name="Configure OpsManager Instance")
 
     @action
     def ConfigureMongoDBStandalone(name="Configure MongoDB Standalone Instance"):
         """
     Configure Standalone Mongodb Instance
         """
-        # om_org_id = CalmVariable.Simple(
-        #     "",
-        #     label="OpsManager Organization ID",
-        #     is_mandatory=True,
-        #     is_hidden=False,
-        #     runtime=True,
-        #     description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
-        # )
-        # om_api_user = CalmVariable.Simple(
-        #     "",
-        #     label="OpsManager API Key User",
-        #     is_mandatory=True,
-        #     is_hidden=False,
-        #     runtime=True,
-        #     description="OpsManager API Key User. i.e., jgejkwud",
-        # )
-        # om_api_key = CalmVariable.Simple(
-        #     "",
-        #     label="OpsManager API Key",
-        #     is_mandatory=True,
-        #     is_hidden=False,
-        #     runtime=True,
-        #     description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
-        # )
+        opsmanager_base_url = CalmVariable.Simple(
+            "",
+            label="OpsManager External URL Endpoint [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager External URL Endpoint - only if registeristing from external K8s clusters. i.e., http://opsmanager-ext.ntnxlab.local",
+        )
+        opsmanager_org_id = CalmVariable.Simple(
+            "",
+            label="OpsManager Organization ID [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        )
+        opsmanager_api_user = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key User [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key User. i.e., jgejkwud",
+        )
+        opsmanager_api_key = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
+        )
         mongodb_appdb_version = CalmVariable.Simple(
             os.getenv("MONGODB_APPDB_VERSION"),
             label="MongoDB AppDB Version",
@@ -415,6 +437,14 @@ class Default(Profile):
             runtime=True,
             description="Storage Class Name",
         )
+        mongodb_standalone_instance_name = CalmVariable.Simple(
+            os.getenv("MONGODB_STANDALONE_INSTANCE_NAME"),
+            label="MongoDB Standalone Instance Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB Standalone Instance Name, to be used for K8s Namespace and OpsManagerProject",
+        )
 
         HelmService.ConfigureMongoDBStandalone(name="Configure MongoDB Standalone Instance")
 
@@ -423,14 +453,39 @@ class Default(Profile):
         """
     Configure MongoDB ReplicaSet Cluster
         """
-        # om_org_id = CalmVariable.Simple(
-        #     "",
-        #     label="OpsManager Organization ID",
-        #     is_mandatory=True,
-        #     is_hidden=False,
-        #     runtime=True,
-        #     description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
-        # )
+
+        opsmanager_base_url = CalmVariable.Simple(
+            "",
+            label="OpsManager External URL Endpoint [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager External URL Endpoint - only if registeristing from external K8s clusters. i.e., http://opsmanager-ext.ntnxlab.local",
+        )
+        opsmanager_org_id = CalmVariable.Simple(
+            "",
+            label="OpsManager Organization ID [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        )
+        opsmanager_api_user = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key User [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key User. i.e., jgejkwud",
+        )
+        opsmanager_api_key = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
+        )
         mongodb_appdb_replicaset_count = CalmVariable.Simple(
             os.getenv("MONGODB_APPDB_REPLICASET_COUNT"),
             label="MongoDB AppDB ReplicaSet Count",
@@ -503,6 +558,14 @@ class Default(Profile):
             runtime=True,
             description="Storage Class Name",
         )
+        mongodb_replicaset_instance_name = CalmVariable.Simple(
+            os.getenv("MONGODB_REPLICASET_INSTANCE_NAME"),
+            label="MongoDB ReplicaSet Cluster Instance Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB ReplicaSet Cluster Instance Name, to be used for K8s Namespace and OpsManager Project",
+        )
 
         HelmService.ConfigureMongoDBReplicaSet(name="Configure MongoDB ReplicaSet Cluster")
 
@@ -511,14 +574,39 @@ class Default(Profile):
         """
     Configure MongoDB Sharded Cluster
         """
-        # om_org_id = CalmVariable.Simple(
-        #     "",
-        #     label="OpsManager Organization ID",
-        #     is_mandatory=True,
-        #     is_hidden=False,
-        #     runtime=True,
-        #     description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
-        # )
+
+        opsmanager_base_url = CalmVariable.Simple(
+            "",
+            label="OpsManager External URL Endpoint [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager External URL Endpoint - only if registeristing from external K8s clusters. i.e., http://opsmanager-ext.ntnxlab.local",
+        )
+        opsmanager_org_id = CalmVariable.Simple(
+            "",
+            label="OpsManager Organization ID [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager Organization ID. i.e., 62c7a4dbbdff127f78561be3",
+        )
+        opsmanager_api_user = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key User [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key User. i.e., jgejkwud",
+        )
+        opsmanager_api_key = CalmVariable.Simple(
+            "",
+            label="OpsManager API Key [Optional]",
+            is_mandatory=False,
+            is_hidden=False,
+            runtime=True,
+            description="OpsManager API Key. i.e., 827c16bb-5f6e-4ed8-a234-95066d7a6684",
+        )
         mongodb_appdb_shard_count = CalmVariable.Simple(
             os.getenv("MONGODB_APPDB_SHARD_COUNT"),
             label="MongoDB AppDB Shard Count",
@@ -615,7 +703,14 @@ class Default(Profile):
             runtime=True,
             description="Storage Class Name",
         )
-
+        mongodb_sharded_instance_name = CalmVariable.Simple(
+            os.getenv("MONGODB_SHARDED_INSTANCE_NAME"),
+            label="MongoDB Sharded Cluster Instance Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="MongoDB Shard Cluster Instance Name, to be used for K8s Namespace and OpsManager Project",
+        )
 
         HelmService.ConfigureMongoDBSharded(name="Configure MongoDB Sharded Cluster")
 

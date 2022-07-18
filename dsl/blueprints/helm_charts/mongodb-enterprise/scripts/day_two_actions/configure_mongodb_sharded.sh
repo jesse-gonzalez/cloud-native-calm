@@ -9,10 +9,33 @@ export KUBECONFIG=~/${K8S_CLUSTER_NAME}_${INSTANCE_NAME}.cfg
 MONGODB_USER=@@{MongoDB User.username}@@
 MONGODB_PASS=@@{MongoDB User.secret}@@
 
-OM_BASE_URL="http://${NIPIO_INGRESS_DOMAIN}:8080"
-OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.publicKey}' | base64 -d)
-OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.privateKey}' | base64 -d)
-OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${NIPIO_INGRESS_DOMAIN}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
+## if user provided a value for OM Base URL, then use that - otherise query k8s secrets / configs
+OM_BASE_URL="@@{opsmanager_base_url}@@"
+if [ "${OM_BASE_URL}" == "" ]
+then
+  OM_BASE_URL="http://${NIPIO_INGRESS_DOMAIN}:8080"
+fi
+
+## if user provided a value for API User, then use that - otherise query k8s secrets / configs
+OM_API_USER="@@{opsmanager_api_user}@@"
+if [ "${OM_API_USER}" == "" ]
+then
+  OM_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.publicKey}' | base64 -d)
+fi
+
+## if user provided a value for API Key, then use that - otherise query k8s secrets / configs
+OM_API_KEY="@@{opsmanager_api_key}@@"
+if [ "${OM_API_KEY}" == "" ]
+then
+  OM_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.privateKey}' | base64 -d)
+fi
+
+## if user provided a value for Organization, then use that - otherise query k8s secrets / configs
+OM_ORG_ID="@@{opsmanager_org_id}@@"
+if [ "${OM_ORG_ID}" == "" ]
+then
+  OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "${NIPIO_INGRESS_DOMAIN}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
+fi
 
 # MONGODB_APPDB_VERSION="4.2.6-ent"
 # MONGODB_APPDB_CONTAINER_IMAGE="mongodb-enterprise-database"
@@ -20,11 +43,13 @@ OM_ORG_ID=$(curl --user ${OM_API_USER}:${OM_API_KEY} --digest -s --request GET "
 # MONGODB_APPDB_CPU_LIMITS="2"
 # MONGODB_APPDB_MEM_LIMITS="2G"
 
-# MONGODB_APPDB_DATA_SIZE="10Gi"
-# MONGODB_APPDB_JOURNAL_SIZE="1Gi"
-# MONGODB_APPDB_LOGS_SIZE="500M"
+# MONGODB_APPDB_DATA_SIZE="20Gi"
+# MONGODB_APPDB_LOGS_SIZE="4Gi"
 
-# MONGODB_APPDB_REPLICASET_COUNT="3"
+# MONGODB_APPDB_SHARD_COUNT="2"
+# MONGODB_APPDB_MONGODS_PER_SHARD_COUNT="3"
+# MONGODB_APPDB_MONGOS_COUNT="2"
+# MONGODB_APPDB_CONFIGSERVER_COUNT="3"
 
 MONGODB_APPDB_VERSION="@@{mongodb_appdb_version}@@"
 MONGODB_APPDB_CONTAINER_IMAGE="@@{mongodb_appdb_container_image}@@"
@@ -38,11 +63,16 @@ MONGODB_APPDB_LOGS_SIZE="@@{mongodb_appdb_journal_size}@@"
 
 MONGODB_APPDB_STORAGE_CLASS="@@{mongodb_appdb_storage_class}@@"
 
-MONGODB_APPDB_REPLICASET_COUNT=@@{mongodb_appdb_replicaset_count}@@
+MONGODB_APPDB_SHARD_COUNT=@@{mongodb_appdb_shard_count}@@
+MONGODB_APPDB_MONGODS_PER_SHARD_COUNT=@@{mongodb_appdb_mongods_per_shard_count}@@
+MONGODB_APPDB_MONGOS_COUNT=@@{mongodb_appdb_monogos_count}@@
+MONGODB_APPDB_CONFIGSERVER_COUNT=@@{mongodb_appdb_configserver_count}@@
 
 ## Setting MongoDB Namespace to OpsManager Project Manager
 
-OM_PROJECT_NAME="mongodb-demo-replicaset-${RANDOM}"
+MONGODB_SHARDED_INSTANCE_NAME="@@{mongodb_sharded_instance_name}@@"
+
+OM_PROJECT_NAME="${MONGODB_SHARDED_INSTANCE_NAME}"
 MONGODB_DEFAULT_SCRAM_USER="mongodb-user-${RANDOM}"
 MONGODB_NAMESPACE="${OM_PROJECT_NAME}"
 
@@ -74,7 +104,7 @@ data:
 EOF
 
 ##############
-## Create MongoDB ReplicaSet Cluster and Database User in Target Namespace
+## Create MongoDB Sharded Cluster and Database User in Target Namespace
 
 cat <<EOF | kubectl apply -n ${MONGODB_NAMESPACE} -f -
 ---
@@ -83,27 +113,21 @@ kind: MongoDB
 metadata:
   name: $( echo $OM_PROJECT_NAME )
 spec:
-  members: $( echo $MONGODB_APPDB_REPLICASET_COUNT )
+  shardCount: $( echo $MONGODB_APPDB_SHARD_COUNT )
+  mongodsPerShardCount: $( echo $MONGODB_APPDB_MONGODS_PER_SHARD_COUNT )
+  mongosCount: $( echo $MONGODB_APPDB_MONGOS_COUNT )
+  configServerCount: $( echo $MONGODB_APPDB_CONFIGSERVER_COUNT )
   version: $( echo $MONGODB_APPDB_VERSION )
   service: $( echo $OM_PROJECT_NAME )-service
+  type: ShardedCluster
   opsManager:
     configMapRef:
       name: $( echo $OM_PROJECT_NAME )-config
   credentials: organization-secret
   persistent: true
-  type: ReplicaSet
-  podSpec:
+  shardPodSpec:
     podTemplate:
       spec:
-        containers:
-          - name: $( echo $MONGODB_APPDB_CONTAINER_IMAGE )
-            resources:
-              limits:
-                cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
-                memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
-            requests:
-              cpu: $( echo $MONGODB_APPDB_CPU_LIMITS )
-              memory: $( echo $MONGODB_APPDB_MEM_LIMITS )
         tolerations:
         - key: karbon-node-pool
           operator: Exists
@@ -115,7 +139,7 @@ spec:
           - key: karbon-node-pool
             operator: In
             values:
-            - mongodb-replicaset
+            - mongodb-sharded
     persistence:
       multiple:
         data:
@@ -124,6 +148,20 @@ spec:
           storage: $( echo $MONGODB_APPDB_JOURNAL_SIZE )
         logs:
           storage: $( echo $MONGODB_APPDB_LOGS_SIZE )
+  mongos:
+    additionalMongodConfig:
+      systemLog:
+        logAppend: true
+        verbosity: 4
+  configSrv:
+    additionalMongodConfig:
+      operationProfiling:
+        mode: slowOp
+  shard:
+    additionalMongodConfig:
+      storage:
+        journal:
+          commitIntervalMs: 50
 EOF
 
 ##############
@@ -169,4 +207,3 @@ while [[ -z $(kubectl get pod -l app=${OM_PROJECT_NAME}-service -n ${MONGODB_NAM
 done
 
 kubectl wait --for=condition=Ready pod -l app=${OM_PROJECT_NAME}-service --timeout=15m -n ${MONGODB_NAMESPACE}
-

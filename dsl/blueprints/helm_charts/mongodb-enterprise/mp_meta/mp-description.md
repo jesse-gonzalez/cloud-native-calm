@@ -14,8 +14,6 @@ The Operator enables easy deploy of the following applications into Kubernetes c
 This chart will do the following:
 
 - Deploy MongoDB Enterprise Operator
-- Deploy MongoDB OpsManager Cluster (+ Backend ApplicationDB ReplicaSet)
-- Expose MongoDB via MetalLB Service LoadBalancer
 
 #### Prerequisites
 
@@ -28,6 +26,8 @@ The following services have been pre-configured:
 
 #### Day 2 Actions
 
+- Configure MongoDB OpsManager Cluster (+ Backend ApplicationDB ReplicaSet)
+  - Expose MongoDB OpsManager via MetalLB Service LoadBalancer
 - Configure MongoDB Standalone Instance
 - Configure MongoDB ReplicaSet Cluster
 - Configure MongoDB Sharded Cluster

@@ -143,7 +143,7 @@ create-dsl-runbook: ### Create Runbook. i.e., make create-dsl-runbook RUNBOOK=up
 create-all-dsl-runbooks: ### Create ALL Endpoint Resources. i.e., make create-all-dsl-runbooks ENVIRONMENT=kalm-main-16-1
 	ls dsl/runbooks | xargs -I {} make create-dsl-runbook RUNBOOK={} ENVIRONMENT=${ENVIRONMENT}
 
-run-dsl-runbook: ### Run Runbook with Specific Scenario. i.e., make run-dsl-runbook RUNBOOK=update_ad_dns SCENARIO=create_ingress_dns_params ENVIRONMENT=kalm-main-16-1
+run-dsl-runbook: ### Run Runbook with Specific Scenario. i.e., make run-dsl-runbook RUNBOOK=update_ad_dns SCENARIO=create_bastion_host_ws_dns_params ENVIRONMENT=kalm-main-16-1
 	@calm run runbook -i --input-file ./dsl/runbooks/${RUNBOOK}/init-scenarios/${SCENARIO}.py ${RUNBOOK}
 
 run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runbook i.e., make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=kalm-main-16-1
@@ -158,7 +158,7 @@ init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., m
 	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
 
 set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
-	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
+	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 --filter=_state==running | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
 		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo -e "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
 
 init-runbook-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-runbook-infra ENVIRONMENT=kalm-main-16-1
@@ -216,9 +216,6 @@ bootstrap-reset-all: ## Reset Environment Configurations that can't be easily ov
 	@calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
 	@calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
 	@calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
-
-launch-gitops-stack:
-	@calm launch-helm-chart 
 
 ## RELEASE MANAGEMENT
 
