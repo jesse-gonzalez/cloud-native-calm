@@ -8,17 +8,10 @@ users:
       - @@{nutanix_public_key}@@
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     lock_passwd: false
-ssh_pwauth: true
-chpasswd:
-  expire: false
-  users:
-    - name: @@{Nutanix.username}@@
-      password: @@{Nutanix.secret}@@
-      type: text
+ssh_pwauth: false
 fqdn: @@{name}@@.@@{domain_name}@@
 manage_etc_hosts: true
 hostname: @@{name}@@
-prefer_fqdn_over_hostname: false
 write_files:
   - path: /etc/sysctl.d/10-disable-ipv6.conf
     permissions: 0644

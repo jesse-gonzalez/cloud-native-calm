@@ -149,74 +149,6 @@ run-dsl-runbook: ### Run Runbook with Specific Scenario. i.e., make run-dsl-runb
 run-all-dsl-runbook-scenarios: ### Runs all dsl runbook scenarios for given runbook i.e., make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=kalm-main-16-1
 	@ls dsl/runbooks/${RUNBOOK}/init-scenarios/*.py | cut -d/ -f5 | cut -d. -f1 | xargs -I {} make run-dsl-runbook RUNBOOK=${RUNBOOK} SCENARIO={}
 
-## WORKFLOWS
-
-init-bastion-host-svm init-runbook-infra init-kalm-cluster init-helm-charts publish-all-blueprints bootstrap-reset-all: check-dsl-init
-
-init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
-	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
-	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
-
-set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
-	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 --filter=_state==running | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
-		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo -e "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
-
-init-runbook-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-runbook-infra ENVIRONMENT=kalm-main-16-1
-	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
-	@make create-all-dsl-endpoints ENVIRONMENT=${ENVIRONMENT};
-	@make create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT};
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT};
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT};
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=${ENVIRONMENT};
-
-init-helm-charts: ### Intialize Helm Chart Marketplace. i.e., make init-helm-charts ENVIRONMENT=kalm-main-16-1
-	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
-
-init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
-	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
-	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT};
-	@make download-karbon-cfgs ENVIRONMENT=${ENVIRONMENT};
-	@make create-dsl-bps launch-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
-
-publish-all-blueprints: ### Publish all stable helm charts and blueprints
-ifeq ($(MP_GIT_TAG),$(shell calm get marketplace bps 2>/dev/null | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs))
-	@make unpublish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
-endif
-ifneq ($(shell calm get marketplace bps 2>/dev/null | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs),)
-	@make publish-existing-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
-	@make publish-existing-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
-	@make publish-all-existing-helm-bps ENVIRONMENT=${ENVIRONMENT};
-else
-	@make publish-new-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
-	@make publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
-	@make publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT};
-endif
-
-unpublish-all-blueprints: ### Un-publish all marketplace items and delete marketplace blueprints (and un-used app icons) for current git tag version.
-	@calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} && calm delete marketplace bp {} -v ${MP_GIT_TAG}";
-	@calm get marketplace bps | grep -i ${MP_GIT_TAG} | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm delete marketplace bp {} -v ${MP_GIT_TAG}";
-	@calm get app_icons --limit 50 --marketplace_use | grep -i false  | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm delete app_icon {}";
-
-bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
-	@make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
-	@make bootstrap-reset-all ENVIRONMENT=${ENVIRONMENT};
-	@make init-bastion-host-svm ENVIRONMENT=${ENVIRONMENT};
-	@make init-runbook-infra ENVIRONMENT=${ENVIRONMENT};
-	@make init-kalm-cluster ENVIRONMENT=${ENVIRONMENT};
-	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
-	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
-
-bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
-	@calm get apps --limit 50 -q --filter=_state==deleting | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
-	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
-	@calm get apps --limit 50 -q | egrep -v "karbon|bastion" | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app --soft {}";
-	@calm get apps -q -n karbon | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
-	@calm get apps -q -n bastion | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
-	@calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
-	@calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
-	@calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
-
 ## RELEASE MANAGEMENT
 
 ## Following should be run from master branch along with git tag v1.0.x-$(git rev-parse --short HEAD), git push origin --tags, validate with git tag -l
@@ -224,7 +156,7 @@ bootstrap-reset-all: ## Reset Environment Configurations that can't be easily ov
 # If needing to publish from a previous commit/tag than current master HEAD, from master, run git reset --hard tagname to set local working copy to that point in time.
 # Run git reset --hard origin/master to return your local working copy back to latest master HEAD.
 
-publish-new-helm-bpsm publish-existing-helm-bps unpublish-helm-bps publish-all-new-helm-bps publish-all-existing-helm-bps unpublish-all-helm-bps: check-dsl-init
+publish-new-helm-bpsm publish-existing-helm-bps unpublish-helm-bps publish-all-new-helm-bps publish-all-existing-helm-bps unpublish-all-helm-bps publish-all-blueprints unpublish-all-blueprints: check-dsl-init
 
 promote-release: github-login ## Promote next version of git tag
 	@git fetch --tags
@@ -261,6 +193,75 @@ publish-all-existing-helm-bps: ### Publish New Version of all existing helm char
 unpublish-all-helm-bps: ### Unpublish all Helm Chart Blueprints of latest git release (i.e., git tag --list)
 	ls dsl/blueprints/helm_charts | xargs -I {} make unpublish-helm-bps ENVIRONMENT=${ENVIRONMENT} CHART={}
 
+publish-all-blueprints: ### Publish all stable helm charts and blueprints
+ifeq ($(MP_GIT_TAG),$(shell calm get marketplace bps 2>/dev/null | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs))
+	@make unpublish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
+endif
+ifneq ($(shell calm get marketplace bps 2>/dev/null | grep LOCAL | grep -v ExpressLaunch | cut -d "|" -f8 | uniq | tail -n1 | xargs),)
+	@make publish-existing-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+	@make publish-existing-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
+	@make publish-all-existing-helm-bps ENVIRONMENT=${ENVIRONMENT};
+else
+	@make publish-new-dsl-bps DSL_BP=set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+	@make publish-new-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
+	@make publish-all-new-helm-bps ENVIRONMENT=${ENVIRONMENT};
+endif
+
+unpublish-all-blueprints: ### Un-publish all marketplace items and delete marketplace blueprints (and un-used app icons) for current git tag version.
+	@calm get marketplace items -d | grep xargs -I {} calm get marketplace items -d -q | xargs -I {} -t sh -c "calm unpublish marketplace bp -v ${MP_GIT_TAG} -s LOCAL {} && calm delete marketplace bp {} -v ${MP_GIT_TAG}";
+	@calm get marketplace bps | grep -i ${MP_GIT_TAG} | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm delete marketplace bp {} -v ${MP_GIT_TAG}";
+	@calm get app_icons --limit 50 --marketplace_use | grep -i false  | awk '{ print $$2 }' | xargs -I {} -t sh -c "calm delete app_icon {}";
+
+##########
+## SCENARIOS/WORKFLOWS
+
+init-bastion-host-svm set-bastion-host init-runbook-infra init-kalm-cluster init-helm-charts bootstrap-kalm-all bootstrap-reset-all: check-dsl-init
+
+init-bastion-host-svm: ### Initialize Karbon Admin Bastion Workstation. .i.e., make init-bastion-host-svm ENVIRONMENT=kalm-main-16-1
+	@make create-dsl-bps launch-dsl-bps DSL_BP=bastion_host_svm ENVIRONMENT=${ENVIRONMENT};
+	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+
+set-bastion-host: ### Update Dynamic IP for Linux Bastion Endpoint. .i.e., make set-bastion-host ENVIRONMENT=kalm-main-16-1
+	@export BASTION_HOST_SVM_IP=$(shell calm get apps -n bastion-host-svm -q -l 1 --filter=_state==running | xargs -I {} calm describe app {} -o json | jq '.status.resources.deployment_list[0].substrate_configuration.element_list[0].address' | tr -d '"'); \
+		grep -i BASTION_HOST_SVM_IP $(ENV_OVERRIDE_PATH) && sed -i "s/BASTION_HOST_SVM_IP =.*/BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP/g" $(ENV_OVERRIDE_PATH) || echo -e "BASTION_HOST_SVM_IP = $$BASTION_HOST_SVM_IP" >> $(ENV_OVERRIDE_PATH);
+
+init-runbook-infra: ### Initialize Calm Shared Infra from Endpoint, Runbook and Supporting Blueprints perspective. .i.e., make init-runbook-infra ENVIRONMENT=kalm-main-16-1
+	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+	@make create-all-dsl-endpoints ENVIRONMENT=${ENVIRONMENT};
+	@make create-all-dsl-runbooks ENVIRONMENT=${ENVIRONMENT};
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_calm_categories ENVIRONMENT=${ENVIRONMENT};
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT};
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_objects_bucket ENVIRONMENT=${ENVIRONMENT};
+
+init-helm-charts: ### Intialize Helm Chart Marketplace. i.e., make init-helm-charts ENVIRONMENT=kalm-main-16-1
+	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
+
+init-kalm-cluster: ### Initialize Karbon Cluster. i.e., make init-kalm-cluster ENVIRONMENT=kalm-main-16-1
+	@make set-bastion-host ENVIRONMENT=${ENVIRONMENT};
+	@make run-all-dsl-runbook-scenarios RUNBOOK=update_ad_dns ENVIRONMENT=${ENVIRONMENT};
+	@make download-karbon-cfgs ENVIRONMENT=${ENVIRONMENT};
+	@make create-dsl-bps launch-dsl-bps DSL_BP=karbon_cluster_deployment ENVIRONMENT=${ENVIRONMENT};
+
+bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster. i.e., make bootstrap-kalm-all ENVIRONMENT=kalm-main-16-1
+	@make init-dsl-config ENVIRONMENT=${ENVIRONMENT};
+	@make bootstrap-reset-all ENVIRONMENT=${ENVIRONMENT};
+	@make init-bastion-host-svm ENVIRONMENT=${ENVIRONMENT};
+	@make init-runbook-infra ENVIRONMENT=${ENVIRONMENT};
+	@make init-kalm-cluster ENVIRONMENT=${ENVIRONMENT};
+	@make create-all-helm-charts ENVIRONMENT=${ENVIRONMENT};
+	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
+
+bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
+	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==deleting | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	@calm get apps --limit 50 -q | egrep -v "karbon|bastion" | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app --soft {}";
+	@calm get apps -q -n karbon | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	@calm get apps -q -n bastion | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
+	@calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
+	@calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
+	@calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
+
 ##############
 ## Helpers
 
@@ -287,7 +288,7 @@ github-login: ## Login to GitHub Repo to support local commits and tag promotion
 ## Configure Local KUBECTL config and ssh keys for Karbon
 ####
 
-download-karbon-creds download-all-karbon-cfgs fix-image-pull-secrets: check-dsl-init
+download-karbon-creds merge-kubectl-contexts download-all-karbon-cfgs fix-image-pull-secrets seed-calm-task-library: check-dsl-init
 
 download-karbon-creds: ### Leverage karbon krew/kubectl plugin to login and download config and ssh keys
 	@KARBON_PASSWORD=${PC_PASSWORD} kubectl-karbon login -k --server ${PC_IP_ADDRESS} --cluster ${KARBON_CLUSTER} --user ${PC_USER} --kubeconfig ~/.kube/${KARBON_CLUSTER}.cfg --force
