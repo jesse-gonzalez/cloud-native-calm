@@ -8,7 +8,6 @@ Kubernetes Production Best Practices - Considerations for large clusters
 Architecting Kubernetes clusters - choosing a worker node size:
 - https://learnk8s.io/kubernetes-node-size
 
-
 ## Capacity Management
 
 Setting the right requests and limits in Kubernetes - https://learnk8s.io/setting-cpu-memory-limits-requests

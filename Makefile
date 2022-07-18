@@ -60,6 +60,11 @@ init-dsl-config: print-vars ### Initialize calm dsl configuration with environme
 	@touch ${CALM_DSL_CONFIG_FILE_LOCATION} ${CALM_DSL_DB_LOCATION}
 	@calm init dsl --project "${CALM_PROJECT}";
 
+ahv-image-upload: ### Initialize Terraform Nutanix Provider and Upload ISO Images
+	cd prepare/ && terraform init; \
+		terraform plan; \
+		terraform apply -auto-approve; \
+
 ## Common BP command based on DSL_BP path passed in. To Run, make create-dsl-bps <dsl_bp_folder_name>
 
 create-dsl-bps launch-dsl-bps delete-dsl-bps delete-dsl-apps: init-dsl-config

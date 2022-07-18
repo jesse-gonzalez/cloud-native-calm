@@ -27,6 +27,19 @@ variable "nutanix_cluster" {
   type = string
 }
 
-variable "centos8_image" {
+variable "centos7_image_uri" {
   type = string
 }
+
+variable "centos7_image_name" {
+  type = string
+}
+
+variable "centos8_image_uri" {
+  type = string
+}
+
+variable "centos8_image_name" {
+  type = string
+}
+

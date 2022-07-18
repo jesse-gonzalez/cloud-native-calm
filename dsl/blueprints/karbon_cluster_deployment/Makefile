@@ -100,6 +100,7 @@ publish-new-bp:
 	calm get marketplace bps -n ${MARKETPLACE_ITEM_NAME} -a PUBLISHED
 
 publish-existing-bp:
+	calm create app_icon -n ${MARKETPLACE_ICON_NAME} -f ${MARKETPLACE_ICON_LOC}
 	# Publish a new version of an existing blueprint to marketplace manager. This should only be executed from master stable branch.
 	calm publish bp -v ${MP_GIT_TAG} --existing_markeplace_bp --with_secrets -n ${MARKETPLACE_ITEM_NAME} -i ${MARKETPLACE_ICON_NAME} -d "$$(cat mp_meta/mp-description.md)" --all_projects --publish_to_marketplace --category ${CATEGORY_NAME} ${BLUEPRINT_NAME}
 	# service account doesn't have permission to auto-approve --publish_to_marketplace

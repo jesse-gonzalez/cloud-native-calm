@@ -6,60 +6,32 @@ terraform{
     }
   }
 }
+
 provider "nutanix" {
-  username  = var.PC_USER
-  password  = var.PC_PASS
-  endpoint  = var.PC_ENDPOINT
-  insecure  = true
-  port      = 9440
-}
-
-variable "nutanix_subnet" {
-  type = string
-}
-
-variable "nutanix_cluster" {
-  type = string
-}
-
-variable "PC_PASS" {
-  type = string
-}
-
-variable "PC_USER" {
-  type = string
-}
-
-variable "PC_ENDPOINT" {
-  type = string
+  username  = var.nutanix_username
+  password  = var.nutanix_password
+  endpoint  = var.nutanix_endpoint
+  insecure  = var.nutanix_insecure
+  port      = var.nutanix_port
 }
 
 data "nutanix_cluster" "cluster" {
   name = var.nutanix_cluster
 }
 
-
 data "nutanix_subnet" "net" {
   subnet_name = var.nutanix_subnet
 }
 
-resource "nutanix_image" "centos" {
-  name        = "CentOS-Stream-8-x86_64-20220603-dvd1.iso"
-  source_uri  = "https://linux-mirrors.fnal.gov/linux/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20220603-dvd1.iso"
+resource "nutanix_image" "centos7" {
+  name        = var.centos7_image_name
+  source_uri  = var.centos7_image_uri
 }
 
-#data "nutanix_image" "centos" {
-#  image_name = "CentOS-Stream-8-x86_64-20220603-dvd1.iso"
-#}
-
-resource "nutanix_image" "mirror" {
-  name        = "mirror.iso"
-  source_uri  = "http://10.42.194.11/users/Huse/mirror.iso"
+resource "nutanix_image" "centos8" {
+  name        = var.centos8_image_name
+  source_uri  = var.centos8_image_uri
 }
-
-#data "nutanix_image" "mirror" {
-#  image_name = "mirror.iso"
-#}
 
 output "cluster_uuid" {
   value = data.nutanix_cluster.cluster.cluster_id
@@ -69,12 +41,11 @@ output "subnet_uuid" {
   value = data.nutanix_subnet.net.id
 }
 
-output "centos_uuid" {
-  #value = data.nutanix_image.centos.id
-  value = resource.nutanix_image.centos.id
+output "centos7_uuid" {
+  value = resource.nutanix_image.centos7.id
 }
 
-output "mirror_uuid" {
-  #value = data.nutanix_image.mirror.id
-  value = resource.nutanix_image.mirror.id
+output "centos8_uuid" {
+  value = resource.nutanix_image.centos8.id
 }
+
