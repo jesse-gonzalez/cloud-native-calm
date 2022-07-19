@@ -74,6 +74,7 @@ class HelmService(Service):
     mongodb_appdb_monogos_count = CalmVariable.Simple.string("",)
     mongodb_appdb_shard_count = CalmVariable.Simple.string("",)
     mongodb_appdb_configserver_count = CalmVariable.Simple.string("",)
+    mongodb_appdb_storage_class = CalmVariable.Simple.string("",)
 
     @action
     def InstallHelmChart(name="Install "+helm_chart_name):
@@ -406,6 +407,14 @@ class Default(Profile):
             runtime=True,
             description="MongoDB AppDB Journal Mount Size",
         )
+        mongodb_appdb_storage_class = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_STORAGE_CLASS"),
+            label="Storage Class Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="Storage Class Name",
+        )
 
         HelmService.ConfigureMongoDBStandalone(name="Configure MongoDB Standalone Instance")
 
@@ -485,6 +494,14 @@ class Default(Profile):
             is_hidden=False,
             runtime=True,
             description="MongoDB AppDB Journal Mount Size",
+        )
+        mongodb_appdb_storage_class = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_STORAGE_CLASS"),
+            label="Storage Class Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="Storage Class Name",
         )
 
         HelmService.ConfigureMongoDBReplicaSet(name="Configure MongoDB ReplicaSet Cluster")
@@ -589,6 +606,14 @@ class Default(Profile):
             is_hidden=False,
             runtime=True,
             description="MongoDB AppDB Journal Mount Size",
+        )
+        mongodb_appdb_storage_class = CalmVariable.Simple(
+            os.getenv("MONGODB_APPDB_STORAGE_CLASS"),
+            label="Storage Class Name",
+            is_mandatory=True,
+            is_hidden=False,
+            runtime=True,
+            description="Storage Class Name",
         )
 
 

@@ -74,7 +74,7 @@ _tmp/
 
 # Configuration stuff
 config/**/.cache/**
-.local
+.local/**
 
 # ignore secrets / sops yaml file
 config/**/secrets.yaml.dec
@@ -117,3 +117,11 @@ secrets.yaml
 secrets-**.yaml
 .env
 .sandbox
+
+
+## Packer Stuff
+terraform/cert/*.key
+terraform/cert/*.crt
+secrets.linux.auto.pkrvars.hcl
+packer/manifest.json
+packer/manifest.json

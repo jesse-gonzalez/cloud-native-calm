@@ -41,10 +41,13 @@ MONGODB_APPDB_DATA_SIZE="@@{mongodb_appdb_data_size}@@"
 MONGODB_APPDB_JOURNAL_SIZE="@@{mongodb_appdb_logs_size}@@"
 MONGODB_APPDB_LOGS_SIZE="@@{mongodb_appdb_journal_size}@@"
 
+MONGODB_APPDB_STORAGE_CLASS="@@{mongodb_appdb_storage_class}@@"
+
 MONGODB_APPDB_SHARD_COUNT=@@{mongodb_appdb_shard_count}@@
 MONGODB_APPDB_MONGODS_PER_SHARD_COUNT=@@{mongodb_appdb_mongods_per_shard_count}@@
 MONGODB_APPDB_MONGOS_COUNT=@@{mongodb_appdb_monogos_count}@@
 MONGODB_APPDB_CONFIGSERVER_COUNT=@@{mongodb_appdb_configserver_count}@@
+
 
 ## Setting MongoDB Namespace to OpsManager Project Manager
 
@@ -102,13 +105,28 @@ spec:
   credentials: organization-secret
   persistent: true
   shardPodSpec:
+    podTemplate:
+      spec:
+        tolerations:
+        - key: karbon-node-pool
+          operator: Exists
+          effect: NoSchedule
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: karbon-node-pool
+            operator: In
+            values:
+            - mongodb-sharded
     persistence:
       multiple:
         data:
           storage: $( echo $MONGODB_APPDB_DATA_SIZE )
+        journal:
+          storage: $( echo $MONGODB_APPDB_JOURNAL_SIZE )
         logs:
           storage: $( echo $MONGODB_APPDB_LOGS_SIZE )
-    podAntiAffinityTopologyKey: kubernetes.io/hostname
   mongos:
     additionalMongodConfig:
       systemLog:

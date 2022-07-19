@@ -1,9 +1,9 @@
 .ONESHELL:
 
-ENVIRONMENT ?= kalm-main-16-4
+ENVIRONMENT ?= kalm-main-12-4
 DEFAULT_SHELL ?= /bin/zsh
 
-IMAGE_REGISTRY_ORG = ntnxdemo
+IMAGE_REGISTRY_ORG = ghcr.io/jesse-gonzalez
 
 ## load common variables and anything environment specific that overrides
 export ENV_GLOBAL_PATH 	 := $(CURDIR)/config/_common/.env
@@ -27,24 +27,24 @@ CHECK_TOOLS := $(foreach tool,$(REQUIRED_TOOLS_LIST), $(if $(shell which $(tool)
 ####
 
 docker-build: ### Build Calm DSL Util Image locally with necessary tools to develop and manage Cloud-Native Apps (e.g., kubectl, argocd, git, helm, helmfile, etc.)
-	@docker image ls --filter "reference=${IMAGE_REGISTRY_ORG}/calm-dsl-utils" --format "{{.Repository}}:{{.ID}}" | xargs -I {} docker rmi -f {}
-	@docker build -t ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest .
+	@docker image ls --filter "reference=${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils" --format "{{.Repository}}:{{.ID}}" | xargs -I {} docker rmi -f {}
+	@docker build -t ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:latest .
 
 docker-push: docker-login ### Tag and Push latest image and short sha version to desired image repo.
-	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/calm-dsl-utils -q)" ] || make docker-build
-	@docker push ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest
-	@docker tag ${IMAGE_REGISTRY_ORG}/calm-dsl-utils ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:$(GIT_COMMIT_ID)
-	@docker push ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:$(GIT_COMMIT_ID)
+	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils -q)" ] || make docker-build
+	@docker push ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:latest
+	@docker tag ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:$(GIT_COMMIT_ID)
+	@docker push ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:$(GIT_COMMIT_ID)
 
 docker-run: ### Launch into Calm DSL development container. If image isn't available, build will auto-run
-	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/calm-dsl-utils -q)" ] || docker pull ${IMAGE_REGISTRY_ORG}/calm-dsl-utils:latest
+	[ -n "$$(docker image ls ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils -q)" ] || docker pull ${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils:latest
 	# this will exec you into the interactive container
 	@docker run --rm -it \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/dsl-workspace \
 		-w '/dsl-workspace' \
 		-e ENVIRONMENT='${ENVIRONMENT}' \
-		${IMAGE_REGISTRY_ORG}/calm-dsl-utils /bin/sh -c "${DEFAULT_SHELL}"
+		${IMAGE_REGISTRY_ORG}/cloud-native-calm-utils /bin/sh -c "${DEFAULT_SHELL}"
 
 check-dsl-init: ### Validate whether calm init dsl needs to be executed with target environment.
 	# validating that you're inside docker container.  If you were just put into container, you may need to re-run last command
@@ -207,15 +207,18 @@ bootstrap-kalm-all: ### Bootstrap Bastion Host, Shared Infra and Karbon Cluster.
 	@make publish-all-blueprints ENVIRONMENT=${ENVIRONMENT};
 
 bootstrap-reset-all: ## Reset Environment Configurations that can't be easily overridden (i.e., excludes blueprints,endpoints,runbooks)
-	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==provisioning | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
+	@calm get apps --limit 50 -q --filter=_state==deleting | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} --watch 2>/dev/null";
 	@calm get apps --limit 50 -q --filter=_state==error | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
-	@calm get apps --limit 50 -q --filter=_state==deleting | grep -v "No application found" | xargs -I {} -t sh -c "calm stop app {} 2>/dev/null";
+	@calm get apps --limit 50 -q | egrep -v "karbon|bastion" | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app --soft {}";
 	@calm get apps -q -n karbon | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
 	@calm get apps -q -n bastion | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app {}";
-	@calm get apps --limit 50 -q | grep -v "No application found" | xargs -I {} -t sh -c "calm delete app --soft";
 	@calm get bps --limit 50 -q | grep -v "No blueprint found" | xargs -I {} -t sh -c "calm delete bp {}";
 	@calm get runbooks -q | grep -v "No runbook found" | xargs -I {} -t sh -c "calm delete runbook {}";
 	@calm get endpoints -q | grep -v "No endpoint found" | xargs -I {} -t sh -c "calm delete endpoint {}";
+
+launch-gitops-stack:
+	@calm launch-helm-chart 
 
 ## RELEASE MANAGEMENT
 
@@ -274,8 +277,8 @@ print-secrets: ### Print variables including secrets. i.e., make print-secrets E
 help: ### Show this help
 	@egrep -h '\s###\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?### "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-docker-login: ## Login to Container Private Registry
-	@echo "$(DOCKER_HUB_PASS)" | docker login --username $(DOCKER_HUB_USER) --password-stdin
+docker-login: ## Login to Github Private Registry
+	@echo "$(GITHUB_PASS)" | docker login ghcr.io --username $(GITHUB_USER) --password-stdin
 
 github-login: ## Login to GitHub Repo to support local commits and tag promotion
 	@echo -e "$(GITHUB_PASS)" | gh auth login --with-token

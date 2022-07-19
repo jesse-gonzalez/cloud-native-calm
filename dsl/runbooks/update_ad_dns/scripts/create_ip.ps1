@@ -21,7 +21,7 @@ Else
 { 
     $newobj = $oldobj.Clone()
     $newobj.RecordData.ipv4address = [System.Net.IPAddress]::parse($dns_ipaddr)
-    If (($newobj.RecordData.ipv4address -ine $oldobj.RecordData.ipv4address)) 
+    If (($newobj.RecordData.ipv4address -ine $oldobj.RecordData.ipv4address))
     { 
         Write-Output ("New IP: " + $newobj.RecordData.ipv4address + " is not equal to Old IP: " + $oldobj.RecordData.ipv4address + " for Hostname: " + $dns_host_fqdn + ". Updating Now")
         Set-DnsServerResourceRecord -newinputobject $newobj -oldinputobject $oldobj -ZoneName $dns_zone -PassThru -ComputerName $dns_server -Verbose -ErrorAction Stop
@@ -29,7 +29,7 @@ Else
         #Just Easier to Remove Ptr and Add
         #Remove-DnsServerResourceRecord -Name $dns_ptr_ip -ZoneName $dns_ptr_zone -RRType Ptr -ComputerName $dns_server -Force -ErrorAction SilentlyContinue
         Add-DnsServerResourceRecordPtr -Name $dns_ptr_ip -ZoneName $dns_ptr_zone -PtrDomainName $dns_host_fqdn -ComputerName $dns_server -Verbose -ErrorAction Stop
-    } 
-} 
-$oldobj = $null 
+    }
+}
+$oldobj = $null
 $newobj = $null

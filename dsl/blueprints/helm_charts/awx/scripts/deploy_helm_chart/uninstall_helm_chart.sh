@@ -11,5 +11,7 @@ kubectl delete pod --selector=release=${INSTANCE_NAME} --grace-period=0 --force 
 kubectl delete pvc --selector=release=${INSTANCE_NAME} --namespace=${NAMESPACE}
 kubectl delete ns ${NAMESPACE}
 
+kubectl delete ns --namespace=awx-operator
+
 # cleanup awx crds
 kubectl get crd -o name | grep awx | xargs -I {} kubectl delete {}

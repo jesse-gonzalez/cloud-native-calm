@@ -39,7 +39,7 @@ else
 endif
 
 DSL_FILENAME := "blueprint.py"
-BLUEPRINT_NAME := "${BLUEPRINT_PREFIX_NAME}-${BLUEPRINT_SUFFIX_NAME}"
+BLUEPRINT_NAME := $(shell echo "${BLUEPRINT_PREFIX_NAME}-${BLUEPRINT_SUFFIX_NAME}" | tr '_' '-' | tr '/' '-')
 APP_NAME := $(shell echo ${HELM_CHART_NAME}-${CALM_ENVIRONMENT}-${TEST_SCENARIO_NAME}-$$RANDOM | tr '[:upper:]' '[:lower:]')
 
 export
@@ -59,7 +59,7 @@ print-env:
 	@echo TEST_SCENARIO_NAME=${TEST_SCENARIO_NAME}
 
 create-bp:
-	calm compile bp -f ${DSL_FILENAME} > /tmp/${BLUEPRINT_NAME}-$(shell date +%m-%d-%y).json
+	calm compile bp -f ${DSL_FILENAME}
 	calm create bp -f ${DSL_FILENAME} --name ${BLUEPRINT_NAME} --force --description "See ${BLUEPRINT_NAME} Commit History: [${GIT_BRANCH_NAME}](${GIT_REPO_URL}/commit/${GIT_COMMIT_ID}) $$(cat mp_meta/bp-description.md)"
 	calm describe bp ${BLUEPRINT_NAME}
 
