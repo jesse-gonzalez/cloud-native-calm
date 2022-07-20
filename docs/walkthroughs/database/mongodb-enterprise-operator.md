@@ -104,8 +104,7 @@ By Leveraging `NCM/Calm`, you'll have the ability to provide end users the `Self
 - Curate Kubernetes Applications (along with MongoDB Operator) to fully include all customer specific requirements (i.e., naming standards, persistent storage layout, etc.).
 - Provision MongoDB Clusters of any type to meet minimum requirements around compute and security, while providing day 2 actions to include advanced lifecycle scenarios that are very specific to MongoDB Operator (i.e., upgrade, scaling, etc.).
 - Incorporate all internal runbook procedures required to properly manage the Full Lifecycle of Provisioning, Managing, Operating and Decommission any environment. (e.g., DNS, IPAM, LoadBalancers, etc.)
-- Integration with Service Management Portals such as `ServiceNow` for improved asset / incident management workflows.
-
+- Plugin Integration with Service Management Portals such as `ServiceNow` for improved asset / incident management workflows.
 
 By Leveraging `NKE/Karbon`, you'll have the ability to easily:
 
@@ -158,118 +157,102 @@ By Leveraging the `MongoDB Enterprise Operator`, you'll have the ability to:
 
 Leverage Calm and Karbon to Deploy MongoDB OpsManager Cluster
 
+- `Pre-Reqs`:
+  - In Calm UI, configure new project (i.e, development-team-a), account & environment and subsequently configure LDAP users/groups with appropriate role
+  - Deploy and Configure Linux VM / Bastion Host Endpoint with necessary utilities and DNS A Host Record as needed
+  - As DBA, Deploy Karbon Production Cluster via Self-Service Marketplace with a minimum of 7 worker nodes
+
 - `Demo`:
-  - Deploy Karbon Production Cluster via Self-Service Marketplace (Stage Prior)
-  - As DBA, Deploy MongoDB Enterprise Operator to Karbon Production from Marketplace
-  - As DBA, Deploy MongoDB OpsManager Cluster as Day 2 Action
-  - [Manual] Login to MongoDB OpsManager UI and Show Initial OpsManager Cluster
+  - As DBA, Deploy `MongoDB Enterprise Operator` to Karbon Production from Marketplace
+  - As DBA, Deploy `MongoDB OpsManager Cluster` as Day 2 Action
+  - [Manual] Login to `MongoDB OpsManager UI` and Show Initial OpsManager Cluster
   - As Developer/Consumer, Deploy Karbon Development Cluster from Marketplace
   - As Developer/Consumer, Deploy MongoDB Enterprise Operator to Karbon Development from Marketplace
 
 - `Cheatsheet`:
 
-1. Login with `adminuser01@ntnxlab.local` [Database-Admin]
+1. Login into Nutanix PC with `adminuser01@ntnxlab.local` [Database-Admin]
 1. Deploy MongoDB Enterprise Operator to Karbon Production from Marketplace
 1. Deploy MongoDB OpsManager Cluster as Day 2 Action with Default Settings
-1. Monitor from Calm Audit view and kubectl
+1. Monitor OpsManager deployment progress from Calm Application Audit view and/or kubectl
 
-  ```bash
-  kubectl get om -o yaml -n mongodb-enterprise
-  watch kubectl get om,sts,pvc,po,svc -n mongodb-enterprise
-  ```
+    ```bash
+    ## Set Default OPSMANAGER namespace
+    OPSMANAGER_NAMESPACE=mongodb-enterprise
 
-1. Login with `consumer01@ntnxlab.local` [Self-Service-User]
-1. Deploy Karbon Development Cluster (kalm-develop-5-2) to Secondary AHV Cluster with valid IP Pool (i.e., 10.38.5.90-10.38.5.91)
-1. Connect to kalm-develop-5-2 cluster from kubectl - download karbon creds from UI
-1. Deploy MongoDB Enterprise Operator to Karbon Development from Marketplace
+    ## Setup Monitoring
+    watch kubectl get om,sts,pvc,po,svc -n ${OPSMANAGER_NAMESPACE}
+    watch "kubectl top nodes && echo '\n' && kubectl top pods -n ${OPSMANAGER_NAMESPACE}"
 
+    ## Get OPSMANAGER URL
+    OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n ${OPSMANAGER_NAMESPACE} -o jsonpath="{.status.loadBalancer.ingress[].ip}")
+    OPSMANAGER_BASE_URL="http://opsmanager.${OPSMANAGER_HOST}.nip.io:8080"
+    echo "OPSMANAGER_BASE_URL=${OPSMANAGER_BASE_URL}"
+
+    ## Troubleshooting
+    kubectl get om -o yaml -n ${OPSMANAGER_NAMESPACE}
+    ```
+
+1. Login to MongoDB OpsManager UI and show initial OpsManager Replicaset
+
+    ```bash
+    ## Set Default OPSMANAGER namespace
+    OPSMANAGER_NAMESPACE=mongodb-enterprise
+
+    ## Login with admin user and password retrieved below
+    kubectl get secret om-admin-secret -o jsonpath='{.data.Password}' -n ${OPSMANAGER_NAMESPACE} | base64 -d && echo
+    ```
+
+1. Login into Nutanix PC with `consumer01@ntnxlab.local` [Self-Service-User]
+1. Deploy Karbon Development Cluster (i.e., `kalm-develop-5-2`) to Secondary AHV Cluster and define valid IP range to define for MetalLB (i.e., `10.38.5.90-10.38.5.91`)
+1. Connect to Karbon Development Cluster (i.e., `kalm-develop-5-2`) cluster from kubectl
+1. Deploy MongoDB Enterprise Operator to Karbon Development Cluster (i.e., `kalm-develop-5-2`) from Marketplace
 
 ### Requirement: Deploy Container on existing VMS
 
 Leverage MongoDB Enterprise Operator & Calm to Deploy MongoDB Instance and Auto-Register Into OpsManager
 
 - Demo:
-  - Deploy MongoDB Database Standalone Instance as Day 2 Action on Production Cluster
-  - Deploy MongoDB Database Replica Set Cluster as Day 2 Action on Production Cluster
-  - Deploy MongoDB Database Sharded Cluster as Day 2 Action on Production Cluster
-  - [Manual] Get Organization ID, API Keys via OpsManager App UI or Audit
-  - Deploy MongoDB Database Replica Set Cluster as Day 2 Action on Development Cluster (with Creds)
-  - [Manual] Show MongoDB Custom Resource Instances via kubectl
-  - [Manual] Show MongoDB Deployment of Statefulsets,Pods,PVCs via kubectl
-  - [Manual] Show OpsManager UI Instances being Registered
-  - [Manual] Connect to MongoDB Instance Externally (or Internally)
-  - [Manual] As Developer, Login to UI to See Only MongoDB Community Operator Scenario
+  - Deploy `MongoDB Database Standalone Instance` as Day 2 Action on Production Cluster
+  - Deploy `MongoDB Database Replica Set Cluster` as Day 2 Action on Production Cluster
+  - Deploy `MongoDB Database Sharded Cluster` as Day 2 Action on Production Cluster
+  - [Manual] Login to `MongoDB OpsManager UI` and Show New Clusters Already Registered
+  - [Manual] Get `Organization ID`, `API Keys` via OpsManager App UI or Audit
+  - Deploy `MongoDB Database Replica Set Cluster` as Day 2 Action on `Development Cluster (with Creds)`
 
 - Cheatsheet:
 
+1. Login into Nutanix PC with `adminuser01@ntnxlab.local` [Database-Admin]
+1. [Setup Monitoring via kubectl](#troubleshooting) after each scenario below to monitor progress, updating `MONGODB_INSTANCE` var respectively:
+    1. Deploy MongoDB Database Standalone Instance as Day 2 Action on Karbon Production Cluster (i.e., kalm-main-12-1) with Default Settings
+    1. Deploy MongoDB Database Replica Set Cluster as Day 2 Action on Karbon Production Cluster (i.e., kalm-main-12-1) with Default Settings
+    1. Deploy MongoDB Database Sharded Cluster as Day 2 Action on Karbon Production Cluster (i.e., kalm-main-12-1) with Default Settings
+1. Login to MongoDB OpsManager UI and Show New Clusters Already Registered
 1. Get Organization ID, API Keys via OpsManager App UI or Audit
 
-```bash
-# GET OPSMANAGER CREDS
+    ```bash
+    ## Set Default OPSMANAGER namespace
+    OPSMANAGER_NAMESPACE=mongodb-enterprise
 
-OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
-OM_BASE_URL="http://opsmanager.${OPSMANAGER_HOST}.nip.io:8080"
+    # GET OPSMANAGER CREDS FROM OPSMANAGER NAMESPACE
+    OPSMANAGER_NAMESPACE=mongodb-enterprise
+    OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n ${OPSMANAGER_NAMESPACE} -o jsonpath="{.status.loadBalancer.ingress[].ip}")
+    OPSMANAGER_BASE_URL="http://opsmanager.${OPSMANAGER_HOST}.nip.io:8080"
+    OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${OPSMANAGER_NAMESPACE} -o jsonpath='{.data.publicKey}' | base64 -d)
+    OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${OPSMANAGER_NAMESPACE} -o jsonpath='{.data.privateKey}' | base64 -d)
+    OPSMANAGER_ORG_ID=$(curl -u ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
 
-OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
-OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+    echo "OPSMANAGER_API_KEY=${OPSMANAGER_API_KEY}"
+    echo "OPSMANAGER_API_USER=${OPSMANAGER_API_USER}"
+    echo "OPSMANAGER_ORG_ID=${OPSMANAGER_ORG_ID}"
+    echo "OPSMANAGER_BASE_URL=${OPSMANAGER_BASE_URL}"
+    ```
 
-OPSMANAGER_ORG_ID=$(curl -u ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
-
-echo "OM_BASE_URL=${OPSMANAGER_HOST}"
-echo "OPSMANAGER_API_USER=${OPSMANAGER_API_USER}"
-echo "OPSMANAGER_API_KEY=${OPSMANAGER_API_KEY}"
-echo "OPSMANAGER_ORG_ID=${OPSMANAGER_ORG_ID}"
-```
-
-1. Deploy MongoDB Database Standalone Instance as Day 2 Action
-
-> connecting to mongodb via mongosh externally via docker
-
-```bash
-MONGO_INSTANCE=mongodb-stage-replicaset-00
-kubectl get svc $MONGO_INSTANCE-service-external -n $MONGO_INSTANCE ## get nodeport
-kubectl get nodes -o wide ## get internal-ip of one of the nodes
-
-docker run -it mongo:5.0 mongosh "mongodb://10.38.12.38:30348/?connectTimeoutMS=20000&serverSelectionTimeoutMS=20000"
-```
-
-> connecting to mongodb srv via kubectl
-
-```bash
-MONGO_INSTANCE=mongodb-stage-replicaset-00
-MONGO_CONNECTION_SRV=$(kubectl get secrets mongodb-opsmanager-db-connection-string -n mongodb-enterprise -o jsonpath='{.data.connectionString\.standardSrv}' | base64 -d)
-echo $MONGO_CONNECTION_STD
-
-kubectl run -i -t --rm --image=mongo:5.0 mongosh-$RANDOM -- mongosh "$MONGO_CONNECTION_STD"
-
-kubectl exec -it mongodb-stage-replicaset-00 /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-5.0.5/bin/mongo
-```
-
-> insert basic data
-
-```bash
-db.ships.insert({name:'USS Enterprise-D',operator:'Starfleet',type:'Explorer',class:'Galaxy',crew:750,codes:[10,11,12]})
-db.ships.insert({name:'USS Prometheus',operator:'Starfleet',class:'Prometheus',crew:4,codes:[1,14,17]})
-db.ships.insert({name:'USS Defiant',operator:'Starfleet',class:'Defiant',crew:50,codes:[10,17,19]})
-db.ships.insert({name:'IKS Buruk',operator:' Klingon Empire',class:'Warship',crew:40,codes:[100,110,120]})
-db.ships.insert({name:'IKS Somraw',operator:' Klingon Empire',class:'Raptor',crew:50,codes:[101,111,120]})
-db.ships.insert({name:'Scimitar',operator:'Romulan Star Empire',type:'Warbird',class:'Warbird',crew:25,codes:[201,211,220]})
-db.ships.insert({name:'Narada',operator:'Romulan Star Empire',type:'Warbird',class:'Warbird',crew:65,codes:[251,251,220]})
-```
-
-> quick queries
-
-```bash
-db.ships.findOne()
-db.ships.find().pretty()
-db.ships.find({}, {name:true, _id:false})
-```
+1. Using Output from previous step, deploy `MongoDB Database Replica Set Cluster` as Day 2 Action on `Development Cluster (with Creds)`
 
 ### Requirement: Ability to Deploy Different Mongo images/verions
 
 Leverage MongoDB Enterprise Operator & Calm to upgrade existing MongoDB Environment.
-
-You can upgrade the major, minor, and/or feature compatibility versions of your MongoDB resource. These settings are configured in your resource’s config map
 
 - Demo:
   - Leverage Operator to upgrade existing MongoDB instance as Day 2 Action
@@ -279,31 +262,25 @@ You can upgrade the major, minor, and/or feature compatibility versions of your 
 
 - Cheatsheet:
 
-> Find Available Enterprise Container Image Version, examples = 4.4.4-ent,4.4.11-ent,5.0.1-ent,5.0.5-ent
+> You can upgrade the major, minor, and/or feature compatibility versions of your MongoDB resource. These settings are configured in your resource’s config map
 
--- https://quay.io/repository/mongodb/mongodb-enterprise-appdb-database?tab=tags
+1. Find Available [MongoDB Enterprise Container Image Versions](https://quay.io/repository/mongodb/mongodb-enterprise-appdb-database?tab=tags) (e.g., or use one of these `4.4.4-ent`,`4.4.11-ent`,`5.0.1-ent`,`5.0.5-ent`, etc.)
 
-> Upgrade MongoDB Cluster
+1. [Setup Monitoring via kubectl](#troubleshooting) and initiate upgrade of MongoDB Cluster
 
 ```bash
-
-## setup monitoring
-MONGO_INSTANCE=mongodb-demo-replicaset
-watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE}"
-
 ## patch mongodb app enterprise version
 MONGO_INSTANCE=mongodb-demo-replicaset
 kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"version":"5.0.1-ent"}}'
-kubectl get mongodb $MONGO_INSTANCE -o yaml
+
+## for additional details - watch yaml file updates
+kubectl get mongodb $MONGO_INSTANCE -o yaml -w
 ```
 
-> Optionally Upgrade MongoDB Operator [OPT]
+> TODO: [Optionally Upgrade MongoDB Operator as Day 2 Action](https://www.mongodb.com/docs/kubernetes-operator/stable/tutorial/upgrade-k8s-operator/)
 
--- https://www.mongodb.com/docs/kubernetes-operator/stable/tutorial/upgrade-k8s-operator/
+> TODO: [Upgrade MongoDB Production Cluster as Day 2 Action](https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/upgrade-mdb-version/)
 
-> Upgrade MongoDB Production Cluster as Day 2 Action [OPT]
-
--- https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/upgrade-mdb-version/
 
 ### Requirement: Grant permissions to requested user/svc accounts to enable access to container
 
@@ -319,11 +296,6 @@ Leverage Operator to Create custom roles and users with SCRAM authentication
 
 Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Limits / Affinity and Storage Persistence Configurations
 
-> The Default PodSpec will Create a MongoDB Replicaset with following Defaults:
-    - StatefulSet with 3 Replicas
-    - CPU and Memory Limits of 2 CPU and 2GB of RAM
-    - Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
-
 - Demo:
   - [Manual] Show Resource Constraints for CPU and Memory via PodSpec YAML
   - [Manual] Show Scaling of StatefulSet Replicas via kubectl
@@ -336,21 +308,30 @@ Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Li
 
 - Cheatsheet:
 
-> Scale ReplicaSet Members from 3 to 5
+1. Show Resource Constraints for CPU and Memory via PodSpec YAML
 
-- Follow commands below to scale replicaset.  Add worker nodes to pool via Karbon as needed.
+    ```bash
+    ## query yaml via kubectl
+    MONGO_INSTANCE=mongodb-demo-replicaset
+    kubectl get mongodb $MONGO_INSTANCE -n $MONGO_INSTANCE -o yaml
+    ```
 
-```bash
-## setup monitoring
-MONGO_INSTANCE=mongodb-demo-replicaset
-watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE}"
+    > The Default PodSpec will Create a MongoDB Replicaset with following Defaults:
+        - StatefulSet with 3 Replicas
+        - CPU and Memory Limits of 2 CPU and 2GB of RAM
+        - Multiple Mount Point Volumes (data:10Gi,journal:1Gi,log:500M), each with own PVC
 
-## scale replicas by patching mongo instance
-MONGO_INSTANCE=mongodb-demo-replicaset
-kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"members":3}}'
-```
+1. [Setup Monitoring via kubectl](#troubleshooting) and Scale ReplicaSet Members from 3 to 5
 
-> Deploy 2nd ReplicaSet with more resources than what's available
+    ```bash
+    ## scale replicas by patching mongo instance
+    MONGO_INSTANCE=mongodb-demo-replicaset
+    kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"members":3}}'
+    ```
+
+  > Add worker nodes to pool via Karbon as needed.
+
+1. [Setup Monitoring via kubectl](#troubleshooting) and Deploy 2nd ReplicaSet with more resources than what's available
 
 - Deploy via Calm Day 2 Action a ReplicaSet 3 Member ReplicaSet with 4 vCPU and 8 GB of RAM
   - Show Pending Status on Calm, and Kubectl
@@ -358,28 +339,26 @@ kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"members":3}}'
     - Creating a Node Pool: https://portal.nutanix.com/page/documents/details?targetId=Karbon-v2_4:kar-karbon-nodepool-create-t.html
   - Observe Completion in OpsManager UI, Kubectl, Calm UI
 
-> Update Existing Worker Pool with Node Labels and Configure, Taints, Tolerations and Node Affinity
+1. [Setup Monitoring via kubectl](#troubleshooting) and Update Existing Worker Pool with Node Labels and Configure, Taints, Tolerations and Node Affinity
 
-- Option 1: via Karbon UI, update node pool with label metadata (karbon-node-pool=mongodb): https://portal.nutanix.com/page/documents/details?targetId=Karbon-v2_4:kar-karbon-nodepool-meta-update-t.html
+- `Option 1`: via Karbon UI, update node pool with label metadata (`karbon-node-pool=mongodb`):
+ https://portal.nutanix.com/page/documents/details?targetId=Karbon-v2_4:kar-karbon-nodepool-meta-update-t.html
 
-- Option 2: via Kubectl, label nodes with metadata (karbon-node-pool=mongodb)
+- `Option 2`: via Kubectl, label nodes with metadata (`karbon-node-pool=mongodb`)
 
-```bash
-## setup monitoring
-watch -n 1 "kubectl get mongodb,svc,ep,po,node -o wide"
+  ```bash
+  ## Label New Node Pool
+  kubectl get nodes -o name | grep mongodb-pool | xargs -I {node} kubectl label {node} `karbon-node-pool=mongodb` --overwrite
+  ```
 
-## Label New Node Pool
-kubectl get nodes -o name | grep mongodb-pool | xargs -I {node} kubectl label {node} karbon-node-pool=mongodb --overwrite
-```
+  ```bash
+  ## Taint nodes of newly created pool
+  kubectl taint nodes -l karbon-node-pool=mongodb karbon-node-pool=mongodb:NoSchedule
 
-```bash
-## Taint nodes of newly created pool
-kubectl taint nodes -l karbon-node-pool=mongodb karbon-node-pool=mongodb:NoSchedule
-
-## validate that taints have been applied
-kubectl describe nodes | grep -i taint
-kubectl describe nodes -l karbon-node-pool=mongodb | grep -i taint
-```
+  ## validate that taints have been applied
+  kubectl describe nodes | grep -i taint
+  kubectl describe nodes -l karbon-node-pool=mongodb | grep -i taint
+  ```
 
 ```bash
 MONGO_INSTANCE=mongodb-demo-replicaset
@@ -618,17 +597,17 @@ Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / 
 
 ```bash
 ## Get OpsManager vars
-OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
-OM_BASE_URL="http://${OPSMANAGER_HOST}:8080"
-OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
-OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
-OPSMANAGER_ORG_ID=$(curl --user ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
+OPSMANAGER_NAMESPACE=mongodb-enterprise
+OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n ${OPSMANAGER_NAMESPACE} -o jsonpath="{.status.loadBalancer.ingress[].ip}")
+OPSMANAGER_BASE_URL="http://opsmanager.${OPSMANAGER_HOST}.nip.io:8080"
+OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${OPSMANAGER_NAMESPACE} -o jsonpath='{.data.publicKey}' | base64 -d)
+OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${OPSMANAGER_NAMESPACE} -o jsonpath='{.data.privateKey}' | base64 -d)
+OPSMANAGER_ORG_ID=$(curl -u ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
 
-echo $OPSMANAGER_HOST
-echo $OM_BASE_URL
-echo $OPSMANAGER_API_USER
-echo $OPSMANAGER_API_KEY
-echo $OPSMANAGER_ORG_ID
+echo "OPSMANAGER_API_KEY=${OPSMANAGER_API_KEY}"
+echo "OPSMANAGER_API_USER=${OPSMANAGER_API_USER}"
+echo "OPSMANAGER_ORG_ID=${OPSMANAGER_ORG_ID}"
+echo "OPSMANAGER_BASE_URL=${OPSMANAGER_BASE_URL}"
 
 OM_PROJECT_NAME="mongodb-oplog-replicaset"
 
@@ -652,7 +631,7 @@ kind: ConfigMap
 metadata:
   name: $( echo $OM_PROJECT_NAME )-config
 data:
-  baseUrl: $( echo $OM_BASE_URL )
+  baseUrl: $( echo $OPSMANAGER_BASE_URL )
   projectName: $( echo $OM_PROJECT_NAME )-project
   orgId: $( echo $OPSMANAGER_ORG_ID )
 ---
@@ -883,6 +862,51 @@ EOF
   - [Manual] Show Mongo Team/User usage for Mongo
   - [Manual] Show Scenarios with Rancher, Kubecost, Kubernetes Dashboard
 
+## Troubleshooting
+
+### Monitor Deployment Progress via Kubectl
+
+```bash
+## setup monitoring for target instance, update MONGO_INSTANCE var
+MONGO_INSTANCE=mongodb-demo-replicaset
+MONGO_SVC_NAME=$(kubectl get svc -o name -n $MONGO_INSTANCE | grep -v external | cut -d/ -f2 | egrep "service|svc")
+watch -n 1 "kubectl get po,pvc -l app=${MONGO_SVC_NAME} -n $MONGO_INSTANCE -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE} -n $MONGO_INSTANCE"
+```
+
+### Connecting to mongodb shell via kubectl
+
+```bash
+## find mongo instance user secret and get standard connection info, update MONGO_INSTANCE var
+MONGO_INSTANCE=mongodb-demo-replicaset
+MONGO_SECRET_NAME=$(kubectl get secret -o name -n $MONGO_INSTANCE | grep -i $MONGO_INSTANCE | cut -d/ -f2)
+MONGO_USER_NAME=$(kubectl get secret $MONGO_SECRET_NAME -n $MONGO_INSTANCE -o jsonpath='{.data.username}' | base64 -d)
+MONGO_USER_PASS=$(kubectl get secret $MONGO_SECRET_NAME -n $MONGO_INSTANCE -o jsonpath='{.data.password}' | base64 -d)
+MONGO_CONNECTION_STD=$(kubectl get secrets $MONGO_SECRET_NAME -n $MONGO_INSTANCE -o jsonpath='{.data.connectionString\.standard}' | base64 -d)
+
+echo $MONGO_CONNECTION_STD
+
+## enter mongo shell interactively using standard connection string
+kubectl run -i -t --rm --image=mongo:5.0 mongosh-$RANDOM -- mongosh "$MONGO_CONNECTION_STD"
+```
+
+### Executing some basic Mongodb queries
+
+```bash
+## insert quick snippets of data to validate
+db.ships.insert({name:'USS Enterprise-D',operator:'Starfleet',type:'Explorer',class:'Galaxy',crew:750,codes:[10,11,12]})
+db.ships.insert({name:'USS Prometheus',operator:'Starfleet',class:'Prometheus',crew:4,codes:[1,14,17]})
+db.ships.insert({name:'USS Defiant',operator:'Starfleet',class:'Defiant',crew:50,codes:[10,17,19]})
+db.ships.insert({name:'IKS Buruk',operator:' Klingon Empire',class:'Warship',crew:40,codes:[100,110,120]})
+db.ships.insert({name:'IKS Somraw',operator:' Klingon Empire',class:'Raptor',crew:50,codes:[101,111,120]})
+db.ships.insert({name:'Scimitar',operator:'Romulan Star Empire',type:'Warbird',class:'Warbird',crew:25,codes:[201,211,220]})
+db.ships.insert({name:'Narada',operator:'Romulan Star Empire',type:'Warbird',class:'Warbird',crew:65,codes:[251,251,220]})
+
+## query data
+db.ships.findOne()
+db.ships.find().pretty()
+db.ships.find({}, {name:true, _id:false})
+```
+
 ## Production Best Practice Notes
 
 - Single Instance of Ops Manager for all MongoDBs
@@ -917,5 +941,5 @@ EOF
 - Observability of the MongoDB Kubernetes Operator in Production https://www.youtube.com/watch?v=JqpQPrJSgS8
 - Deploy a Resource to Use with Prometheus - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-prometheus/#deploy-prometheus
 - Mapping to External Services - https://cloud.google.com/blog/products/gcp/kubernetes-best-practices-mapping-external-services
-- To https://cloud.google.com/blog/products/databases/to-run-or-not-to-run-a-database-on-kubernetes-what-to-consider
-- https://medium.com/locust-io-experiments/locust-io-experiments-running-in-docker-cae3c7f9386e
+- To Run or Not Run a Database on Kubernetes: What to Consider - https://cloud.google.com/blog/products/databases/to-run-or-not-to-run-a-database-on-kubernetes-what-to-consider
+
