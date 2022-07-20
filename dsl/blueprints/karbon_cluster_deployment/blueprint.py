@@ -218,7 +218,7 @@ class DeveloperWorkstation(Service):
             variables=["worker_config_node_pool_name"]
         )
         CalmTask.Exec.escript(
-            name="Add Karbon_AutoScaler Category to Worker Nodes",
+            name="Add Karbon_Workers Category to Worker Nodes",
             filename="scripts/common/add_category_to_workers.py",
         )
         CalmTask.Exec.ssh(

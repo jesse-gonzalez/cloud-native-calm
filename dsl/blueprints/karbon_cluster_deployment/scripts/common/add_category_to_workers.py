@@ -4,6 +4,9 @@ k8s_cluster_name = "@@{k8s_cluster_name}@@"
 worker_config_node_pool_name = "@@{worker_config_node_pool_name}@@"
 autoscaler_enabled = "@@{autoscaler_enabled}@@"
 
+pc_instance_ip = "@@{pc_instance_ip}@@"
+pc_instance_port = "@@{pc_instance_port}@@"
+
 # exit out if autoscaler_enabled not true.
 # if autoscaler_enabled == "false":
 #   print "Skipping task to enable Karbon_Autoscaler category - autoscaler_enabled is set to false"
