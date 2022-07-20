@@ -158,33 +158,42 @@ By Leveraging the `MongoDB Enterprise Operator`, you'll have the ability to:
 
 Leverage Calm and Karbon to Deploy MongoDB OpsManager Cluster
 
-- Demo:
-  - Deploy Karbon Production Cluster via Self-Service Marketplace
+- `Demo`:
+  - Deploy Karbon Production Cluster via Self-Service Marketplace (Stage Prior)
   - As DBA, Deploy MongoDB Enterprise Operator to Karbon Production from Marketplace
   - As DBA, Deploy MongoDB OpsManager Cluster as Day 2 Action
   - [Manual] Login to MongoDB OpsManager UI and Show Initial OpsManager Cluster
   - As Developer/Consumer, Deploy Karbon Development Cluster from Marketplace
   - As Developer/Consumer, Deploy MongoDB Enterprise Operator to Karbon Development from Marketplace
 
-- Cheatsheet:
+- `Cheatsheet`:
 
-- Login with Adminuser01@ntnxlab.local [Database-Admin]
-- Deploy Karbon Cluster (kalm-develop-5-2)
-- Login with Consumer01@ntnxlab.local [Self-Service-User]
+1. Login with `adminuser01@ntnxlab.local` [Database-Admin]
+1. Deploy MongoDB Enterprise Operator to Karbon Production from Marketplace
+1. Deploy MongoDB OpsManager Cluster as Day 2 Action with Default Settings
+1. Monitor from Calm Audit view and kubectl
 
-```bash
-kubectl get om -o yaml -w
-```
+  ```bash
+  kubectl get om -o yaml -n mongodb-enterprise
+  watch kubectl get om,sts,pvc,po,svc -n mongodb-enterprise
+  ```
+
+1. Login with `consumer01@ntnxlab.local` [Self-Service-User]
+1. Deploy Karbon Development Cluster (kalm-develop-5-2) to Secondary AHV Cluster with valid IP Pool (i.e., 10.38.5.90-10.38.5.91)
+1. Connect to kalm-develop-5-2 cluster from kubectl - download karbon creds from UI
+1. Deploy MongoDB Enterprise Operator to Karbon Development from Marketplace
+
 
 ### Requirement: Deploy Container on existing VMS
 
 Leverage MongoDB Enterprise Operator & Calm to Deploy MongoDB Instance and Auto-Register Into OpsManager
 
 - Demo:
-  - [Manual] Get Organization ID, API Keys via UI and kubectl
-  - Deploy MongoDB Database Standalone Instance as Day 2 Action
-  - Deploy MongoDB Database Replica Set Instance as Day 2 Action
-  - Deploy MongoDB Database Sharded Cluster as Day 2 Action
+  - Deploy MongoDB Database Standalone Instance as Day 2 Action on Production Cluster
+  - Deploy MongoDB Database Replica Set Cluster as Day 2 Action on Production Cluster
+  - Deploy MongoDB Database Sharded Cluster as Day 2 Action on Production Cluster
+  - [Manual] Get Organization ID, API Keys via OpsManager App UI or Audit
+  - Deploy MongoDB Database Replica Set Cluster as Day 2 Action on Development Cluster (with Creds)
   - [Manual] Show MongoDB Custom Resource Instances via kubectl
   - [Manual] Show MongoDB Deployment of Statefulsets,Pods,PVCs via kubectl
   - [Manual] Show OpsManager UI Instances being Registered
@@ -193,38 +202,47 @@ Leverage MongoDB Enterprise Operator & Calm to Deploy MongoDB Instance and Auto-
 
 - Cheatsheet:
 
+1. Get Organization ID, API Keys via OpsManager App UI or Audit
+
 ```bash
-# MAKING API CALLS IF NEEDED
+# GET OPSMANAGER CREDS
 
 OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
+OM_BASE_URL="http://opsmanager.${OPSMANAGER_HOST}.nip.io:8080"
+
 OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
 OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
 
-## Get Organization ID if needed
-curl --user ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id'
+OPSMANAGER_ORG_ID=$(curl -u ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
 
-kubectl get mdb -n mongodb
+echo "OM_BASE_URL=${OPSMANAGER_HOST}"
+echo "OPSMANAGER_API_USER=${OPSMANAGER_API_USER}"
+echo "OPSMANAGER_API_KEY=${OPSMANAGER_API_KEY}"
+echo "OPSMANAGER_ORG_ID=${OPSMANAGER_ORG_ID}"
 ```
+
+1. Deploy MongoDB Database Standalone Instance as Day 2 Action
 
 > connecting to mongodb via mongosh externally via docker
 
 ```bash
-kubectl get svc mongodb-demo-standalone-svc-external ## get nodeport
+MONGO_INSTANCE=mongodb-stage-replicaset-00
+kubectl get svc $MONGO_INSTANCE-service-external -n $MONGO_INSTANCE ## get nodeport
 kubectl get nodes -o wide ## get internal-ip of one of the nodes
 
-docker run -it mongo:5.0 mongosh "mongodb://10.38.20.31:31148/?connectTimeoutMS=20000&serverSelectionTimeoutMS=20000"
+docker run -it mongo:5.0 mongosh "mongodb://10.38.12.38:30348/?connectTimeoutMS=20000&serverSelectionTimeoutMS=20000"
 ```
 
 > connecting to mongodb srv via kubectl
 
 ```bash
-MONGO_INSTANCE=mongodb-demo-replicaset-29978
-MONGO_CONNECTION_SRV=$(kubectl get secrets $MONGO_INSTANCE-$MONGO_INSTANCE-scram-user-1-admin -o jsonpath='{.data.connectionString\.standardSrv}' | base64 -d)
+MONGO_INSTANCE=mongodb-stage-replicaset-00
+MONGO_CONNECTION_SRV=$(kubectl get secrets mongodb-opsmanager-db-connection-string -n mongodb-enterprise -o jsonpath='{.data.connectionString\.standardSrv}' | base64 -d)
 echo $MONGO_CONNECTION_STD
 
 kubectl run -i -t --rm --image=mongo:5.0 mongosh-$RANDOM -- mongosh "$MONGO_CONNECTION_STD"
 
-kubectl exec -it mongodb-demo-replicaset-29978-0 /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-5.0.5/bin/mongo
+kubectl exec -it mongodb-stage-replicaset-00 /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-5.0.5/bin/mongo
 ```
 
 > insert basic data
@@ -270,11 +288,11 @@ You can upgrade the major, minor, and/or feature compatibility versions of your 
 ```bash
 
 ## setup monitoring
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE}"
 
 ## patch mongodb app enterprise version
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"version":"5.0.1-ent"}}'
 kubectl get mongodb $MONGO_INSTANCE -o yaml
 ```
@@ -324,11 +342,11 @@ Leverage MongoDB Operator and K8s Constructs to Set/Enforce Resource Quotas / Li
 
 ```bash
 ## setup monitoring
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE}"
 
 ## scale replicas by patching mongo instance
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 kubectl patch mongodb $MONGO_INSTANCE --type merge -p '{"spec":{"members":3}}'
 ```
 
@@ -364,7 +382,7 @@ kubectl describe nodes -l karbon-node-pool=mongodb | grep -i taint
 ```
 
 ```bash
-MONGO_INSTANCE=mongodb-demo-replicaset-24833
+MONGO_INSTANCE=mongodb-demo-replicaset
 
 cat <<EOF | kubectl apply -f -
 apiVersion: mongodb.com/v1
@@ -422,7 +440,7 @@ EOF
 
 ```bash
 
-MONGO_APP_LABEL=mongodb-demo-replicaset-31402-service
+MONGO_APP_LABEL=mongodb-demo-replicaset-service
 
   affinity:
     podAntiAffinity:
@@ -448,11 +466,11 @@ MONGO_APP_LABEL=mongodb-demo-replicaset-31402-service
 
 ```bash
 ## setup monitoring
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 watch -n 1 "kubectl get po,pvc -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb && echo && kubectl top nodes"
 
 ## expand data,journal and log pvc storage size
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 
 ## data from 10Gi to 1000Gi
 kubectl get pvc -l app=${MONGO_INSTANCE}-service -o name | grep data | xargs -I {} kubectl patch {} -p='{"spec": {"resources": {"requests": {"storage": "1000Gi"}}}}'
@@ -557,24 +575,24 @@ kubectl get sc
 
 ```bash
 ## Setup Monitoring
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 watch -n 1 "kubectl get po -l app=${MONGO_INSTANCE}-service -o wide && echo && kubectl get mongodb ${MONGO_INSTANCE} && kubectl get nodes"
 
 ## Find Node with Replicaset Member and CORDON.
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 NODE=`kubectl get pods -l app=${MONGO_INSTANCE}-service -o wide | grep -v NAME | awk '{print $7}' | head -n 1`
 echo $NODE
 kubectl cordon ${NODE}
 kubectl get nodes
 
 ## Delete POD that lives on Node that has been CORDONED.
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 POD=`kubectl get pods -l app=${MONGO_INSTANCE}-service -o wide | grep -v NAME | awk '{print $1}' | head -n 1`
 echo $POD
 kubectl delete pod ${POD}
 
 ## UNCORDON NODE
-MONGO_INSTANCE=mongodb-demo-replicaset-31402
+MONGO_INSTANCE=mongodb-demo-replicaset
 NODE=`kubectl get pods -l app=${MONGO_INSTANCE}-service -o wide | grep -v NAME | awk '{print $7}' | head -n 1`
 echo $NODE
 kubectl uncordon ${NODE}

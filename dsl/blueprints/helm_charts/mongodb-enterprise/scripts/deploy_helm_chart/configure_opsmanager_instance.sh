@@ -82,9 +82,9 @@ while [[ -z $(kubectl get pod -l app=mongodb-opsmanager-backup-daemon-svc -n ${N
   sleep 1
 done
 
-# additional workflow
-
 kubectl wait --for=condition=Ready pod -l app=mongodb-opsmanager-backup-daemon-svc --timeout=10m -n ${NAMESPACE}
+
+## PRINT OUT VARS
 
 echo "Navigate to http://${INSTANCE_NAME}.${NIPIO_INGRESS_DOMAIN}:8080 via browser to access OpsManager instance
 
@@ -94,18 +94,18 @@ The password can be found by running:
 
 kubectl get secret om-admin-secret -o jsonpath='{.data.Password}' | base64 -d && echo"
 
-TEMP_ADMIN_PASS=$(kubectl get secret om-admin-secret -o jsonpath='{.data.Password}' | base64 -d && echo)
+TEMP_ADMIN_PASS=$(kubectl get secret om-admin-secret -o jsonpath='{.data.Password}' -n ${NAMESPACE} | base64 -d && echo)
 
 echo "username: admin, password: ${TEMP_ADMIN_PASS}"
 
 
-echo "To Register New MongoDB Instance from external K8s environment, you can gather the OpsManager URL and API Keys by echo'ing out the variables on Overview tab"
+echo "To Register New MongoDB Instance from external K8s environment, you can gather the OpsManager URL and API Keys by printing out the variables on Overview tab"
 
-OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
+OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n ${NAMESPACE} -o jsonpath="{.status.loadBalancer.ingress[].ip}")
 OM_BASE_URL="http://opsmanager.${OPSMANAGER_HOST}.nip.io:8080"
 
-OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
-OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.publicKey}' | base64 -d)
+OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n ${NAMESPACE} -o jsonpath='{.data.privateKey}' | base64 -d)
 
 OPSMANAGER_ORG_ID=$(curl -u ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
 

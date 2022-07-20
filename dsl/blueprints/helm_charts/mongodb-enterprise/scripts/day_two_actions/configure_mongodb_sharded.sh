@@ -125,6 +125,7 @@ spec:
       name: $( echo $OM_PROJECT_NAME )-config
   credentials: organization-secret
   persistent: true
+  exposedExternally: true
   shardPodSpec:
     podTemplate:
       spec:
@@ -188,7 +189,7 @@ spec:
   username: $( echo $MONGODB_DEFAULT_SCRAM_USER )
   db: "admin"
   mongodbResourceRef:
-    name: $( echo $MONGODB_DEFAULT_SCRAM_USER )
+    name: $( echo $OM_PROJECT_NAME )
     # Match to MongoDB resource using authenticaiton
   roles:
   - db: "admin"
