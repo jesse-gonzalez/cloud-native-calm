@@ -1,12 +1,34 @@
 # MongoDB Clusters on Karbon Scenarios
 
-MongoDB is an open source document-oriented NoSQL database that stores data in flexible, JSON-like documents. MongoDB provides High Availability and redundancy through Replica sets and horizontal scalability through sharding.
-
-## Methods for Deploying MongoDB Clusters via Automation
-
 The walkthrough scenarios in this document focuses on Deploying MongoDB Clusters of various Types within the Nutanix Kubernetes Engine (NKE aka Karbon) using a combination of Nutanix Cloud Management (NCM aka Calm) and the MongoDB Operator.
 
-### Leverage Nutanix DBaaS (NDB aka ERA) UI to Deploy MongoDB Standalone or ReplicaSets on VMs
+## To Run or Not Run a Database on Kubernetes Considerations
+
+Below are snippets found in the following K8s best practice article - ["To run or not to run a database on Kubernetes: What to consider"](https://cloud.google.com/blog/products/databases/to-run-or-not-to-run-a-database-on-kubernetes-what-to-consider) that I found relevant to topic overall.
+
+`General Hosting Database Scenario Options:`
+
+- `Fully Managed Databases`: Consider leveraging DBaaS Solutions (i.e. Nutanix ERA) as a preferrred low-ops choice that handles the maintenance tasks, like backup, patching and scaling.
+- `Do-it-yourself on a VM`: You take full responsibility for building your database, scaling it, managing reliability, setting up backups and more...
+- `Run it on Kubernetes`: Running a database on Kubernetes is closer to the full-ops option, that said, it is important to remember that pods (the database application containers) are transient, so the likelihood of database application restarts or failovers is higher. Also, some of the more database-specific administrative tasks—backups, scaling, tuning, etc.—are different due to the added abstractions that come with containerization. 
+
+`Considerations when running databases on Kubernetes:`
+
+> Since pods are mortal, the likelihood of failover events is higher than a traditionally hosted or fully managed database. It will be easier to run a database on Kubernetes if it includes concepts like `sharding`, `failover elections` and `replication` built into its DNA (for example, `ElasticSearch`, `Cassandra`, or `MongoDB`)...
+
+`MongoDB` is an open source document-oriented NoSQL database that stores data in flexible, JSON-like documents. `MongoDB` is an ideal candidate as it provides `high availability` and `redundancy` through `Replica sets` and horizontal `scalability` through `sharding`.
+
+> Some open source projects provide custom resources and operators to help with managing the database... 
+
+For example, if `MySQL` is needed to run on Kubernetes, there is the `Oracle MySQL` Operator and alternatively the `Crunchy Data` or `Zalando` Operator could be leveraged for `PostgreSQL`.
+
+> Finally, be sure you understand the replication modes available in the database. Asynchronous modes of replication leave room for data loss, because transactions might be committed to the primary database but not to the secondary database(s). So, be sure to understand whether you might incur data loss, and how much of that is acceptable in the context of your application...
+
+After evaluating all of those considerations, you’ll end up with a decision tree looking something like this:
+
+![database-on-k8s-decision-tree](../../images/database-on-k8s-decision-tree.png)
+
+## Leverage Nutanix DBaaS (NDB aka ERA) UI to Deploy MongoDB Standalone or ReplicaSets on VMs
 
 ___
 
@@ -37,7 +59,7 @@ https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Era-User-Guid
 
 > IMPORTANT: Although all features required may not be immediately available - The KEY advantage to leveraging ERA over all solutions listed below is that it provides the above capabilities for MULTIPLE DB Platforms - e.g., MS SQL Server, Oracle (RAC), PostgreSQL, MySQL, MariaDB, SAP HANA AND MongoDB!!!
 
-### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB (All Scenarios) on VMs
+## Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB (All Scenarios) on VMs
 
 ___
 
@@ -63,7 +85,7 @@ By Leveraging `NCM/Calm`, you'll have the ability to provide end users the `Self
 - While many of the ERA limitations (documented above) can be mitigated via highly customized automation & orchestration available directly via Calm blueprints - the effort to handle all the full lifecycle of all use cases "end to end" - would be a relatively significant effort in comparison to leveraging either ERA or the MongoDB Enterprise Operator on Kubernetes.
   - i.e., Automation that is leveraged to incorporate needs for Persistent Storage, Data Protection, Provisioning, Upgrading, Scaling, Quiescing, Self-Healing, Registration/De-Registration with Opsmanager, Snapshot/Restore, User/Secrets Management, would need to be continuously managed/tested/validated for a myriad of use cases and backward compatability - effectively slowing down adoption of newer mongodb releases that provide feature enhancements that could improve overall customer satisfaction.
 
-### Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB on NKE
+## Leverage Nutanix Self-Service (Calm) UI to Deploy MongoDB on NKE
 
 ___
 
@@ -171,11 +193,11 @@ Leverage MongoDB Enterprise Operator & Calm to Deploy MongoDB Instance and Auto-
 # MAKING API CALLS IF NEEDED
 
 OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
-opsmanager_api_user=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
-opsmanager_api_key=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
+OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
 
 ## Get Organization ID if needed
-curl --user ${opsmanager_api_user}:${opsmanager_api_key} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id'
+curl --user ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id'
 
 kubectl get mdb -n mongodb
 ```
@@ -573,22 +595,22 @@ Leverage Calm to Deploy Karbon and MongoDB Cluster to Secondary Prism Central / 
 ## Get OpsManager vars
 OPSMANAGER_HOST=$(kubectl get svc mongodb-opsmanager-svc-ext -n mongodb-enterprise -o jsonpath="{.status.loadBalancer.ingress[].ip}")
 OM_BASE_URL="http://${OPSMANAGER_HOST}:8080"
-opsmanager_api_user=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
-opsmanager_api_key=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
-opsmanager_org_id=$(curl --user ${opsmanager_api_user}:${opsmanager_api_key} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
+OPSMANAGER_API_USER=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.publicKey}' | base64 -d)
+OPSMANAGER_API_KEY=$(kubectl get secrets mongodb-enterprise-mongodb-opsmanager-admin-key -n mongodb-enterprise -o jsonpath='{.data.privateKey}' | base64 -d)
+OPSMANAGER_ORG_ID=$(curl --user ${OPSMANAGER_API_USER}:${OPSMANAGER_API_KEY} --digest -s --request GET "${OPSMANAGER_HOST}:8080/api/public/v1.0/orgs?pretty=true" | jq -r '.results[].id')
 
 echo $OPSMANAGER_HOST
 echo $OM_BASE_URL
-echo $opsmanager_api_user
-echo $opsmanager_api_key
-echo $opsmanager_org_id
+echo $OPSMANAGER_API_USER
+echo $OPSMANAGER_API_KEY
+echo $OPSMANAGER_ORG_ID
 
 OM_PROJECT_NAME="mongodb-oplog-replicaset"
 
 ## Create the Oplog Store ReplicaSet
 kubectl -n mongodb-enterprise create secret generic organization-secret \
-  --from-literal="user=$opsmanager_api_user" \
-  --from-literal="publicApiKey=$opsmanager_api_key" \
+  --from-literal="user=$OPSMANAGER_API_USER" \
+  --from-literal="publicApiKey=$OPSMANAGER_API_KEY" \
   --dry-run=client -o yaml | kubectl apply -n mongodb-enterprise -f -
 
 ## Create the s3 creds 
@@ -607,7 +629,7 @@ metadata:
 data:
   baseUrl: $( echo $OM_BASE_URL )
   projectName: $( echo $OM_PROJECT_NAME )-project
-  orgId: $( echo $opsmanager_org_id )
+  orgId: $( echo $OPSMANAGER_ORG_ID )
 ---
 apiVersion: mongodb.com/v1
 kind: MongoDB
@@ -869,6 +891,6 @@ EOF
 - Deploy a MongoDB Sharded Cluster - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-sharded-cluster/ 
 - Observability of the MongoDB Kubernetes Operator in Production https://www.youtube.com/watch?v=JqpQPrJSgS8
 - Deploy a Resource to Use with Prometheus - https://www.mongodb.com/docs/kubernetes-operator/v1.16/tutorial/deploy-prometheus/#deploy-prometheus
-
-
+- Mapping to External Services - https://cloud.google.com/blog/products/gcp/kubernetes-best-practices-mapping-external-services
+- To https://cloud.google.com/blog/products/databases/to-run-or-not-to-run-a-database-on-kubernetes-what-to-consider
 - https://medium.com/locust-io-experiments/locust-io-experiments-running-in-docker-cae3c7f9386e

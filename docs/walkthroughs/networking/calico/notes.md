@@ -239,3 +239,61 @@ Same as 02-04 Node Configs listed above.
 ### 19 Calico Upgrade
 
 Karbon is running at 3.14.0, and upgrades are handled accordingly via Karbon automation.
+
+
+## Setup Calico BGP Peering
+
+https://github.com/osrg/gobgp/blob/master/docs/sources/cli-operations.md
+
+GoBGP is an open source Border Gateway Protocol (BGP) implementation designed from scratch for modern environment and implemented in a modern programming language, the Go Programming Language.
+
+https://osrg.github.io/gobgp/
+  - https://github.com/osrg/gobgp
+
+rr.conf
+```bash
+[global.config]
+  as = 64496
+  router-id = "192.0.2.1"
+
+[[dynamic-neighbors]]
+  [dynamic-neighbors.config]
+    prefix = "0.0.0.0/0"
+    peer-group = "k8s-group"
+
+[[peer-groups]]
+  [peer-groups.config]
+    peer-group-name = "k8s-group"
+    peer-as = 64496
+  [peer-groups.transport.config]
+    passive-mode = true
+  [peer-groups.route-reflector.config]
+    route-reflector-client = true
+    route-reflector-cluster-id = "192.0.2.1"
+  [[peer-groups.afi-safis]]
+    [peer-groups.afi-safis.config]
+      afi-safi-name = "ipv4-unicast"
+```
+
+```bash
+$ k get bgppeers gobgp-peer-updated -o yaml
+apiVersion: crd.projectcalico.org/v1
+kind: BGPPeer
+metadata:
+  name: gobgp-peer-updated
+spec:
+  asNumber: 64496
+  nodeSelector: all()
+  peerIP: 172.18.0.5
+```
+
+```bash
+$ k get bgpconfigurations.crd.projectcalico.org default -o yaml
+apiVersion: crd.projectcalico.org/v1
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  asNumber: 64496
+  nodeToNodeMeshEnabled: false
+```

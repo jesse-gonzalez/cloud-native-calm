@@ -27,3 +27,12 @@ Troubleshooting Kubernetes - https://learnk8s.io/a/a-visual-guide-on-troubleshoo
 Karbon Node Resource Recommendations - https://portal.nutanix.com/page/documents/details?targetId=Karbon-v2_2:kar-karbon-resource-usage-r.html
 
 ![Monitoring overhead for Karbon Components](karbon-overhead.png)
+
+
+## To Run or Not Run your DB on K8s
+
+https://cloud.google.com/blog/products/databases/to-run-or-not-to-run-a-database-on-kubernetes-what-to-consider
+
+## Mapping External Services
+
+https://cloud.google.com/blog/products/gcp/kubernetes-best-practices-mapping-external-services
