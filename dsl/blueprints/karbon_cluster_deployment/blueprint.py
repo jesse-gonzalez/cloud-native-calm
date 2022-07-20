@@ -219,7 +219,7 @@ class DeveloperWorkstation(Service):
         )
         CalmTask.Exec.escript(
             name="Add Karbon_AutoScaler Category to Worker Nodes",
-            filename="scripts/common/add_autoscaler_category_to_workers.py",
+            filename="scripts/common/add_category_to_workers.py",
         )
         CalmTask.Exec.ssh(
             name="Configure CoreDNS with External DNS Resolver",
@@ -450,7 +450,7 @@ class DeveloperWorkstation(Service):
         )
         CalmTask.Exec.escript(
             name="Add Karbon_AutoScaler Category to Worker Nodes",
-            filename="scripts/common/add_autoscaler_category_to_workers.py",
+            filename="scripts/common/add_category_to_workers.py",
         )
 
     @action

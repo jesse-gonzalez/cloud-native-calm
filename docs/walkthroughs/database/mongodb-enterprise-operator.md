@@ -159,14 +159,18 @@ By Leveraging the `MongoDB Enterprise Operator`, you'll have the ability to:
 Leverage Calm and Karbon to Deploy MongoDB OpsManager Cluster
 
 - Demo:
-  - Deploy Karbon Production Cluster (Prior to Demo)
-  - As DBA, Deploy Karbon Development Cluster from Marketplace
-  - As DBA, Deploy MongoDB Enterprise Operator via Helm from Marketplace
+  - Deploy Karbon Production Cluster via Self-Service Marketplace
+  - As DBA, Deploy MongoDB Enterprise Operator to Karbon Production from Marketplace
   - As DBA, Deploy MongoDB OpsManager Cluster as Day 2 Action
   - [Manual] Login to MongoDB OpsManager UI and Show Initial OpsManager Cluster
-  - [Manual] Show OpsManger Custom Resource YAML
+  - As Developer/Consumer, Deploy Karbon Development Cluster from Marketplace
+  - As Developer/Consumer, Deploy MongoDB Enterprise Operator to Karbon Development from Marketplace
 
 - Cheatsheet:
+
+- Login with Adminuser01@ntnxlab.local [Database-Admin]
+- Deploy Karbon Cluster (kalm-develop-5-2)
+- Login with Consumer01@ntnxlab.local [Self-Service-User]
 
 ```bash
 kubectl get om -o yaml -w

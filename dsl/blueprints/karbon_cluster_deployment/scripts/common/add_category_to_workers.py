@@ -5,9 +5,9 @@ worker_config_node_pool_name = "@@{worker_config_node_pool_name}@@"
 autoscaler_enabled = "@@{autoscaler_enabled}@@"
 
 # exit out if autoscaler_enabled not true.
-if autoscaler_enabled == "false":
-  print "Skipping task to enable Karbon_Autoscaler category - autoscaler_enabled is set to false"
-  exit(0)
+# if autoscaler_enabled == "false":
+#   print "Skipping task to enable Karbon_Autoscaler category - autoscaler_enabled is set to false"
+#   exit(0)
 
 def process_request(url, method, user, password, headers, payload=None):
   r = urlreq(url, verb=method, auth="BASIC", user=user, passwd=password, params=payload, verify=False, headers=headers)
@@ -46,8 +46,8 @@ for vm in vm_list_json['entities']:
 
       # remove status section and add categories section prior to PUT
       del vm_json['status']
-      vm_json['metadata']['categories']['Karbon_AutoScaler'] = "Enabled"
-      vm_json['metadata']['categories']['Karbon_CoolDown'] = "Enabled"
+      vm_json['metadata']['categories']['AppFamily'] = "KubernetesDistro"
+      vm_json['metadata']['categories']['AppFamily'] = "K8s_Workers"
 
       #print "Categories: " + json.dumps(vm_json['metadata']['categories'])
       #print "VM JSON: " + json.dumps(vm_json)

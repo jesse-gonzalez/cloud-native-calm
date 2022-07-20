@@ -19,4 +19,4 @@ cluster_list = []
 for cluster in r.json():
     cluster_list.append(cluster['name'])
 
-print ', '.join(cluster_list),
+print ','.join(cluster_list),

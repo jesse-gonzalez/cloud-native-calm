@@ -262,7 +262,7 @@ class Default(Profile):
         os.getenv("WILDCARD_INGRESS_DNS_FQDN"),
         label="Wildcard Ingress Domain",
         is_mandatory=True,
-        is_hidden=False,
+        is_hidden=True,
         runtime=True,
         description="Wildcard Ingress Domain for Applications, must be unique per Karbon cluster - i.e., dev.karbon-infra.drm-poc.local",
     )
