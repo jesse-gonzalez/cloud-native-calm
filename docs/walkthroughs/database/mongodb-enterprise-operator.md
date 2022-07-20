@@ -492,9 +492,10 @@ kubectl rollout restart sts ${MONGO_INSTANCE}
 - Create LVM Enabled Storage Class in Karbon Cluster
 
 ```bash
-
+## Get Secret
 NTNX_DYNAMIC_SECRET=$(kubectl get secrets -n kube-system -o name | grep ntnx-secret | cut -d/ -f2)
 
+## Configure LVM Storage Class
 cat <<EOF | kubectl apply -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -536,6 +537,8 @@ kubectl get sc
 https://portal.nutanix.com/page/documents/details?targetId=CSI-Volume-Driver-v2_5:csi-csi-plugin-manage-dynamic-nfs-t.html
 
 ```bash
+## Get Secret
+NTNX_DYNAMIC_SECRET=$(kubectl get secrets -n kube-system -o name | grep ntnx-secret | cut -d/ -f2)
 
 ## set nfs server name - this is case sensitive
 NFS_SERVER_NAME="BootcampFS"
