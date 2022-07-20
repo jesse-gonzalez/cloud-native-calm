@@ -77,8 +77,8 @@ DockerHubCred = basic_cred(
 
 BastionHostEndpoint = os.getenv("BASTION_WS_ENDPOINT")
 
-class DeveloperWorkstation(Service):
-    name = "Developer Workstation"
+class KarbonCluster(Service):
+    name = "Karbon Cluster Service"
 
     karbon_cluster_uuid = CalmVariable.Simple(
         "",
@@ -185,31 +185,31 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Create Karbon JSON Config",
             filename="scripts/create_k8s_cluster/create_karbon_cluster_json_config.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
         CalmTask.Exec.ssh(
             name="Create Karbon K8s Cluster",
             filename= "scripts/create_k8s_cluster/create_karbon_k8s_cluster.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
         CalmTask.Exec.ssh(
             name="Monitor Karbon K8s Cluster Creation",
             filename= "scripts/create_k8s_cluster/monitor_karbon_cluster_build.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
         CalmTask.Exec.ssh(
             name="Check Build State",
             filename= "scripts/create_k8s_cluster/check_karbon_cluster_build_state.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
         CalmTask.Exec.ssh(
             name="Configure Multi Cluster Kubectl",
             filename= "../../_common/karbon/scripts/configure_kubectl_multi-cluster.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
         CalmTask.SetVariable.escript(
@@ -224,7 +224,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Configure CoreDNS with External DNS Resolver",
             filename="../../_common/karbon/scripts/configure_coredns_ext_dns.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -234,7 +234,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Install Kyverno to Synchronize Image Pull Secrets",
             filename="scripts/create_k8s_cluster/install_kyverno.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -244,13 +244,13 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Install MetalLB Kubernetes Manifests",
             filename="scripts/create_k8s_cluster/install_metallb.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
         # CalmTask.Exec.ssh(
         #     name="Apply Config Map",
         #     filename="scripts/create_k8s_cluster/metallb_apply_config_map.sh",
-        #     target=ref(DeveloperWorkstation),
+        #     target=ref(KarbonCluster),
         #     cred=NutanixCred
         # )
 
@@ -260,7 +260,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Install Metrics Server",
             filename="scripts/create_k8s_cluster/install_metrics_server.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -270,7 +270,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Kubernetes Dashboard Installation",
             filename="scripts/create_k8s_cluster/install_k8s_dashboard.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -280,7 +280,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Install Certificate Manager Helm Chart",
             filename="scripts/create_k8s_cluster/install_cert_manager.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -290,7 +290,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Install Ingress Nginx Helm Chart",
             filename="scripts/create_k8s_cluster/install_ingress_nginx.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -299,7 +299,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Configure K8s Service Account",
             filename="../../_common/k8s/scripts/configure-sa-kubeconfig.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -308,7 +308,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Configure Nutanix Files Storage Classes",
             filename="../../_common/karbon/scripts/configure_files_sc.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -317,7 +317,7 @@ class DeveloperWorkstation(Service):
         CalmTask.Exec.ssh(
             name="Karbon Cluster Delete",
             filename="scripts/create_k8s_cluster/delete_karbon_cluster.sh",
-            target=ref(DeveloperWorkstation),
+            target=ref(KarbonCluster),
             cred=NutanixCred
         )
 
@@ -326,7 +326,7 @@ class DeveloperWorkstation(Service):
     #     CalmTask.SetVariable.escript(
     #         name="Get Karbon Cluster UUID",
     #         filename="scripts/create_k8s_cluster/get_karbon_cluster_uuid.py",
-    #         target=ref(DeveloperWorkstation),
+    #         target=ref(KarbonCluster),
     #         variables=["karbon_cluster_uuid"]
     #     )
     #     CalmTask.HTTP.post(
@@ -511,31 +511,31 @@ class DeveloperWorkstation(Service):
     #         cred=NutanixCred
     #     )
 
-class DeveloperWorkstationPackage(Package):
+class KarbonClusterPackage(Package):
     name = "Developer Workstation Package"
 
-    services = [ref(DeveloperWorkstation)]
+    services = [ref(KarbonCluster)]
 
     @action
     def __install__():
-        DeveloperWorkstation.CreateKarbonCluster(name="Create Karbon Cluster")
-        #DeveloperWorkstation.CreateProject(name="Create Project")
-        DeveloperWorkstation.InstallKyverno(name="Install Kyverno")
-        DeveloperWorkstation.InstallMetalLB(name="Install MetalLB")
-        DeveloperWorkstation.InstallMetricsServer(name="Install Metrics Server")
-        DeveloperWorkstation.InstallKubernetesDashboard(name="Install Kubernetes Dashboard")
-        DeveloperWorkstation.InstallCertManager(name="Install Certificate Manager")
-        DeveloperWorkstation.InstallIngressNginx(name="Install Ingress Nginx")
-        DeveloperWorkstation.ConfigureK8sServiceAccount(name="Configure K8s Service Account")
-        DeveloperWorkstation.ConfigureDynamicNFS(name="Configure Nutanix Files Dynamic Provisioner")
+        KarbonCluster.CreateKarbonCluster(name="Create Karbon Cluster")
+        #KarbonCluster.CreateProject(name="Create Project")
+        KarbonCluster.InstallKyverno(name="Install Kyverno")
+        KarbonCluster.InstallMetalLB(name="Install MetalLB")
+        KarbonCluster.InstallMetricsServer(name="Install Metrics Server")
+        KarbonCluster.InstallKubernetesDashboard(name="Install Kubernetes Dashboard")
+        KarbonCluster.InstallCertManager(name="Install Certificate Manager")
+        KarbonCluster.InstallIngressNginx(name="Install Ingress Nginx")
+        KarbonCluster.ConfigureK8sServiceAccount(name="Configure K8s Service Account")
+        KarbonCluster.ConfigureDynamicNFS(name="Configure Nutanix Files Dynamic Provisioner")
 
     @action
     def __uninstall__():
-        #DeveloperWorkstation.DeleteProject(name="Delete Project")
-        DeveloperWorkstation.DeleteKarbonCluster(name="Delete Karbon Cluster")
+        #KarbonCluster.DeleteProject(name="Delete Project")
+        KarbonCluster.DeleteKarbonCluster(name="Delete Karbon Cluster")
 
 
-class DeveloperWorkstationVM(Substrate):
+class KarbonClusterVM(Substrate):
 
     name = "Developer Workstation VM"
 
@@ -555,13 +555,13 @@ class DeveloperWorkstationVM(Substrate):
         credential=ref(NutanixCred),
     )
 
-class DeveloperWorkstationDeployment(Deployment):
+class KarbonClusterDeployment(Deployment):
     """
-    DeveloperWorkstation deployment
+    KarbonCluster deployment
     """
 
-    packages = [ref(DeveloperWorkstationPackage)]
-    substrate = ref(DeveloperWorkstationVM)
+    packages = [ref(KarbonClusterPackage)]
+    substrate = ref(KarbonClusterVM)
     min_replicas = "1"
     max_replicas = "10"
 
@@ -572,7 +572,7 @@ class Default(Profile):
     """
 
     deployments = [
-            DeveloperWorkstationDeployment
+            KarbonClusterDeployment
             ]
     nutanix_public_key = CalmVariable.Simple.Secret(
         NutanixPublicKey,
@@ -782,7 +782,7 @@ class Default(Profile):
             description="Number of Karbon worker nodes to add.",
         )
 
-        DeveloperWorkstation.AddWorkers(name="Add Workers")
+        KarbonCluster.AddWorkers(name="Add Workers")
 
     @action
     def RemoveWorkers(name="Remove Workers"):
@@ -798,7 +798,7 @@ class Default(Profile):
             description="Number of Karbon worker nodes to remove.",
         )
 
-        DeveloperWorkstation.RemoveWorkers(name="Remove Workers")
+        KarbonCluster.RemoveWorkers(name="Remove Workers")
 
     @action
     def UpgradeKubernetes(name="Upgrade Kubernetes Version"):
@@ -816,7 +816,7 @@ class Default(Profile):
             description="Select Compatible K8s Versions of Karbon Cluster.",
         )
 
-        DeveloperWorkstation.UpgradeKubernetes(name="Upgrade Kubernetes Version")
+        KarbonCluster.UpgradeKubernetes(name="Upgrade Kubernetes Version")
 
     # @action
     # def InitAutoscalerStressSim(name="Init AutoScaler Stress Sim"):
@@ -824,7 +824,7 @@ class Default(Profile):
     # Init AutoScaler Stress Sim
     #     """
 
-    #     DeveloperWorkstation.InitAutoscalerStressSim(name="Init AutoScaler Stress Sim")
+    #     KarbonCluster.InitAutoscalerStressSim(name="Init AutoScaler Stress Sim")
 
 
     # @action
@@ -833,7 +833,7 @@ class Default(Profile):
     # Cleanup AutoScaler Stress Sim
     #     """
 
-    #     DeveloperWorkstation.CleanupAutoscalerStressSim(name="Cleanup CPU Hog AutoScaler Sim")
+    #     KarbonCluster.CleanupAutoscalerStressSim(name="Cleanup CPU Hog AutoScaler Sim")
 
 class KarbonClusterDeploy(Blueprint):
     """
@@ -842,13 +842,13 @@ class KarbonClusterDeploy(Blueprint):
 
     profiles = [Default]
     substrates = [
-            DeveloperWorkstationVM
+            KarbonClusterVM
             ]
     services = [
-            DeveloperWorkstation
+            KarbonCluster
             ]
     packages = [
-            DeveloperWorkstationPackage
+            KarbonClusterPackage
             ]
     credentials = [
             NutanixCred,
